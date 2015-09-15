@@ -37,7 +37,9 @@ env:
     - secure: "TesD/DQr5Q0N4dGTgFLYrbVZCJ1/xvxXSfAsNqVTAWn1kG7NBZEVLvB2nfxQRc7f+ata+RNetuk+OV0+mmofgLcN2h6qGDBfPsh/Bk2zi7k1VBIjAoT7uEFB5LSyOQ/fFjAErRFtzgteq1QKlJL+RtJcSs5KyhwBR/fmDi6Zyvw="
     - OBS_HOME=security
     - OBS_PROJECT=Zorp
-    - OBS_SUBPROJECT=5.0
+    - OBS_MAJOR_VERSION=6
+    - OBS_MINOR_VERSION=0
+    - OBS_MAINTENANCE_VERSION=7
     - OBS_PACKAGE=zorp
     - TEST_OS=Ubuntu
     - TEST_OS_VERSION=12.04
