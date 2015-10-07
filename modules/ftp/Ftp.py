@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,15 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
-##
-## Author  : sasa
-## Auditor :
-## Last audited version:
-## Notes:
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -103,16 +97,16 @@ QUIT
       </example>
     </section>
   </section>
-  <section id="ftp_proxy_behavior">
+  <section xml:id="ftp_proxy_behavior">
     <title>Proxy behavior</title>
       <para>
         FtpProxy is a module built for parsing commands of the Control Channel in the FTP protocol. It reads the REQUEST at the client side, parses it and - if the local security policy permits - sends it to the server.
-        The proxy parses the arriving RESPONSES and sends them to the client if the policy permits that. FtpProxy uses a PlugProxy to transfer the data arriving in the Data Channel. The proxy is capable of manipulating commands and stacking further proxies (e.g.: <link linkend="python.Mime.MimeProxy">MimeProxy</link>) into the Data Channel. Both transparent and non-transparent modes are supported.
+        The proxy parses the arriving RESPONSES and sends them to the client if the policy permits that. FtpProxy uses a PlugProxy to transfer the data arriving in the Data Channel. The proxy is capable of manipulating commands and stacking further proxies <phrase condition="zorp">(for example, <link linkend="python.Mime.MimeProxy">MimeProxy</link>)</phrase> into the Data Channel. Both transparent and non-transparent modes are supported.
       </para>
       <para>
         The default low-level proxy implementation (AbstractFtpProxy) denies all requests by default. Different commands and/or responses can be enabled by using one of the several predefined proxy classes which are suitable for most tasks. Alternatively, use of the commands can be permitted individually using different attributes. This is detailed in the following two sections.
       </para>
-      <section id="ftp_commands">
+      <section xml:id="ftp_commands">
         <title>Configuring policies for FTP commands and responses</title>
           <para>
             Changing the default behavior of commands can be done by
@@ -137,14 +131,14 @@ QUIT
                 return FTP_REQ_REJECT</synopsis>
           </example>
       </section>
-      <section id="ftp_features">
+      <section xml:id="ftp_features">
         <title>Configuring policies for FTP features and FTPS support</title>
           <para>
             FTP servers send the list of supported features to the clients. For example, proftpd supports the following features: <parameter>LANG en, MDTM, UTF8, AUTH TLS, PBSZ, PROT, REST STREAM, SIZE</parameter>. Zorp can change the default behavior of Ftp features using the hash attribute <parameter>features</parameter>, indexed by the name of the feature (e.g.: UTF8 or AUTH TLS).
              The possible actions are shown in the table below. See <xref linkend="proxy_policies"/> for details.</para>
              <para>The built-in Ftp proxies of Zorp permit the use of every feature by default.</para>
              <inline type="actiontuple" target="action.ftp.feat"/>
-            <section id="configuring-ftps">
+            <section xml:id="configuring-ftps">
             <title>Enabling FTPS connections</title>
                 <para>For FTPS connections to operate correctly, the FTP server and client applications must comply to the <emphasis>FTP Security Extensions (RFC 2228)</emphasis> and <emphasis>Securing FTP with TLS (RFC 4217)</emphasis> RFCs.</para>
                 <para>For FTPS connections, the <parameter>AUTH TLS, PBSZ, PROT</parameter> features must be accepted. Also, STARTTLS support must be properly configured. See <xref linkend="configuring-ssl"/> for details.</para>
@@ -166,26 +160,36 @@ QUIT
                         </listitem>
                     </itemizedlist>
                 </note>
-                <example id="example_ftps">
+                <example xml:id="example_ftps">
                     <title>Configuring FTPS support</title>
                     <para>This example is a standard FtpProxy with FTPS support enabled.</para>
-                   <synopsis>class FtpsProxy(FtpProxy):
-        def config(self):
-                self.ssl.client_connection_security = SSL_ACCEPT_STARTTLS
-                self.ssl.server_connection_security = SSL_FORWARD_STARTTLS</synopsis>
+                    <synopsis>class FtpsProxy(FtpProxy):
+    def config(self):
+        FtpProxy.config(self)
+        self.max_password_length=64
+
+    EncryptionPolicy(name="ForwardSTARTTLS", encryption=ForwardStartTLSEncryption(client_verify=ClientCertificateVerifier(), client_ssl_options=ClientSSLOptions(), server_verify=ServerCertificateVerifier(), server_ssl_options=ServerSSLOptions(), client_certificate_generator=DynamicCertificate(private_key=PrivateKey.fromFile(key_file_path="/etc/key.d/ZMS_Engine/key.pem"), trusted_ca=Certificate.fromFile(certificate_file_path="/etc/ca.d/certs/my-trusted-ca-cert.pem", private_key=PrivateKey.fromFile("/etc/ca.d/keys/my-trusted-ca-cert.pem")), untrusted_ca=Certificate.fromFile(certificate_file_path="/etc/ca.d/certs/my-untrusted-ca-cert.pem", private_key=PrivateKey.fromFile("/etc/ca.d/keys/my-untrusted-ca-cert.pem")))))
+
+    def demo() :
+        Service(name='demo/MyFTPSService', router=TransparentRouter(), chainer=ConnectChainer(), proxy_class=FtpsProxy, max_instances=0, max_sessions=0, keepalive=Z_KEEPALIVE_NONE, encryption_policy="ForwardSTARTTLS")
+
+    Rule(rule_id=2,
+    proto=6,
+    service='demo/MyFTPSService'
+    )</synopsis>
                 </example>
             </section>
       </section>
-      <section id="ftp_stacking">
+      <section xml:id="ftp_stacking">
       <title>Stacking</title>
       <para>
       The available stacking modes for this proxy module are listed in the following table. For additional information on stacking, see <xref linkend="proxy_stacking"/>.
       </para>
       <inline type="actiontuple" target="action.ftp.stk"/>
       </section>
-      <section id="ftp_inband_authentication">
+      <section xml:id="ftp_inband_authentication">
           <title>Configuring inband authentication</title>
-          <para>Starting with Zorp 3.3FR1, the Ftp proxy supports <link linkend="python.Auth.InbandAuthentication">inband authentication</link> as well to use the built-in authentication method of the FTP and FTPS protocols to authenticate the client. The authentication itself is performed by the ZAS backend configured for the service.</para>
+          <para>The Ftp proxy supports <link linkend="python.Auth.InbandAuthentication">inband authentication</link> as well to use the built-in authentication method of the FTP and FTPS protocols to authenticate the client. The authentication itself is performed by the ZAS backend configured for the service.</para>
           <para>If the client uses different usernames on ZAS and the remote server (e.g., he uses his own username to authenticate to ZAS, but anonymous on the target FTP server), the client must specify the usernames and passwords in the following format:</para>
           <para>Username:</para>
           <synopsis>&lt;ftp user&gt;@&lt;proxy user&gt;@&lt;remote site&gt;[:&lt;port&gt;]</synopsis>
@@ -201,7 +205,7 @@ QUIT
                 </warning>
       </section>
   </section>
-  <section id="ftp_standards">
+  <section xml:id="ftp_standards">
     <title>Related standards</title>
       <para>
         <itemizedlist>
@@ -392,7 +396,6 @@ from Zorp import *
 from Plug import PlugProxy
 from Proxy import Proxy, proxyLog
 from SockAddr import SockAddrInet, SockAddrInetRange
-from Session import StackedSession
 from Stream import Stream
 
 FTP_DATA_KEEP    = 0
@@ -1099,6 +1102,58 @@ class AbstractFtpProxy(Proxy):
           </runtime>
           <description>
             Hash containing the filtering policy for FTP features.
+          </description>
+        </attribute>
+        <attribute maturity="stable">
+          <name>auth_tls_ok_client</name>
+          <type>
+            <boolean/>
+          </type>
+          <default>""</default>
+          <runtime>
+            <read/>
+          </runtime>
+          <description>
+            Shows whether the client-side authentication was performed over a secure channel.
+          </description>
+        </attribute>
+        <attribute maturity="stable">
+          <name>auth_tls_ok_server</name>
+          <type>
+            <boolean/>
+          </type>
+          <default>""</default>
+          <runtime>
+            <read/>
+          </runtime>
+          <description>
+            Shows whether the server-side authentication was performed over a secure channel.
+          </description>
+        </attribute>
+        <attribute maturity="stable">
+          <name>data_protection_enabled_client</name>
+          <type>
+            <boolean/>
+          </type>
+          <default>""</default>
+          <runtime>
+            <read/>
+          </runtime>
+          <description>
+            Shows whether the data channel is encrypted or not on the client-side.
+          </description>
+        </attribute>
+        <attribute maturity="stable">
+          <name>data_protection_enabled_server</name>
+          <type>
+            <boolean/>
+          </type>
+          <default>""</default>
+          <runtime>
+            <read/>
+          </runtime>
+          <description>
+            Shows whether the data channel is encrypted or not on the server-side.
           </description>
         </attribute>
       </attributes></metainfo>

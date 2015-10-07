@@ -1,3 +1,23 @@
+/***************************************************************************
+ *
+ * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ ***************************************************************************/
+
 #ifndef ZORP_PROXY_TRANSFER2_H_INCLUDED
 #define ZORP_PROXY_TRANSFER2_H_INCLUDED
 
@@ -95,7 +115,7 @@ struct _ZTransfer2
    * But after stacking an iface callback might be called and
    * it would be causing some problem.
    */
-  GMutex *startup_lock;
+  GMutex startup_lock;
 };
 
 typedef struct _ZTransfer2Funcs
@@ -121,7 +141,7 @@ void z_transfer2_enable_progress(ZTransfer2 *elf, glong progress_interval);
 gboolean z_transfer2_simple_run(ZTransfer2 *self);
 
 ZTransfer2 *
-z_transfer2_new(ZClass *class,
+z_transfer2_new(ZClass *class_,
                 ZProxy *owner, ZPoll *poll,
                 ZStream *source, ZStream *dest,
                 gsize buffer_size,

@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,10 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -111,6 +110,7 @@ class Listener(Dispatcher):
       </metainfo>
     </class>
     """
+    deprecated_warning = True
     def __init__(self, bindto, service, **kw):
         """
         <method maturity="stable">
@@ -183,6 +183,10 @@ class Listener(Dispatcher):
           </metainfo>
         </method>
         """
+        if (Listener.deprecated_warning):
+
+            Listener.deprecated_warning = False
+            log(None, CORE_DEBUG, 3, "Use of Listener class is deprecated, Dispatcher should be used instead.")
 
         super(Listener, self).__init__(convertSockAddrToDB(bindto, ZD_PROTO_TCP), service, **kw)
 
@@ -203,6 +207,7 @@ class ZoneListener(ZoneDispatcher):
       </metainfo>
     </class>
     """
+    deprecated_warning = True
     def __init__(self, bindto, services, **kw):
         """
         <method maturity="stable">
@@ -292,6 +297,11 @@ class ZoneListener(ZoneDispatcher):
           </metainfo>
         </method>
         """
+        if (ZoneListener.deprecated_warning):
+
+            ZoneListener.deprecated_warning = False
+            log(None, CORE_DEBUG, 3, "Use of ZoneListener class is deprecated, Dispatcher should be used instead.")
+
         super(ZoneListener, self).__init__(convertSockAddrToDB(bindto, ZD_PROTO_TCP), services, **kw)
 
 class CSZoneListener(CSZoneDispatcher):
@@ -322,6 +332,7 @@ class CSZoneListener(CSZoneDispatcher):
     </class>
     """
 
+    deprecated_warning = True
     def __init__(self, bindto, services, **kw):
         """
         <method maturity="stable">
@@ -415,4 +426,9 @@ class CSZoneListener(CSZoneDispatcher):
           </metainfo>
         </method>
         """
+        if (CSZoneListener.deprecated_warning):
+
+            CSZoneListener.deprecated_warning = False
+            log(None, CORE_DEBUG, 3, "Use of CSZoneListener class is deprecated, Dispatcher should be used instead.")
+
         super(CSZoneListener, self).__init__(convertSockAddrToDB(bindto, ZD_PROTO_TCP), services, **kw)

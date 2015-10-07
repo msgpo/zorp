@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,10 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -65,7 +64,7 @@
           child of <parameter>Zone_A</parameter>, or if a service definition explicitly permits
             <parameter>Zone_B</parameter> to use HTTP.</para>
       </example>
-     <example id="inetzone_example">
+     <example xml:id="inetzone_example">
      <title>Zone examples</title>
      <para>The following example defines a simple zone hierarchy. The following
      zones are defined:</para>
@@ -100,7 +99,7 @@ Zone('DMZ', ['10.50.0.0/32'])</synopsis>
 </module>
 """
 
-from Zorp import *
+from Base import BaseZone
 from Subnet import Subnet, InetSubnet, Inet6Subnet
 from socket import htonl, ntohl
 from traceback import print_exc
@@ -109,9 +108,7 @@ import types
 import radix
 import struct
 
-import kzorp.kzorp_netlink
-
-class Zone(object):
+class Zone(BaseZone):
     """
           <class maturity="stable">
             <summary>
@@ -139,8 +136,9 @@ class Zone(object):
           </class>
     """
     zone_subnet_tree = radix.Radix()
-    zones = {}
-    def __init__(self, name, addrs=(), admin_parent=None, inbound_services=None, outbound_services=None):
+    has_dynamic_subnet = False
+
+    def __init__(self, name, addrs=(), hostnames=(), admin_parent=None, inbound_services=None, outbound_services=None):
         """
                     <method maturity="stable">
                       <summary>
@@ -168,6 +166,15 @@ class Zone(object):
                             </description>
                           </argument>
                           <argument maturity="stable">
+                            <name>hostnames</name>
+                            <type><list><string/></list></type>
+                            <description>
+                              A string representing a domain name, the addresses of its
+                              A and AAAA records are placed into the zone hierarchy
+                              *or* a list of domain names representing multiple domain names
+                            </description>
+                          </argument>
+                          <argument maturity="stable">
                             <name>admin_parent</name>
                             <type><string/></type>
                             <description>Name of the administrative parent zone. If set, the current zone
@@ -178,86 +185,45 @@ class Zone(object):
                       </metainfo>
                     </method>
         """
-
         if (inbound_services or outbound_services) is not None:
             raise Exception, "Inbound and outbound services are not supported as of Zorp 3.5"
 
-        self.name = name
-        self.admin_children = []
-
-        if admin_parent is not None:
-            self.admin_parent = self.zones[admin_parent]
-        else:
-            self.admin_parent = None
-
-        self.zones[name] = self
-
-        if isinstance(addrs, basestring):
-            addrs = (addrs, )
-
-        self.subnets = map(Subnet.create, addrs)
+        super(Zone, self).__init__(name, addrs, hostnames, admin_parent)
 
         zone = reduce(lambda res, subnet: res or self.zone_subnet_tree.search_exact(packed=subnet.addr_packed()), self.subnets, None)
-        if zone is not None:
+        if zone:
             raise ZoneException, "Zone with duplicate IP range; zone=%s" % zone.data["zone"]
-
         for subnet in self.subnets:
             self.zone_subnet_tree.add(packed=subnet.addr_packed(), masklen=subnet.netmask_bits()).data["zone"] = self
-
-    def __str__(self):
-        """
-        <method internal="yes"/>
-        """
-        return "Zone(%s)" % self.name
-
-    def getName(self):
-        """
-        <method internal="yes"/>
-        """
-        return self.name
-
-    def buildKZorpMessage(self):
-        """
-        <method internal="yes"/>
-        """
-        messages = []
-
-        parent_name = None
-        if self.admin_parent:
-            parent_name = self.admin_parent.name
-
-        # Zones with at most one subnet are serialized as is
-        if len(self.subnets) == 0:
-            messages.append(kzorp.kzorp_netlink.KZorpAddZoneMessage(self.name, uname=self.name, pname=parent_name))
-        elif len(self.subnets) == 1:
-            messages.append(kzorp.kzorp_netlink.KZorpAddZoneMessage(self.name,
-                                                                 self.subnets[0].get_family(),
-                                                                 self.subnets[0].addr_packed(),
-                                                                 self.subnets[0].netmask_packed(),
-                                                                 uname=self.name, pname=parent_name))
-        else:
-            # Zones with more than one subnet are exploded: first we send
-            # the actual zone without any subnet addresses, then generate a
-            # sub-zone for each subnet
-            messages.append(kzorp.kzorp_netlink.KZorpAddZoneMessage(self.name, uname=self.name, pname=parent_name))
-
-            # We send 'subzones' whose parents are the actual zones, and each
-            # contains only one subnet of the zone.
-            for index, subnet in enumerate(self.subnets):
-                messages.append(kzorp.kzorp_netlink.KZorpAddZoneMessage(self.name,
-                                                                     subnet.get_family(),
-                                                                     subnet.addr_packed(),
-                                                                     subnet.netmask_packed(),
-                                                                     uname="%s-#%u" % (self.name, index + 1),
-                                                                     pname=self.name))
-
-        return messages
+        if hostnames:
+            Zone.has_dynamic_subnet = True
 
     @staticmethod
-    def lookup(addr):
-        """
-        <method internal="yes"/>
-        """
+    def __lookupFromKZorp(addr):
+        from kzorp.communication import Adapter
+        from kzorp.netlink import NetlinkException
+        from kzorp.messages import KZorpLookupZoneMessage
+        import socket
+
+        family = addr.family
+        addr_str = addr.ip_s
+        try:
+            with Adapter() as adapter:
+                add_zone_message = adapter.send_message(KZorpLookupZoneMessage(family, socket.inet_pton(family, addr.ip_s)))
+                return Zone.lookupByName(add_zone_message.name)
+        except NetlinkException as e:
+            return None
+
+    @staticmethod
+    def __lookupFromZone(addr):
+        rnode = Zone.zone_subnet_tree.search_best(packed = addr)
+        if rnode:
+            return rnode.data["zone"]
+        else:
+            return None
+
+    @staticmethod
+    def __createPackedAddr(addr):
         if isinstance(addr, InetSubnet):
             addr_packed = addr.addr_packed()
         elif isinstance(addr, Inet6Subnet):
@@ -265,14 +231,42 @@ class Zone(object):
         else:
             addr_packed = addr.pack()
 
-        rnode = Zone.zone_subnet_tree.search_best(packed = addr_packed)
+        return addr_packed
+
+    @staticmethod
+    def lookup(addr):
+        """
+        <method internal="yes"/>
+        """
+
+        addr_packed = Zone.__createPackedAddr(addr)
+        if Zone.has_dynamic_subnet:
+            return Zone.__lookupFromKZorp(addr)
+        else:
+            return Zone.__lookupFromZone(addr_packed)
+
+    @staticmethod
+    def lookupByStaticAddressExactly(addr):
+        """
+        <method internal="yes"/>
+        """
+        addr_packed = Zone.__createPackedAddr(addr)
+        rnode = Zone.zone_subnet_tree.search_exact(packed = addr_packed)
         if rnode:
             return rnode.data["zone"]
         else:
             return None
 
     @staticmethod
-    def lookup_by_name(name):
+    def lookupByStaticAddress(addr):
+        """
+        <method internal="yes"/>
+        """
+        addr_packed = Zone.__createPackedAddr(addr)
+        return Zone.__lookupFromZone(addr_packed)
+
+    @staticmethod
+    def lookupByName(name):
         """
         <method internal="yes"/>
         """
@@ -280,5 +274,15 @@ class Zone(object):
             return Zone.zones[name]
 
         return None
+
+    @staticmethod
+    def lookupByHostname(hostname):
+        """
+        <method internal="yes"/>
+        """
+        zones = filter(lambda zone: hostname in zone.hostnames, Zone.zones.values())
+        if len(zones) > 1: raise ValueError
+        elif len(zones) == 1: return zones[0]
+        else: return None
 
 InetZone = Zone

@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,10 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 """
@@ -24,10 +23,10 @@
     <summary>Module defining firewall rules</summary>
     <description>
         <para>The Rule module defines the classes needed to create Zorp firewall rules.</para>
-        <xi:include href="../zorp-admin-guide/chapters/zorp-firewall-rules.xml" xmlns:xi="http://www.w3.org/2001/XInclude" xpointer="element(zorp-firewall-rules-evaluation)"/>
-        <section id="sample-rules">
+        <xi:include href="../../zorp-admin-guide/chapters/zorp-firewall-rules.xml" xmlns:xi="http://www.w3.org/2001/XInclude" xpointer="element(zorp-firewall-rules-evaluation)"><xi:fallback><xi:include href="../zorp-admin-guide/chapters/zorp-firewall-rules.xml" xmlns:xi="http://www.w3.org/2001/XInclude" xpointer="element(zorp-firewall-rules-evaluation)"/></xi:fallback></xi:include>
+        <section xml:id="sample-rules">
             <title>Sample rules</title>
-            <example id="example-rules">
+            <example xml:id="example-rules">
                 <title>Sample rule definitions</title>
                 <para>The following rule starts the service called <parameter>MyPFService</parameter> for every incoming TCP connection (<parameter>proto=6</parameter>).</para>
                 <synopsis>Rule(proto=6,
@@ -55,7 +54,7 @@
     )</synopsis>
             </example>
         </section>
-        <section id="rules-metadata">
+        <section xml:id="rules-metadata">
             <title>Adding metadata to rules: tags and description</title>
             <para>To make the configuration file more readable and informative, you can add descriptions and tags to the rules. Descriptions can be longer texts, while tags are simple labels, for example, to identify rules that belong to the same type of traffic. Adding metadata to rules is not necessary, but can be a great help when maintaining large configurations.</para>
             <itemizedlist>
@@ -87,7 +86,6 @@ from Util import makeSequence
 from Util import parseIfaceGroupAliases
 from Subnet import Subnet
 from Zone import Zone
-import kzorp.kzorp_netlink as kzorp
 import Globals
 import Dispatch
 
@@ -211,23 +209,24 @@ class Rule(object):
         </metainfo>
     </class>
     """
-    valid_dimensions = { 'reqid'         : kzorp.KZNL_ATTR_N_DIMENSION_REQID,
-                         'iface'         : kzorp.KZNL_ATTR_N_DIMENSION_IFACE,
-                         'ifgroup'       : kzorp.KZNL_ATTR_N_DIMENSION_IFGROUP,
-                         'proto'         : kzorp.KZNL_ATTR_N_DIMENSION_PROTO,
-                         'proto_type'    : kzorp.KZNL_ATTR_N_DIMENSION_PROTO_TYPE,
-                         'proto_subtype' : kzorp.KZNL_ATTR_N_DIMENSION_PROTO_SUBTYPE,
-                         'src_port'      : kzorp.KZNL_ATTR_N_DIMENSION_SRC_PORT,
-                         'dst_port'      : kzorp.KZNL_ATTR_N_DIMENSION_DST_PORT,
-                         'src_subnet'    : kzorp.KZNL_ATTR_N_DIMENSION_SRC_IP,
-                         'src_subnet6'   : kzorp.KZNL_ATTR_N_DIMENSION_SRC_IP6,
-                         'src_zone'      : kzorp.KZNL_ATTR_N_DIMENSION_SRC_ZONE,
-                         'dst_subnet'    : kzorp.KZNL_ATTR_N_DIMENSION_DST_IP,
-                         'dst_subnet6'   : kzorp.KZNL_ATTR_N_DIMENSION_DST_IP6,
-                         'dst_iface'     : kzorp.KZNL_ATTR_N_DIMENSION_DST_IFACE,
-                         'dst_ifgroup'   : kzorp.KZNL_ATTR_N_DIMENSION_DST_IFGROUP,
-                         'dst_zone'      : kzorp.KZNL_ATTR_N_DIMENSION_DST_ZONE,
-                       }
+    valid_dim_names = set([
+                         'reqid'         ,
+                         'iface'         ,
+                         'ifgroup'       ,
+                         'proto'         ,
+                         'proto_type'    ,
+                         'proto_subtype' ,
+                         'src_port'      ,
+                         'dst_port'      ,
+                         'src_subnet'    ,
+                         'src_subnet6'   ,
+                         'src_zone'      ,
+                         'dst_subnet'    ,
+                         'dst_subnet6'   ,
+                         'dst_iface'     ,
+                         'dst_ifgroup'   ,
+                         'dst_zone'      ,
+                         ])
 
     dimension_aliases = {
                           'src_iface'    : 'iface',
@@ -276,7 +275,7 @@ class Rule(object):
                     <argument>
                         <name>proto</name>
                         <type><integer/></type>
-                        <description>Permit only connections using the specified transport protocol. This is the transport layer (Layer 4) protocol of the OSI model, for example, TCP, UDP, ICMP, and so on. The protocol must be specified using a number: the decimal value of the "protocol" field of the IP header. This value is 6 for the TCP and 17 for the UDP protocol. For a list of protocol numbers, see the <ulink url="http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xml">Assigned Internet Protocol Numbers page of IANA</ulink>. For example: <parameter>proto=(6,17)</parameter>.
+                        <description>Permit only connections using the specified transport protocol. This is the transport layer (Layer 4) protocol of the OSI model, for example, TCP, UDP, ICMP, and so on. The protocol must be specified using a number: the decimal value of the "protocol" field of the IP header. This value is 6 for the TCP and 17 for the UDP protocol. For a list of protocol numbers, see the <link xmlns:ns1="http://www.w3.org/1999/xlink" ns1:href="http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xml">Assigned Internet Protocol Numbers page of IANA</link>. For example: <parameter>proto=(6,17)</parameter>.
                         <para>To permit any protocol, do not add the <parameter>proto</parameter> parameter to the rule.</para></description>
                     </argument>
                     <argument>
@@ -358,7 +357,7 @@ class Rule(object):
             name_list = makeSequence(name_list)
 
             for name in name_list:
-                if Zone.lookup_by_name(name) == None:
+                if Zone.lookupByName(name) == None:
                     raise ValueError, "No zone was defined with that name; zone='%s'" % (name,)
 
         def parsePorts(port_list):
@@ -408,44 +407,70 @@ class Rule(object):
 
             return groups
 
+        def CreateRealRule(parameters):
+            """
+            <method internal="yes">
+            Helper function to create rules
+            </method>
+            """
+
+            # store service
+            service_name = parameters.pop('service', None)
+            self._service = Globals.services.get(service_name, None)
+            if not self._service:
+                raise ValueError, "No valid service was specified for the rule; service='%s'" % (service_name,)
+
+            # convert and check special dimensions: subnets, ports and zones at the moment
+
+            for ip_keyword in ['src_subnet', 'dst_subnet']:
+                ipv6_keyword = ip_keyword + '6'
+                # forbid usage of ipv6 related keywords:
+                if ipv6_keyword in parameters:
+                    raise ValueError, "Invalid dimension specification '%s'" % ipv6_keyword
+                (parameters[ip_keyword], parameters[ipv6_keyword]) = parseSubnets(parameters.get(ip_keyword, []))
+
+            parameters['src_ifgroup'] = parseGroups(parameters.get('src_ifgroup', []))
+            parameters['dst_ifgroup'] = parseGroups(parameters.get('dst_ifgroup', []))
+            parameters['src_port'] = parsePorts(parameters.get('src_port', []))
+            parameters['dst_port'] = parsePorts(parameters.get('dst_port', []))
+            resolveZones(parameters.get('src_zone', []))
+            resolveZones(parameters.get('dst_zone', []))
+
+            # store values specified
+            self._dimensions = {}
+            for key, value in parameters.items():
+                if key not in self.valid_dim_names:
+                    if key in self.dimension_aliases:
+                        key = self.dimension_aliases[key]
+                    else:
+                        raise ValueError, "Unknown dimension '%s'" % (key,)
+
+                self._dimensions.setdefault(key, []).extend(makeSequence(value))
+
+            Dispatch.RuleDispatcher.createOneInstance()
+
+        parameters = kw
         # store id
-        self._id = kw.pop('rule_id', None)
-
-        # store service
-        service_name = kw.pop('service', None)
-        self._service = Globals.services.get(service_name, None)
-        if not self._service:
-            raise ValueError, "No valid service was specified for the rule; service='%s'" % (service_name,)
-
-        # convert and check special dimensions: subnets, ports and zones at the moment
-
-        for ip_keyword in ['src_subnet', 'dst_subnet']:
-            ipv6_keyword = ip_keyword + '6'
-            # forbid usage of ipv6 related keywords:
-            if ipv6_keyword in kw:
-                raise ValueError, "Invalid dimension specification '%s'" % ipv6_keyword
-            (kw[ip_keyword], kw[ipv6_keyword]) = parseSubnets(kw.get(ip_keyword, []))
-
-        kw['src_ifgroup'] = parseGroups(kw.get('src_ifgroup', []))
-        kw['dst_ifgroup'] = parseGroups(kw.get('dst_ifgroup', []))
-        kw['src_port'] = parsePorts(kw.get('src_port', []))
-        kw['dst_port'] = parsePorts(kw.get('dst_port', []))
-        resolveZones(kw.get('src_zone', []))
-        resolveZones(kw.get('dst_zone', []))
-
-        # store values specified
-        self._dimensions = {}
-        for key, value in kw.items():
-            if key not in self.valid_dimensions:
-                if key in self.dimension_aliases:
-                    key = self.dimension_aliases[key]
-                else:
-                    raise ValueError, "Unknown dimension '%s'" % (key,)
-
-            self._dimensions.setdefault(key, []).extend(makeSequence(value))
+        self._id = parameters.pop('rule_id', None)
 
         Globals.rules.add(self)
-        Dispatch.RuleDispatcher.createOneInstance()
+
+        protocol_detect_dict = parameters.pop('detect', None)
+        if protocol_detect_dict:
+          from APR import DetectorProxy
+          from Service import Service
+          for detector_name, service_name in protocol_detect_dict.iteritems():
+            if not Globals.detectors.get(detector_name, None):
+              raise ValueError, "No such detector defined; detector='%s'" % (detector_name,)
+
+            if not Globals.services.get(service_name, None):
+              raise ValueError, "No such service defined; service='%s'" % (service_name,)
+
+          rule_service_name = "detector_service_for_rule_%s" % (self.getId(),)
+          Service(rule_service_name, proxy_class=DetectorProxy, detector_config=protocol_detect_dict)
+          parameters['service'] = rule_service_name
+
+        CreateRealRule(parameters)
 
     def getId(self):
         """
@@ -466,13 +491,32 @@ class Rule(object):
         <method internal="yes">
         </method>
         """
+        import kzorp.messages as kzorp
+        dim_name_to_attr_type = { 'reqid'         : kzorp.KZNL_ATTR_N_DIMENSION_REQID,
+                                  'iface'         : kzorp.KZNL_ATTR_N_DIMENSION_IFACE,
+                                  'ifgroup'       : kzorp.KZNL_ATTR_N_DIMENSION_IFGROUP,
+                                  'proto'         : kzorp.KZNL_ATTR_N_DIMENSION_PROTO,
+                                  'proto_type'    : kzorp.KZNL_ATTR_N_DIMENSION_PROTO_TYPE,
+                                  'proto_subtype' : kzorp.KZNL_ATTR_N_DIMENSION_PROTO_SUBTYPE,
+                                  'src_port'      : kzorp.KZNL_ATTR_N_DIMENSION_SRC_PORT,
+                                  'dst_port'      : kzorp.KZNL_ATTR_N_DIMENSION_DST_PORT,
+                                  'src_subnet'    : kzorp.KZNL_ATTR_N_DIMENSION_SRC_IP,
+                                  'src_subnet6'   : kzorp.KZNL_ATTR_N_DIMENSION_SRC_IP6,
+                                  'src_zone'      : kzorp.KZNL_ATTR_N_DIMENSION_SRC_ZONE,
+                                  'dst_subnet'    : kzorp.KZNL_ATTR_N_DIMENSION_DST_IP,
+                                  'dst_subnet6'   : kzorp.KZNL_ATTR_N_DIMENSION_DST_IP6,
+                                  'dst_iface'     : kzorp.KZNL_ATTR_N_DIMENSION_DST_IFACE,
+                                  'dst_ifgroup'   : kzorp.KZNL_ATTR_N_DIMENSION_DST_IFGROUP,
+                                  'dst_zone'      : kzorp.KZNL_ATTR_N_DIMENSION_DST_ZONE,
+                                }
+
         messages = []
 
         # determine maximum dimension length
 
         kzorp_dimensions = {}
         for (key, value) in self._dimensions.items():
-            kzorp_dimensions[self.valid_dimensions[key]] = value
+            kzorp_dimensions[dim_name_to_attr_type[key]] = value
 
         kzorp_dimension_sizes = dict(map(lambda (key, value): (key, len(value)), kzorp_dimensions.items()))
         max_dimension_length = max(kzorp_dimension_sizes.values()) if len(kzorp_dimension_sizes) > 0 else 0

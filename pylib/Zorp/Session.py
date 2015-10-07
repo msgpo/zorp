@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,10 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -54,6 +53,12 @@
 import Zorp
 from Zorp import *
 from Zone import Zone
+from Exceptions import *
+import time
+
+import inspect
+
+import Globals
 
 class AbstractSession(object):
     """
@@ -68,10 +73,20 @@ class AbstractSession(object):
         </para>
       </description>
       <metainfo>
-        <attributes/>
+        <attributes>
+          <attribute>
+            <name>client_stream</name>
+            <type><class filter="stream" instance="yes"/></type>
+            <description>Client-side stream.</description>
+          </attribute>
+        </attributes>
       </metainfo>
     </class>
     """
+
+    def __init__(self):
+        """<method internal="yes">"""
+        self.client_stream = None
 
     def destroy(self):
         """
@@ -94,8 +109,14 @@ class AbstractSession(object):
         """
         if self.client_stream:
             self.client_stream.close()
-        if self.server_stream:
-            self.server_stream.close()
+
+def get_protocol_name(protocol):
+    """<function internal="yes"/>"""
+    try:
+        return ZD_PROTO_NAME[protocol]
+    except KeyError:
+        return "Unknown(%d)" % (protocol)
+
 
 class MasterSession(AbstractSession):
     """
@@ -106,7 +127,9 @@ class MasterSession(AbstractSession):
       <description>
         <para>
           This class encapsulates a master session that is on the top of the
-          session hierarchy.
+          session hierarchy. MasterSession instances store properties that
+          are shared by all sub-sessions and proxies started for a client
+          connection.
         </para>
         <section>
           <title>Referencing attributes exported by parent proxies</title>
@@ -135,11 +158,6 @@ class MasterSession(AbstractSession):
       <metainfo>
         <attributes>
           <attribute>
-            <name>client_stream</name>
-            <type><class filter="stream" instance="yes"/></type>
-            <description>Client-side stream.</description>
-          </attribute>
-          <attribute>
             <name>client_address</name>
             <type><class filter="sockaddr" instance="yes"/></type>
             <description>IP address of the client.</description>
@@ -153,53 +171,6 @@ class MasterSession(AbstractSession):
             <name>client_zone</name>
             <type><class filter="zone" instance="yes"/></type>
             <description>Zone of the client.</description>
-          </attribute>
-          <attribute>
-            <name>server_stream</name>
-            <type><class filter="stream" instance="yes"/></type>
-            <description>Server-side stream.</description>
-          </attribute>
-          <attribute>
-            <name>server_address</name>
-            <type><class filter="sockaddr" instance="yes"/></type>
-            <description>The IP address Zorp connects to. Most often this is
-            the IP address requested by the client, but Zorp can redirect the
-            client requests to different IPs.</description>
-          </attribute>
-          <attribute>
-            <name>server_local</name>
-            <type><class filter="sockaddr" instance="yes"/></type>
-            <description>Zorp connects the server from this IP address. This
-            is either the IP address of Zorp's external interface, or the
-            IP address of the client (if Forge Port is enabled). The
-            client's original IP address may be modified if SNAT policies
-            are used.</description>
-          </attribute>
-          <attribute>
-            <name>server_zone</name>
-            <type><class filter="zone" instance="yes"/></type>
-            <description>Zone of the server.</description>
-          </attribute>
-          <attribute>
-            <name>target_address</name>
-            <type><class filter="sockaddr" instance="yes"/></type>
-            <description>The IP address Zorp connects to. Most often this is
-            the IP address requested by the client, but Zorp can redirect the
-            client requests to different IPs.</description>
-          </attribute>
-          <attribute>
-            <name>target_local</name>
-            <type><class filter="sockaddr" instance="yes"/></type>
-            <description>Zorp connects the server from this IP address. This
-            is either the IP address of Zorp's external interface, or the
-            IP address of the client (if Forge Port is enabled). The
-            client's original IP address may be modified if SNAT policies
-            are used.</description>
-          </attribute>
-          <attribute>
-            <name>target_zone</name>
-            <type><class filter="zone" instance="yes"/></type>
-            <description>Zone of the server.</description>
           </attribute>
           <attribute>
             <name>target_address_inband</name>
@@ -278,7 +249,7 @@ class MasterSession(AbstractSession):
     </class>
     """
 
-    def __init__(self):
+    def __init__(self, service, client_stream, client_local, client_listen, client_address, **kwargs):
         """
         <method internal="yes">
           <summary>
@@ -295,36 +266,64 @@ class MasterSession(AbstractSession):
           </metainfo>
         </method>
         """
-        self.base_session_id = 'svc'
-        self.session_id = self.base_session_id
+        if client_address is None and hasattr(kwargs, 'client_zone') is True:
+            raise AttributeError
 
-        self.client_stream = None
-        self.client_address = None
-        self.client_local = None
-        self.client_zone = None
+        super(MasterSession, self).__init__()
 
-        self.server_stream = None
-        self.server_address = None
+        self.service = service
+        self.client_stream = client_stream
+        self.client_local = client_local
+        self.client_listen = client_listen
+        self.client_address = client_address
+        self.client_zone = getattr(kwargs, 'client_zone', None)
+        self.rule_id = getattr(kwargs, 'rule_id', None)
+        self.server_address = getattr(kwargs, "server_address", None)
+        self.server_zone = getattr(kwargs, "server_zone", None)
         self.server_local = None
-        self.server_zone = None
 
-        self.target_address = ()
-        self.target_local = None
-        self.target_zone = ()
+        self.target_address = getattr(kwargs, "target_address", ())
+        self.target_local = getattr(kwargs, "target_local", None)
+        self.target_zone = getattr(kwargs, "target_zone", ())
+
+        self.instance_id = 0
+        for arg_name,value in kwargs.items():
+            setattr(self, arg_name, value)
+            log(None, CORE_DEBUG, 8,
+                "Added value to the session; name='%s', value='%s'" % (arg_name, value))
+
+        if self.client_address is not None and self.client_zone is None:
+            try:
+                self.client_zone = Zone.lookup(client_address)
+            except ZoneException:
+                self.client_zone = None
+
+        if self.server_address is not None and self.server_zone is None:
+            try:
+                self.server_zone = Zone.lookup(server_address)
+            except ZoneException:
+                self.server_zone = None
+
+        # these are set by the router to indicate how target address
+        # selection should work based on the type of the router used
         self.target_address_inband = FALSE
         self.target_local_loose = TRUE
         self.target_local_random = FALSE
+
+        self.proxy = None
+        self.started = 0
 
         self.auth_user = ""
         self.auth_groups = ()
         self.authorized = FALSE
 
-        self.started = 0
-        self.service = None
-        self.instance_id = 0
+        self.protocol = self.client_listen.protocol
+        self.protocol_name = get_protocol_name(self.protocol)
 
-        self.setProtocol(0)
-        self.proxy = None
+        self.base_session_id = 'svc'
+        self.session_id = "%s/%s/%s:%d" % (self.base_session_id, Globals.virtual_instance_name, self.service.name, self.instance_id)
+        self.master_session_id = self.session_id
+        self.verdict = ConnectionVerdict(ConnectionVerdict.ACCEPTED)
 
     def __del__(self):
         """
@@ -344,114 +343,295 @@ class MasterSession(AbstractSession):
           </metainfo>
         </method>
         """
+        self.logVerdict()
         if self.service:
             self.service.stopInstance(self)
 
+    def logVerdict(self, info=''):
+        rule_id = self.rule_id if self.rule_id is not None else "N/A"
+        session_start = self.service.start_time
+        session_end = int(time.time())
+        client_zone_name = self.client_zone.name if self.client_zone is not None else "(NULL)"
+        server_zone_name = self.server_zone.name if self.server_zone is not None else "(NULL)"
+        client_ip = self.client_address.ip_s if self.client_address is not None else "(NULL)"
+        client_port = self.client_address.port if self.client_address is not None else 0
+        server_ip = self.server_address.ip_s if self.server_address is not None else "(NULL)"
+        server_port = self.server_address.port if self.server_address is not None else 0
+        client_protocol_name = self.protocol_name
+        server_protocol_name = client_protocol_name
+        server_protocol = self.service.chainer.getProtocol()
+        if server_protocol != ZD_PROTO_AUTO:
+            server_protocol_name = get_protocol_name(server_protocol)
+        client_local_ip = self.client_local.ip_s if self.client_local is not None else "(NULL)"
+        client_local_port = self.client_local.port if self.client_local is not None else 0
+        server_local_ip = self.server_local.ip_s if self.server_local is not None else "(NULL)"
+        server_local_port = self.server_local.port if self.server_local is not None else 0
+        conn_verdict = self.verdict
+        log(self.session_id, CORE_SUMMARY, 4,
+            ("Connection summary; " +
+             "rule_id='%s', "
+             "session_start='%d', "
+             "session_end='%d', "
+             "client_proto='%s', "
+             "client_address='%s', "
+             "client_port='%d', "
+             "client_zone='%s', "
+             "server_proto='%s', "
+             "server_address='%s', "
+             "server_port='%d', "
+             "server_zone='%s', "
+             "client_local='%s', "
+             "client_local_port='%d', "
+             "server_local='%s', "
+             "server_local_port='%d', "
+             "verdict='%s', "
+             "info='%s'"
+             ) % (
+             rule_id,
+             session_start,
+             session_end,
+             client_protocol_name,
+             client_ip,
+             client_port,
+             client_zone_name,
+             server_protocol_name,
+             server_ip,
+             server_port,
+             server_zone_name,
+             client_local_ip,
+             client_local_port,
+             server_local_ip,
+             server_local_port,
+             conn_verdict,
+             info
+            ))
 
-    def setProtocol(self, protocol):
+class StackedSession(AbstractSession):
+    """
+    <class maturity="stable">
+      <summary>
+        Class encapsulating a subsession.
+      </summary>
+      <description>
+        <para>
+          This class represents a stacked session, e.g., a session within the
+          session hierarchy. Every subsession inherits session-wide
+          parameters from its parent.
+        </para>
+      </description>
+      <metainfo>
+        <attributes>
+          <attribute maturity="stable">
+            <name>owner</name>
+            <type>
+              <class filter="AbstractSession" instance="yes"/>
+            </type>
+            <description>The parent session of the current session.</description>
+          </attribute>
+          <attribute maturity="stable">
+            <name>chainer</name>
+            <type>
+              <class filter="chainer" instance="yes"/>
+            </type>
+            <description>
+              The chainer used to connect to the parent proxy. If unset, the
+              <parameter>server_stream</parameter> parameter must be set.
+            </description>
+          </attribute>
+          <attribute>
+            <name>server_stream</name>
+            <type><class filter="stream" instance="yes"/></type>
+            <description>Server-side stream.</description>
+          </attribute>
+          <attribute>
+            <name>server_address</name>
+            <type><class filter="sockaddr" instance="yes"/></type>
+            <description>The IP address Zorp connects to. Most often this is
+            the IP address requested by the client, but Zorp can redirect the
+            client requests to different IPs.</description>
+          </attribute>
+          <attribute>
+            <name>server_local</name>
+            <type><class filter="sockaddr" instance="yes"/></type>
+            <description>Zorp connects the server from this IP address. This
+            is either the IP address of Zorp's external interface, or the
+            IP address of the client (if Forge Port is enabled). The
+            client's original IP address may be modified if SNAT policies
+            are used.</description>
+          </attribute>
+          <attribute>
+            <name>server_zone</name>
+            <type><class filter="zone" instance="yes"/></type>
+            <description>Zone of the server.</description>
+          </attribute>
+          <attribute>
+            <name>target_address</name>
+            <type><class filter="sockaddr" instance="yes"/></type>
+            <description>The IP address Zorp connects to. Most often this is
+            the IP address requested by the client, but Zorp can redirect the
+            client requests to different IPs.</description>
+          </attribute>
+          <attribute>
+            <name>target_local</name>
+            <type><class filter="sockaddr" instance="yes"/></type>
+            <description>Zorp connects the server from this IP address. This
+            is either the IP address of Zorp's external interface, or the
+            IP address of the client (if Forge Port is enabled). The
+            client's original IP address may be modified if SNAT policies
+            are used.</description>
+          </attribute>
+          <attribute>
+            <name>target_zone</name>
+            <type><class filter="zone" instance="yes"/></type>
+            <description>Zone of the server.</description>
+          </attribute>
+        </attributes>
+      </metainfo>
+    </class>
+    """
+
+    def __init__(self, owner, chainer=None):
         """
         <method internal="yes">
           <summary>
-            Sets the server-side protocol.
-          </summary>
-          <description>
-            This function is called by the dispatcher callbacks to
-            specify the protocol that was used to establish the client
-            side connection. This function stores this value in the
-            current session.
-          </description>
-          <metainfo>
-            <arguments>
-              <argument maturity="stable">
-                <name>protocol</name>
-                <type>INTEGER</type>
-                <description>protocol identifier, one of ZD_PROTO_* constants</description>
-              </argument>
-
-            </arguments>
-          </metainfo>
-        </method>
-        """
-        self.protocol = protocol
-        try:
-            self.protocol_name = ZD_PROTO_NAME[protocol]
-        except KeyError:
-            self.protocol_name = "Unknown(%d)" % (self.protocol)
-
-
-    def setService(self, service):
-        """
-        <method internal="yes">
-          <summary>
-            Sets the service belonging to this session.
+            Constructor to initialize a StackedSession instance.
           </summary>
           <description>
             <para>
-              Stores the service reference, and recalculates the session_id.
-              This is called by the Listener after the service is determined.
+              This constructor initializes a new StackedSession instance
+              based on parameters.
             </para>
           </description>
           <metainfo>
             <arguments>
               <argument maturity="stable">
-                <name>service</name>
-                <type>SERVICE</type>
-                <description>Service instance</description>
+                <name>owner</name>
+                <type>
+                  <class filter="AbstractSession" instance="yes"/>
+                </type>
+                <description>Parent session</description>
+              </argument>
+              <argument maturity="stable">
+                <name>chainer</name>
+                <type>
+                  <class filter="chainer" instance="yes"/>
+                </type>
+                <description>Chainer used to chain up to parent.</description>
               </argument>
             </arguments>
           </metainfo>
         </method>
         """
-        self.service = service
-        self.session_id = "%s/%s" % (self.base_session_id, service.name)
-        ## LOG ##
-        # This message reports that the given service is started, because of a new connection.
-        ##
-        log(self.session_id, CORE_SESSION, 5, "Starting service; name='%s'", service.name)
+        super(StackedSession, self).__init__()
+        self.server_stream = None
+        self.owner = owner
+        self.chainer = chainer
 
-    def setClientAddress(self, addr):
-        self.client_address = addr
-        self.client_zone = Zone.lookup(addr)
+        # we might inherit a target and server address from our owner
+        self.server_address = getattr(owner, "server_address", None)
+        self.server_local = getattr(owner, "server_local", None)
+        self.server_zone = getattr(owner, "server_zone", None)
+
+        self.target_address = getattr(owner, "target_address", ())
+        self.target_local = getattr(owner, "target_local", None)
+        self.target_zone = getattr(owner, "target_zone", ())
+
+        self.registered_in_szig = False
+
+    def destroy(self):
+        """<method internal="yes"/>"""
+        super(StackedSession, self).destroy()
+        if self.server_stream:
+            self.server_stream.close()
+
+    def __del__(self):
+        """<method internal="yes"/>"""
+        if self.registered_in_szig:
+            self.registerStop()
+
+    def __getattr__(self, name):
+        """
+        <method internal="yes">
+          <summary>
+            Function to perform attribute inheritance.
+          </summary>
+          <description>
+            <para>
+              This function is called by the Python core when an attribute
+              is referenced. It returns variables from the parent session, if
+              not overriden here.
+              Returns The value of the given attribute.
+            </para>
+          </description>
+          <metainfo>
+            <arguments>
+              <argument maturity="stable">
+                <name>name</name>
+                <type></type>
+                <description>Name of the attribute to get.</description>
+              </argument>
+            </arguments>
+          </metainfo>
+        </method>
+        """
+        try:
+            if name != '__dict__':
+                return self.__dict__[name]
+            else:
+                raise KeyError
+        except KeyError:
+            owner_attr = getattr(self.owner, name)
+            if inspect.ismethod(owner_attr):
+                raise
+
+            return owner_attr
+
+    def setProxy(self, proxy):
+        """
+        <method internal="yes">
+          <summary>
+            Set the proxy name used in this subsession.
+          </summary>
+          <description>
+            <para>
+              Stores a reference to the proxy class, and modifies
+              the session_id to include the proxy name. This is
+              called by the Listener after the proxy module to
+              use is determined.
+            </para>
+          </description>
+          <metainfo>
+            <arguments>
+              <argument maturity="stable">
+                <name>proxy</name>
+                <type></type>
+                <description>Proxy class instance</description>
+              </argument>
+            </arguments>
+          </metainfo>
+        </method>
+        """
+        self.proxy = proxy
+        setattr(self, proxy.name, proxy)
+
+        secondary_part = ""
+        if self._get_secondary_connection() != 0:
+            secondary_part = ":%d" % self._get_secondary_connection()
+
+        self.session_id = "%s/%s%s/%s" % (self.master_session_id, Globals.virtual_instance_name, secondary_part, proxy.name)
 
     def setServerAddress(self, addr):
-        self.server_address = addr
-        self.server_zone = Zone.lookup(addr)
-
-    def setTargetAddress(self, addr):
         """
         <method internal="yes">
           <summary>
-            Set the target server address.
+            Sets the server address and looks up the server zone and sets the server_zone property.
           </summary>
-          <description>
-            <para>
-              This is a compatibility function for proxies that
-              override the routed target.
-            </para>
-          </description>
-          <metainfo>
-            <arguments>
-              <argument maturity="stable">
-                <name>addr</name>
-                <type></type>
-                <description>Server address</description>
-              </argument>
-            </arguments>
-          </metainfo>
         </method>
         """
-        # NOTE: handling SockAddr types is a compatibility hack, as
-        # proxies might call setServer with a SockAddr instance
-        # instead of a tuple of SockAddrs
-
-        if isinstance(addr, SockAddrType):
-            self.target_address = (addr,)
-        else:
-            self.target_address = addr
-
-        self.target_zone = [ Zone.lookup(a) for a in self.target_address ]
-
-    setServer = setTargetAddress
+        self.server_address = addr
+        self.server_zone = Zone.lookup(addr)
+        self.owner.server_address = addr
+        self.owner.server_zone = self.server_zone
 
     def isServerPermitted(self):
         """
@@ -497,161 +677,108 @@ class MasterSession(AbstractSession):
 
         return ZV_ACCEPT
 
-    def setServiceInstance(self, instance_id):
+    def setTargetAddressByHostname(self, host, port):
+        """<method internal="yes"/>"""
+        # resolve host, port and store it in session.server_address
+        # may raise an exception
+        if self.target_address_inband:
+            target = self.service.resolver_policy.resolve(host, port)
+            if not target:
+                ## LOG ##
+                # This message indicates that the given hostname
+                # could not be resolved.  It could happen if the
+                # hostname is invalid or nonexistent, or it if your
+                # resolve setting are not well configured.  Check
+                # your "/etc/resolv.conf"
+                ##
+                log(self.session_id, CORE_ERROR, 3, "Error resolving hostname; host='%s'", (host,))
+                return FALSE
+
+            self.setTargetAddress(target)
+
+        return TRUE
+
+    def setTargetAddress(self, addr):
         """
         <method internal="yes">
           <summary>
-            Set service instance number and recalculate session id.
+            Set the target server address.
           </summary>
           <description>
             <para>
-              Sets service instance number, and makes up a unique
-              identifier for this session.
+              This is a compatibility function for proxies that
+              override the routed target.
             </para>
           </description>
           <metainfo>
             <arguments>
               <argument maturity="stable">
-                <name>instance_id</name>
+                <name>addr</name>
                 <type></type>
-                <description>unique identifier of the service instance</description>
+                <description>Server address</description>
               </argument>
             </arguments>
           </metainfo>
         </method>
         """
-        self.instance_id = instance_id
-        self.session_id = "%s/%s:%d" % (self.base_session_id, self.name, self.instance_id)
-        self.master_session_id = self.session_id
+        # NOTE: handling SockAddr types is a compatibility hack, as
+        # proxies might call setServer with a SockAddr instance
+        # instead of a tuple of SockAddrs
 
-class StackedSession(AbstractSession):
-    """
-    <class maturity="stable">
-      <summary>
-        Class encapsulating a subsession.
-      </summary>
-      <description>
-        <para>
-          This class represents a stacked session, e.g., a session within the
-          session hierarchy. Every subsession inherits session-wide
-          parameters from its parent.
-        </para>
-      </description>
-      <metainfo>
-        <attributes>
-          <attribute maturity="stable">
-            <name>owner</name>
-            <type>
-              <class filter="AbstractSession" instance="yes"/>
-            </type>
-            <description>The parent session of the current session.</description>
-          </attribute>
-          <attribute maturity="stable">
-            <name>chainer</name>
-            <type>
-              <class filter="chainer" instance="yes"/>
-            </type>
-            <description>
-              The chainer used to connect to the parent proxy. If unset, the
-              <parameter>server_stream</parameter> parameter must be set.
-            </description>
-          </attribute>
-        </attributes>
-      </metainfo>
-    </class>
-    """
+        if isinstance(addr, SockAddrType):
+            self.target_address = (addr,)
+        else:
+            self.target_address = addr
 
-    def __init__(self, owner, chainer = None):
-        """
-        <method internal="yes">
-          <summary>
-            Constructor to initialize a StackedSession instance.
-          </summary>
-          <description>
-            <para>
-              This constructor initializes a new StackedSession instance
-              based on parameters.
-            </para>
-          </description>
-          <metainfo>
-            <arguments>
-              <argument maturity="stable">
-                <name>owner</name>
-                <type>
-                  <class filter="AbstractSession" instance="yes"/>
-                </type>
-                <description>Parent session</description>
-              </argument>
-              <argument maturity="stable">
-                <name>chainer</name>
-                <type>
-                  <class filter="chainer" instance="yes"/>
-                </type>
-                <description>Chainer used to chain up to parent.</description>
-              </argument>
-            </arguments>
-          </metainfo>
-        </method>
-        """
-        self.owner = owner
-        self.chainer = chainer
+        self.target_zone = [Zone.lookup(a) for a in self.target_address]
 
-    def __getattr__(self, name):
-        """
-        <method internal="yes">
-          <summary>
-            Function to perform attribute inheritance.
-          </summary>
-          <description>
-            <para>
-              This function is called by the Python core when an attribute
-              is referenced. It returns variables from the parent session, if
-              not overriden here.
-              Returns The value of the given attribute.
-            </para>
-          </description>
-          <metainfo>
-            <arguments>
-              <argument maturity="stable">
-                <name>name</name>
-                <type></type>
-                <description>Name of the attribute to get.</description>
-              </argument>
-            </arguments>
-          </metainfo>
-        </method>
-        """
-        try:
-            if name != '__dict__':
-                return self.__dict__[name]
-            else:
-                raise KeyError
-        except KeyError:
-            return getattr(self.owner, name)
+    setServer = setTargetAddress
 
-    def setProxy(self, proxy):
-        """
-        <method internal="yes">
-          <summary>
-            Set the proxy name used in this subsession.
-          </summary>
-          <description>
-            <para>
-              Stores a reference to the proxy class, and modifies
-              the session_id to include the proxy name. This is
-              called by the Listener after the proxy module to
-              use is determined.
-            </para>
-          </description>
-          <metainfo>
-            <arguments>
-              <argument maturity="stable">
-                <name>proxy</name>
-                <type></type>
-                <description>Proxy class, derived from Proxy</description>
-              </argument>
-            </arguments>
-          </metainfo>
-        </method>
-        """
-        self.session_id = "%s/%s:%d/%s" % (self.base_session_id, self.name, self.instance_id, proxy)
+    def _get_secondary_connection(self):
+        """<method internal="yes"/>"""
+        return getattr(self, "secondary_connection_id", 0)
+
+    def _get_trimmed_session_id(self):
+        """<method internal="yes"/>"""
+        return self.session_id.rsplit("/", 1)[0]
+
+    def registerStart(self, timestamp=None):
+        """<method internal="yes"/>"""
+        if timestamp is None:
+            timestamp = str(time.time())
+
+        self.updateSzigConns(Z_SZIG_CONNECTION_PROPS, {
+                        'started': timestamp,
+                        'session_id': self._get_trimmed_session_id(),
+                        'proxy_module': self.proxy.name,
+                        'proxy_class': self.proxy.__class__.__name__,
+                        'client_address': str(self.client_address),
+                        'client_local': str(self.client_local),
+                        'client_zone': self.client_zone.getName() if self.client_zone else '',
+                        })
+
+        szigEvent(Z_SZIG_CONNECTION_START,
+                    (Z_SZIG_TYPE_PROPS,
+                       (self.service.name, {}
+                 )))
+
+        self.registered_in_szig = True
+
+    def registerStop(self):
+        """<method internal="yes"/>"""
+        self.updateSzigConns(Z_SZIG_CONNECTION_STOP, {})
+
+    def registerServerAddress(self):
+        """<method internal="yes"/>"""
+        self.updateSzigConns(Z_SZIG_CONNECTION_PROPS, {
+                'server_address': str(self.server_address),
+                'server_local': str(self.server_local),
+                'server_zone': self.server_zone.getName() if self.server_zone else '',
+                })
+
+    def updateSzigConns(self, event, data):
+        """<method internal="yes"/>"""
+        szigEvent(event,
+                  (Z_SZIG_TYPE_CONNECTION_PROPS,
+                   (self.service.name, self.instance_id, self._get_secondary_connection(), 0, data)))
+

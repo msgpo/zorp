@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,10 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -32,14 +31,14 @@
         </link> connects an additional proxy before connecting the server.
         </para>
 
-        <section id="chainer_protocol">
+        <section xml:id="chainer_protocol">
         <title>Selecting the network protocol</title>
         <para>The client-side and the server-side connections can use different networking protocols if needed.
         The <parameter>protocol</parameter> attribute of the chainer classes determines the network protocol used in the
         server-side connection. By default, Zorp uses the same protocol in both connections.
         The following options are available:</para>
         <!--<inline type="enum" target="zorp.proto.id"/>-->
-        <table frame="all" id="table-ZD_PROTO">
+        <table frame="all" xml:id="table-ZD_PROTO">
         <title>
         The network protocol used in the server-side connection
         </title>
@@ -103,12 +102,12 @@ class AbstractChainer(object):
       </metainfo>
     </class>
     """
-    def __init__(self):
+    def __init__(self, protocol=ZD_PROTO_AUTO):
         """
         <method internal="yes">
         </method>
         """
-        pass
+        self.protocol = protocol
 
     def chainParent(self, session):
         """
@@ -133,6 +132,13 @@ class AbstractChainer(object):
         </method>
         """
         raise NotImplementedError
+
+    def getProtocol(self):
+        """
+        <method internal="yes">
+        </method>
+        """
+        return self.protocol
 
 class ConnectChainer(AbstractChainer):
     """
@@ -207,8 +213,7 @@ in a roundrobin fashion.</para>
           </metainfo>
         </method>
         """
-        super(ConnectChainer, self).__init__()
-        self.protocol = protocol
+        super(ConnectChainer, self).__init__(protocol)
         if not timeout_connect:
             self.timeout_connect = config.options.timeout_server_connect
         else:
@@ -257,7 +262,7 @@ in a roundrobin fashion.</para>
         </method>
         """
         protocol = self.protocol
-        if protocol == 0:
+        if protocol == ZD_PROTO_AUTO:
             protocol = session.protocol
         if remote.port == 0:
             remote.port = session.client_local.port
@@ -274,6 +279,7 @@ in a roundrobin fashion.</para>
                               server_socket_mark=session.proxy.server_socket_mark)
                 session.server_stream = conn.start()
                 session.server_local = conn.local
+                session.owner.server_local = conn.local
             except IOError:
                 session.server_stream = None
             if session.server_stream == None:
@@ -293,14 +299,7 @@ in a roundrobin fashion.</para>
                 log(session.session_id, CORE_SESSION, 3,
                     "Server connection established; server_fd='%d', server_address='%s', server_zone='%s', server_local='%s', server_protocol='%s'",
                     (session.server_stream.fd, session.server_address, session.server_zone, session.server_local, ZD_PROTO_NAME[protocol]))
-                szigEvent(Z_SZIG_CONNECTION_PROPS,
-                   (Z_SZIG_TYPE_CONNECTION_PROPS,
-                      (session.service.name, session.instance_id, 0, 0, {
-                        'server_address': str(session.server_address),
-                        'server_local': str(session.server_local),
-                        'server_zone': session.server_zone.getName(),
-                        }
-                 )))
+                session.registerServerAddress()
 
             return session.server_stream
         raise DACException('Server connection is not permitted')
@@ -882,7 +881,7 @@ class SideStackChainer(AbstractChainer):
         <para>
         Proxy sidestacking is useful for example to create one-sided SSL connections.
         See the tutorials of the BalaBit Documentation Page available at
-        <ulink url="http://www.balabit.com/support/documentation/">http://www.balabit.com/support/documentation/</ulink>
+        <link xmlns:ns1="http://www.w3.org/1999/xlink" ns1:href="http://www.balabit.com/network-security/zorp-gateway/support/documentation/">http://www.balabit.com/network-security/zorp-gateway/support/documentation/</link>
         for details.
         </para>
         </tip>
@@ -945,6 +944,13 @@ class SideStackChainer(AbstractChainer):
             right_chainer = ConnectChainer()
         self.right_chainer = right_chainer
 
+    def getProtocol(self):
+        """
+        <method internal="yes">
+        </method>
+        """
+        return self.right_chainer.getProcotol()
+
     def chainParent(self, session):
         """
         <method internal="yes">
@@ -988,11 +994,10 @@ class SideStackChainer(AbstractChainer):
 
             session.server_stream = streams[0]
             session.server_stream.name = session.owner.session_id + "/leftside"
-            ss = StackedSession(session, self.right_chainer)
             streams[0] = None
+            ss = StackedSession(session, self.right_chainer)
             ss.client_stream = streams[1]
             ss.client_stream.name = ss.session_id + "/rightside"
-            ss.server_stream = None
             streams[1] = None
             ## LOG ##
             # This message indicates that side stacking was successful.

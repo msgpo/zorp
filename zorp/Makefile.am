@@ -2,17 +2,14 @@ pkglibdir=$(libdir)/zorp
 pkglibexecdir=$(libdir)/zorp
 LIBS=@ZORP_LIBS@
 
-if PRO
-SUBDIRS = urlfilter
-endif
 
 pkglibexec_PROGRAMS = zorp
 
-zorp_SOURCES = main.c 
+zorp_SOURCES = main.cc
 
-sysconf_DATA = policy.py.sample
+sysconf_DATA = policy.py.http.sample policy.py.https.sample policy.py.ssh.sample
 
-EXTRA_DIST = policy.py.sample logtags.txt logtags_gperf.c logtags_gperf.h logtags.gperf
+EXTRA_DIST = $(sysconf_DATA) logtags.txt logtags_gperf.c logtags_gperf.h logtags.gperf
 
 install-exec-local:
 	mkdir -p $(DESTDIR)/$(sysconfdir)
@@ -30,7 +27,7 @@ main.c: logtags_gperf.c
 BUILT_SOURCES = logtags_gperf.c logtags_gperf.h logtags.gperf
 
 logtags_gperf.c: logtags.gperf logtags_gperf.h
-	$(GPERF) -e ',' -t -N z_logtag_lookup_gperf $< > $@.T && mv $@.T $@
+	$(GPERF) -e ',' -L C++ -Z LogTagHash -t -N  lookup $< > $@.T && mv $@.T $@
 
 logtags_gperf.h: logtags.txt
 	$(top_srcdir)/scripts/genlutable.sh header LOGTAG $< >$@.tmp && mv $@.tmp $@

@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,15 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
-##
-## Author  : Bazsi
-## Auditor :
-## Last audited version:
-## Notes:
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -153,7 +147,7 @@ Content-Length: 14
       </para>
       <para>
       Several examples and considerations on how to enable virus filtering in the HTTP traffic are discussed in the
-        Technical White Paper and Tutorial <emphasis>Virus filtering in HTTP</emphasis>, available at the BalaBit Documentation Page <ulink url="http://www.balabit.com/support/documentation/">http://www.balabit.com/support/documentation/</ulink>.
+        Technical White Paper and Tutorial <emphasis>Virus filtering in HTTP</emphasis>, available at the BalaBit Documentation Page <link xmlns:ns1="http://www.w3.org/1999/xlink" ns1:href="http://www.balabit.com/network-security/zorp-gateway/support/documentation/">http://www.balabit.com/network-security/zorp-gateway/support/documentation/</link>.
       </para>
       <section>
         <title>Transparent and non-transparent modes</title>
@@ -193,7 +187,7 @@ HTTP/1.0 200 Connection established
 Proxy-agent: My-Proxy/1.1</synopsis>
         </example>
       </section>
-      <section id="http_policies">
+      <section xml:id="http_policies">
         <title>Configuring policies for HTTP requests and responses</title>
         <para>
           Changing the default behavior of requests is possible using the
@@ -237,7 +231,7 @@ Proxy-agent: My-Proxy/1.1</synopsis>
 
       </section>
 
-      <section id="http_header_policies">
+      <section xml:id="http_header_policies">
         <title>Configuring policies for HTTP headers</title>
         <para>
           Both request and response headers can be modified by the proxy during
@@ -438,7 +432,7 @@ def instance():
           </para>
         </note>
       </section>
-      <section id="http_stacking">
+      <section xml:id="http_stacking">
         <title>Stacking</title>
         <para>
           HTTP supports stacking proxies for both request and response
@@ -477,7 +471,7 @@ def instance():
         by the RFCs, but Zorp permits such responses for interoperability reasons.
         </para>
         </section>
-        <section id="zorp_http_urlfiltering">
+        <section xml:id="zorp_http_urlfiltering" condition="zorp">
             <title>URL filtering in HTTP</title>
             <para>Starting with version 3.3FR1, Zorp supports category-based URL filtering using a regularly updated database.</para>
             <itemizedlist>
@@ -491,7 +485,7 @@ def instance():
                     <para>To customize or expand the URL-database, see <xref linkend="zorp_http_urlfiltering_manual"/>.</para>
                 </listitem>
             </itemizedlist>
-            <section id="zorp_http_urlfiltering_configuring">
+            <section xml:id="zorp_http_urlfiltering_configuring">
                 <title>Configuring URL-filtering in HTTP</title>
                     <para>The URLs and domains in the database are organized into thematic categories like <parameter>adult</parameter>, <parameter>news</parameter>, <parameter>jobsearch</parameter>, etc.</para>
                     <para>To enable url-filtering, set the <parameter>enable_url_filter</parameter> and <parameter>enable_url_filter_dns</parameter> options to <parameter>TRUE</parameter>. The <parameter>enable_url_filter_dns</parameter> option is needed only to ensure that a domain or URL is correctly categorized even when it is listed in the database using its domain name, but the client tries to access it with its IP address (or vice-versa).</para>
@@ -525,7 +519,7 @@ def instance():
         self.url_category['*']=(HTTP_URL_ACCEPT,)</synopsis>
             </example>
             </section>
-            <section id="zorp_http_urlfiltering_categories">
+            <section xml:id="zorp_http_urlfiltering_categories">
                 <title>List of URL-filtering categories</title>
                 <para>The Zorp URL database contains the following thematic categories by default.</para>
                 <itemizedlist>
@@ -753,7 +747,7 @@ def instance():
         </listitem>
 </itemizedlist>
             </section>
-            <section id="zorp_http_urlfiltering_manual">
+            <section xml:id="zorp_http_urlfiltering_manual">
                  <title>Customizing the URL database</title>
                  <para>To customize the database, you have to manually edit the relevant files of the database. The URL database is located on the Zorp hosts under the <filename>/etc/zorp/urlfilter/</filename> directory. Every thematic category is subdirectory containing two files called <filename>domains</filename> and <filename>urls</filename>. These files contain the list of domains (e.g., <parameter>example.com</parameter>) and URLs (e.g., <parameter>example.com/news/</parameter>) that fall into the specific category. Optionally, the subdirectory may contain a third file called <filename>expressions</filename>, where more complex rules can be defined using regular expressions.</para>
                  <itemizedlist>
@@ -1092,7 +1086,6 @@ def instance():
 from Zorp import *
 from Plug import PlugProxy
 from Proxy import Proxy, proxyLog
-from Session import StackedSession
 from Matcher import getMatcher
 
 HTTP_URL_ACCEPT         = 1
@@ -1104,6 +1097,7 @@ HTTP_REQ_DENY           = 2
 HTTP_REQ_REJECT         = 3
 HTTP_REQ_ABORT          = 4
 HTTP_REQ_POLICY         = 6
+HTTP_REQ_CUSTOM_RESPONSE = 7
 
 HTTP_RSP_ACCEPT         = 1
 HTTP_RSP_DENY           = 2
@@ -2419,7 +2413,8 @@ class AbstractHttpProxy(Proxy):
             <read/>
           </runtime>
           <description>
-            Enables URL filtering in HTTP requests. See <xref linkend="zorp_http_urlfiltering"/> for details. Note that URL filtering requires the <parameter>url-filter</parameter> license option.
+            Enables URL filtering in HTTP requests. <phrase condition="zorp">See <xref linkend="zorp_http_urlfiltering"/> for details. Note that URL filtering requires the <parameter>url-filter</parameter> license option.</phrase>
+            <para condition="zorp-gpl"><emphasis role="bold">Warning!</emphasis> This option is available only in the commercial version of Zorp.</para>
           </description>
         </attribute>
         <attribute>
@@ -2436,7 +2431,8 @@ class AbstractHttpProxy(Proxy):
             <read/>
           </runtime>
           <description>
-            Enables DNS- and reverse-DNS resolution to ensure that a domain or URL is correctly categorized even when it is listed in the database using its domain name, but the client tries to access it with its IP address (or vice-versa). See <xref linkend="zorp_http_urlfiltering"/> for details. Note that URL filtering requires the <parameter>url-filter</parameter> license option.
+            Enables DNS- and reverse-DNS resolution to ensure that a domain or URL is correctly categorized even when it is listed in the database using its domain name, but the client tries to access it with its IP address (or vice-versa). <phrase condition="zorp">See <xref linkend="zorp_http_urlfiltering"/> for details. Note that URL filtering requires the <parameter>url-filter</parameter> license option.</phrase>
+            <para condition="zorp-gpl"><emphasis role="bold">Warning!</emphasis> This option is available only in the commercial version of Zorp.</para>
           </description>
         </attribute>
         <attribute>
@@ -2463,20 +2459,14 @@ class AbstractHttpProxy(Proxy):
           <description>
             Normative policy hash for category-based URL-filtering.
             The hash is indexed by the name of the category.
-            See also <xref linkend="zorp_http_urlfiltering_categories"/>.
+            <phrase condition="zorp">See also <xref linkend="zorp_http_urlfiltering_categories"/>.</phrase>
+            <para condition="zorp-gpl"><emphasis role="bold">Warning!</emphasis> This option is available only in the commercial version of Zorp.</para>
           </description>
         </attribute>
         <attribute>
           <name>url_filter_uncategorized_action</name>
           <type>
-            <hash>
-              <key>
-                <string/>
-              </key>
-              <value>
-                <link id="action.http.url"/>
-              </value>
-            </hash>
+            <link id="action.http.url"/>
           </type>
           <default>HTTP_URL_ACCEPT</default>
           <conftime>
@@ -2488,8 +2478,9 @@ class AbstractHttpProxy(Proxy):
             <write/>
           </runtime>
           <description>
-            <para>The action applied to uncategorized (unknown) URLs when URL filtering is used. By default, uncategorized URLs are accepted: <parameter>self.url_filter_uncategorized_action=(HTTP_URL_ACCEPT,)</parameter>. Note that if you set this option to <parameter>HTTP_URL_REJECT</parameter>, you must add every URL on your intranet to a category and set an <parameter>HTTP_URL_ACCEPT</parameter> rule to this category, otherwise your clients will not able to access your intranet sites. For details, see <xref linkend="zorp_http_urlfiltering_configuring"/>.</para>
+            <para>The action applied to uncategorized (unknown) URLs when URL filtering is used. By default, uncategorized URLs are accepted: <parameter>self.url_filter_uncategorized_action=(HTTP_URL_ACCEPT,)</parameter>. Note that if you set this option to <parameter>HTTP_URL_REJECT</parameter>, you must add every URL on your intranet to a category and set an <parameter>HTTP_URL_ACCEPT</parameter> rule to this category, otherwise your clients will not able to access your intranet sites. <phrase condition="zorp">For details, see <xref linkend="zorp_http_urlfiltering_configuring"/>.</phrase></para>
             <para>Available only in Zorp version 3.4.5 and later.</para>
+            <para condition="zorp-gpl"><emphasis role="bold">Warning!</emphasis> This option is available only in the commercial version of Zorp.</para>
           </description>
         </attribute>
         <attribute>

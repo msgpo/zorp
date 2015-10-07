@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,10 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 """
@@ -51,6 +50,7 @@ class Receiver(Dispatcher):
       </metainfo>
     </class>
     """
+    deprecated_warning = True
     def __init__(self, bindto, service, **kw):
         """
         <method maturity="stable">
@@ -120,6 +120,12 @@ class Receiver(Dispatcher):
           </metainfo>
         </method>
         """
+        if (Receiver.deprecated_warning):
+
+            Receiver.deprecated_warning = False
+            log(None, CORE_DEBUG, 3, "Use of Receiver class is deprecated, Dispatcher should be used instead.")
+
+
         super(Receiver, self).__init__(convertSockAddrToDB(bindto, ZD_PROTO_UDP), service, **kw)
 
 class ZoneReceiver(ZoneDispatcher):
@@ -134,6 +140,7 @@ class ZoneReceiver(ZoneDispatcher):
     </class>
     """
 
+    deprecated_warning = True
     def __init__(self, bindto, services, **kw):
         """
         <method maturity="stable">
@@ -212,6 +219,11 @@ class ZoneReceiver(ZoneDispatcher):
           </metainfo>
         </method>
         """
+        if (ZoneReceiver.deprecated_warning):
+
+            ZoneReceiver.deprecated_warning = False
+            log(None, CORE_DEBUG, 3, "Use of ZoneReceiver class is deprecated, Dispatcher should be used instead.")
+
         super(ZoneReceiver, self).__init__(convertSockAddrToDB(bindto, ZD_PROTO_UDP), services, **kw)
 
 class CSZoneReceiver(CSZoneDispatcher):
@@ -241,6 +253,7 @@ class CSZoneReceiver(CSZoneDispatcher):
     </class>
     """
 
+    deprecated_warning = True
     def __init__(self, bindto, services, **kw):
         """
         <method maturity="stable">
@@ -323,4 +336,9 @@ class CSZoneReceiver(CSZoneDispatcher):
           </metainfo>
         </method>
         """
+        if (CSZoneReceiver.deprecated_warning):
+
+            CSZoneReceiver.deprecated_warning = False
+            log(None, CORE_DEBUG, 3, "Use of CSZoneReceiver class is deprecated, Dispatcher should be used instead.")
+
         super(CSZoneReceiver, self).__init__(convertSockAddrToDB(bindto, ZD_PROTO_UDP), services, **kw)

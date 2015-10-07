@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,17 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
-##
-## $Id: Auth.py,v 1.69 2004/05/07 12:57:53 bazsi Exp $
-##
-## Author  : Bazsi
-## Auditor : kisza
-## Last audited version: 1.3
-## Notes:
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 """
@@ -42,7 +34,7 @@
     traffic. Authentication is often used in conjunction with authorization, allowing
     access to a service only to clients who have the right to do so.</para>
 
-    <section id="authentication_overview">
+    <section xml:id="authentication_overview">
         <title>Authentication and authorization basics</title>
     <para>Authentication is a method to ensure that certain services (access to a server, etc.) can
       be used only by the clients allowed to access the service. The process generally called as
@@ -71,7 +63,7 @@
       </listitem>
     </itemizedlist>
     </section>
-    <section id="zorp_authentication">
+    <section xml:id="zorp_authentication">
      <title>Authentication and authorization in Zorp</title>
         <para>
             Zorp can authenticate and authorize access to the Zorp services.
@@ -847,7 +839,7 @@ class AuthPolicy(object):
         return None
 
 def getAuthPolicyObsolete(name):
-    """<function internal="yes"/>
+    """<function internal="yes">
           <metainfo>
             <arguments/>
           </metainfo>

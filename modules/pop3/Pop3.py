@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,15 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
-##
-## Author  : SaSa
-## Auditor :
-## Last audited version:
-## Notes:
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -90,7 +84,7 @@
           and the connection is closed.
         </para>
       </section>
-      <section id="pop3_bulktransfer">
+      <section xml:id="pop3_bulktransfer">
         <title>Bulk transfers</title>
         <para>
           Responses to certain commands (such as LIST or RETR) contain a long
@@ -139,7 +133,7 @@ QUIT
           following optional commands are also accepted: USER, PASS, AUTH. The proxy understands all the commands specified in RFC 1939 and the AUTH command. These additional commands can be enabled manually.
         </para>
       </section>
-      <section id="pop3_policies">
+      <section xml:id="pop3_policies">
         <title>Configuring policies for POP3 commands</title>
         <para>
           Changing the default behavior of commands can be done using the
@@ -225,14 +219,14 @@ QUIT
         </para>
         </note>
       </section>
-      <section id="pop3_stacking">
+      <section xml:id="pop3_stacking">
       <title>Stacking</title>
       <para>
       The available stacking modes for this proxy module are listed in the following table. For additional information on stacking, see <xref linkend="proxy_stacking"/>.
       </para>
       <inline type="actiontuple" target="action.pop3.stk"/>
       </section>
-      <section id="pop3_rejectbymail">
+      <section xml:id="pop3_rejectbymail">
       <title>Rejecting viruses and spam</title>
         <para>
          When filtering messages for viruses or spam, the content vectoring modules reject infected and spam e-mails.

@@ -1,7 +1,7 @@
 ############################################################################
 ##
-## Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-## 2010, 2011 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+##
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -13,10 +13,9 @@
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ##
 ############################################################################
 
@@ -31,9 +30,10 @@
 """
 
 from Zorp import *
+from Certificate_ import ZorpCertificate
+from FileLock import FileLock
 
 import os
-import fcntl
 import OpenSSL
 import hashlib
 
@@ -114,10 +114,26 @@ class X509KeyBridge(X509KeyManager):
       </attributes>
     </metainfo>
     </class>"""
+    def __new__(cls, *args, **kwargs):
+        """
+        <method internal="yes"/>
+        """
+        obj = super(X509KeyBridge, cls).__new__(cls)
+        base = cls
+        if base.__name__ != "X509KeyBridge":
+          for base in cls.__bases__:
+            if base.__name__ == "X509KeyBridge":
+              break;
+        if kwargs.has_key("key_pem"):
+            base.__init__ = base._new_init
+        else:
+            base.__init__ = base._old_init
+
+        return obj
 
     default_extension_whitelist = ('keyUsage', 'subjectAltName', 'extendedKeyUsage')
 
-    def __init__(self, key_file, cache_directory=None, trusted_ca_files=None, untrusted_ca_files=None, key_passphrase = "",
+    def _old_init(self, key_file, cache_directory=None, trusted_ca_files=None, untrusted_ca_files=None, key_passphrase = "",
                  extension_whitelist=None):
         """<method maturity="stable">
           <metainfo>
@@ -201,67 +217,94 @@ class X509KeyBridge(X509KeyManager):
           untrusted_ca_files -- a tuple of (cert_file, key_file, passphrase) for a CA to be used for signing untrusted certificates
 
         """
+        key_pem = self.readPEM(key_file)
+        if trusted_ca_files:
+            try:
+                passphrase = trusted_ca_files[2]
+            except IndexError:
+                passphrase = ""
+            trusted_ca_pems = (self.readPEM(trusted_ca_files[0]), self.readPEM(trusted_ca_files[1]), passphrase)
+
+        if untrusted_ca_files:
+            try:
+                passphrase = untrusted_ca_files[2]
+            except IndexError:
+                passphrase = ""
+            untrusted_ca_pems = (self.readPEM(untrusted_ca_files[0]), self.readPEM(untrusted_ca_files[1]), passphrase)
+
+        self._new_init(key_pem, cache_directory, trusted_ca_pems, untrusted_ca_pems, key_passphrase, extension_whitelist)
+
+    def _new_init(self, key_pem, cache_directory=None, trusted_ca_files=None, untrusted_ca_files=None, key_passphrase = "", extension_whitelist=None):
+        """
+        <method internal="yes"/>
+        """
         if cache_directory:
             self.cache_directory = cache_directory
         else:
             self.cache_directory = "/var/lib/zorp/keybridge-cache"
-        if not trusted_ca_files:
-            trusted_ca_files = (None, None, None)
         if not extension_whitelist:
             extension_whitelist = self.default_extension_whitelist
         self.extension_whitelist = extension_whitelist
         self.initialized = 0
         try:
-            self.key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, open(key_file, 'r').read(), key_passphrase)
-            try:
-                passphrase = trusted_ca_files[2]
-            except IndexError:
-                passphrase = ""
-            self.trusted_ca = (OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, open(trusted_ca_files[0], 'r').read()),
-                               OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, open(trusted_ca_files[1], 'r').read(), passphrase))
-            if untrusted_ca_files:
-                try:
-                    passphrase = untrusted_ca_files[2]
-                except IndexError:
-                    passphrase = ""
-                self.untrusted_ca = (OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, open(untrusted_ca_files[0], 'r').read()),
-                                     OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, open(untrusted_ca_files[1], 'r').read(), passphrase))
-            try:
-                self.lock_file = open('%s/.lock' % self.cache_directory, 'r+')
-            except IOError:
-                self.lock_file = open('%s/.lock' % self.cache_directory, 'w')
+            self._load_privatekey(key_pem, trusted_ca_files, untrusted_ca_files, key_passphrase)
             self.initialized = 1
         except IOError, e:
-            log(None, CORE_ERROR, 3, "Error opening lock, key or certificate file for keybridge; file='%s', error='%s'", (e.filename, e.strerror))
+            log(None, CORE_ERROR, 3, "Error opening key or certificate file for keybridge; file='%s', error='%s'", (e.filename, e.strerror))
 
-    def __del__(self):
+    def _load_privatekey(self, key_pem, trusted_ca_files, untrusted_ca_files, key_passphrase):
         """<method internal="yes">
         </method>"""
-        if hasattr(self, "lock_file"):
-            self.lock_file.close()
 
-    def getCachedKey(self, cert_file, cert_server):
+        if not trusted_ca_files:
+            trusted_ca_files = (None, None, None)
+        self.key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, key_pem, key_passphrase)
+        try:
+            passphrase = trusted_ca_files[2]
+        except IndexError:
+            passphrase = ""
+        self.trusted_ca = (OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, trusted_ca_files[0]),
+                           OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, trusted_ca_files[1], passphrase))
+        if untrusted_ca_files:
+            try:
+                passphrase = untrusted_ca_files[2]
+            except IndexError:
+                passphrase = ""
+            self.untrusted_ca = (OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, untrusted_ca_files[0]),
+                                 OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, untrusted_ca_files[1], passphrase))
+
+    def readPEM(self, filename):
+        """<method internal="yes">
+        </method>
+        """
+        log(None, CORE_DEBUG, 6, "Reading PEM file; filename='%s'" % filename)
+        f = open(filename, 'r')
+        res = f.read()
+        f.close()
+        return res
+
+    def getCachedKey(self, session_id, cert_file, cert_server):
         """<method internal="yes">
         </method>"""
 
         def is_md5(cert):
             return cert.get_signature_algorithm().lower().find("md5") != -1
 
-        log(None, CORE_DEBUG, 5, "Loading cached certificate; file='%s'", cert_file)
+        log(session_id, CORE_DEBUG, 5, "Loading cached certificate; file='%s'", cert_file)
         try:
             orig_cert = open(cert_file + '.orig', 'r').read()
         except IOError, e:
-            log(None, CORE_DEBUG, 5, "Original keybridged certificate cannot be read, regenerating; file='%s', error='%s'", (cert_file, e.strerror))
+            log(session_id, CORE_DEBUG, 5, "Original keybridged certificate cannot be read, regenerating; file='%s', error='%s'", (cert_file, e.strerror))
             raise KeyError('not in cache')
 
         try:
             cached_cert = open(cert_file, 'r').read()
             cached_cert_x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cached_cert)
         except IOError, e:
-            log(None, CORE_DEBUG, 5, "Cached certificate cannot be read, regenerating; file='%s', error='%s'", (cert_file, e.strerror))
+            log(session_id, CORE_DEBUG, 5, "Cached certificate cannot be read, regenerating; file='%s', error='%s'", (cert_file, e.strerror))
             raise KeyError('not in cache')
         except OpenSSL.crypto.Error:
-            log(None, CORE_DEBUG, 5, "Cached certificate is not valid, regenerating; file='%s'", cert_file)
+            log(session_id, CORE_DEBUG, 5, "Cached certificate is not valid, regenerating; file='%s'", cert_file)
             raise KeyError('not in cache')
 
         cert_server_x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_server)
@@ -270,16 +313,16 @@ class X509KeyBridge(X509KeyManager):
         # We regenerate every cert if the cached version uses md5 while the server cert uses a different algo.
         if orig_cert == cert_server:
             if is_md5(cached_cert_x509) and not is_md5(cert_server_x509):
-                log(None, CORE_DEBUG, 5, "Cached certificate is MD5 signed while server's certificate is not, regenerating; file='%s', cached_algo='%s', server_algo='%s'", (cert_file, cached_cert_x509.get_signature_algorithm(), cert_server_x509.get_signature_algorithm()))
+                log(session_id, CORE_DEBUG, 5, "Cached certificate is MD5 signed while server's certificate is not, regenerating; file='%s', cached_algo='%s', server_algo='%s'", (cert_file, cached_cert_x509.get_signature_algorithm(), cert_server_x509.get_signature_algorithm()))
             else:
-                log(None, CORE_DEBUG, 5, "Cached certificate ok, reusing; file='%s'", cert_file)
+                log(session_id, CORE_DEBUG, 5, "Cached certificate ok, reusing; file='%s'", cert_file)
                 return (cached_cert, OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, self.key))
         else:
-            log(None, CORE_DEBUG, 5, "Cached certificate changed, regenerating; file='%s'", cert_file)
+            log(session_id, CORE_DEBUG, 5, "Cached certificate changed, regenerating; file='%s'", cert_file)
 
         raise KeyError, 'certificate changed'
 
-    def storeCachedKey(self, cert_file, new_blob, orig_blob):
+    def storeCachedKey(self, session_id, cert_file, new_blob, orig_blob):
         """<method internal="yes">
         </method>"""
         try:
@@ -292,7 +335,7 @@ class X509KeyBridge(X509KeyManager):
             except OSError:
                 pass
 
-            log(None, CORE_DEBUG, 5, "Storing cached certificate; file='%s'", cert_file)
+            log(session_id, CORE_DEBUG, 5, "Storing cached certificate; file='%s'", cert_file)
             f = open(cert_file, 'w')
             f.write(new_blob)
             f.close()
@@ -300,17 +343,7 @@ class X509KeyBridge(X509KeyManager):
             f.write(orig_blob)
             f.close()
         except IOError, e:
-            log(None, CORE_ERROR, 2, "Error storing generated X.509 certificate in the cache; file='%s', error='%s'", (cert_file, e.strerror))
-
-    def lock(self):
-        """<method internal="yes">
-        </method>"""
-        fcntl.lockf(self.lock_file, fcntl.LOCK_EX)
-
-    def unlock(self):
-        """<method internal="yes">
-        </method>"""
-        fcntl.lockf(self.lock_file, fcntl.LOCK_UN)
+            log(session_id, CORE_ERROR, 2, "Error storing generated X.509 certificate in the cache; file='%s', error='%s'", (cert_file, e.strerror))
 
     def getLastSerial(self):
         """<method internal="yes">
@@ -335,31 +368,54 @@ class X509KeyBridge(X509KeyManager):
         """<method internal="yes">
         </method>"""
         filetype = OpenSSL.crypto.FILETYPE_PEM
+        certificate = OpenSSL.crypto.dump_certificate(filetype, orig_cert)
 
-        new_cert = OpenSSL.crypto.load_certificate(filetype, OpenSSL.crypto.dump_certificate(filetype, orig_cert))
+        if self.extension_whitelist:
+          # delete extensions not on whitelist
+          zorp_certificate = ZorpCertificate(certificate)
+          certificate = zorp_certificate.del_extensions(self.extension_whitelist)
+
+        new_cert = OpenSSL.crypto.load_certificate(filetype, certificate)
         new_cert.set_serial_number(serial)
         new_cert.set_issuer(ca_cert.get_subject())
         new_cert.set_pubkey(key)
         hash_alg = orig_cert.get_signature_algorithm()
 
-        # delete extensions not on whitelist
-        ext_index = 0
-        while ext_index < new_cert.get_extension_count():
-            ext = new_cert.get_extension(ext_index)
-            if ext.get_short_name() not in self.extension_whitelist:
-                new_cert.del_extension(ext_index)
-            else:
-                ext_index += 1
-
         new_cert.sign(ca_key, hash_alg)
 
         return new_cert
 
-    def getKeypair(self, selector):
+    def _save_new_cert(self, session_id, orig_blob, ca_pair, cert_file, serial):
+        """<method internal="yes">
+        </method>"""
+
+        orig_cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, orig_blob)
+
+        new_cert = self.genCert(self.key, orig_cert, ca_pair[0], ca_pair[1], serial)
+
+        new_blob = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, new_cert)
+
+        self.storeCachedKey(session_id, cert_file, new_blob, orig_blob)
+
+        return new_blob
+
+    def _dump_privatekey(self):
+        """<method internal="yes">
+        </method>"""
+
+        return OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, self.key)
+
+    def _get_serial_filename(self):
+        """<method internal="yes">
+        </method>"""
+
+        return '%s/serial.txt' % self.cache_directory
+
+    def getKeypair(self, session_id, selector):
         """<method internal="yes">
         </method>"""
         if not self.initialized:
-            log(None, CORE_ERROR, 3, "Keybridge not completely initialized, error generating keypair;")
+            log(session_id, CORE_ERROR, 3, "Keybridge not completely initialized, error generating keypair;")
             return (None, None)
 
         try:
@@ -377,14 +433,13 @@ class X509KeyBridge(X509KeyManager):
             cert_file = '%s/untrusted-%s.crt' % (self.cache_directory, hash)
             ca_pair = self.untrusted_ca
 
-        self.lock()
-        try:
+        with FileLock("%s/.lock" % self.cache_directory):
             try:
-                return self.getCachedKey(cert_file, orig_blob)
+                return self.getCachedKey(session_id, cert_file, orig_blob)
             except KeyError:
-                log(None, CORE_DEBUG, 5, "Certificate not found in the cache, regenerating;")
+                log(session_id, CORE_DEBUG, 5, "Certificate not found in the cache, regenerating;")
 
-            serial_file = '%s/serial.txt' % self.cache_directory
+            serial_file = self._get_serial_filename()
 
             serial_pos = ""
             try:
@@ -397,22 +452,15 @@ class X509KeyBridge(X509KeyManager):
                 serial_pos = None
             except (ValueError, IOError):
                 serial = self.getLastSerial()
-                log(None, CORE_ERROR, 3, "On-line CA serial file not found, reinitializing; file='%s', serial='%d', pos='%s'", (serial_file, serial, serial_pos))
+                log(session_id, CORE_ERROR, 3, "On-line CA serial file not found, reinitializing; file='%s', serial='%d', pos='%s'", (serial_file, serial, serial_pos))
 
             serial = serial + 1
             try:
-                open(serial_file, 'w').write(str(serial))
+                with open(serial_file, 'w') as f:
+                    f.write(str(serial))
             except IOError, e:
-                log(None, CORE_ERROR, 2, "Cannot write serial number of on-line CA; file='%s', error='%s'", (serial_file, e.strerror))
+                log(session_id, CORE_ERROR, 2, "Cannot write serial number of on-line CA; file='%s', error='%s'", (serial_file, e.strerror))
 
-            orig_cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, orig_blob)
+            new_blob = self._save_new_cert(session_id, orig_blob, ca_pair, cert_file, serial)
 
-            new_cert = self.genCert(self.key, orig_cert, ca_pair[0], ca_pair[1], serial)
-
-            new_blob = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, new_cert)
-
-            self.storeCachedKey(cert_file, new_blob, orig_blob)
-
-            return (new_blob, OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, self.key))
-        finally:
-            self.unlock()
+            return (new_blob, self._dump_privatekey())
