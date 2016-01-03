@@ -3,12 +3,13 @@ layout: page
 title: Help / FAQ
 ---
 
-What is harmony?
-: Harmony is a free jekyll theme, for bloggers who love jekyll. Designed and build by [Gayan Virajith](http://gayanvirajith.github.io) & [Maheshika Lakmali](http://maheshikalakmali.github.io). 
+What is *Zorp GPL*?
 
-Why are you doing this?
-: For experience! Free resources are always good way to learn what you love, also help us to produce good digital work and it might end up being useful to someone.
-
-Well, still have something in your mind?
-: Please drop a line to [gayanvirajith@gmail.com](gayanvirajith@gmail.com) or an [issue](https://github.com/gayanvirajith/harmony/issues/new) on Github, I am glad to response.
-
+: *Zorp GPL* is a next generation, open source proxy firewall with deep
+protocol analysis. It allows you to inspect, control, and modify traffic
+on the application layer of the ISO/OSI model. Decisions can be made
+based on data extracted from the application-level traffic (for example,
+HTTP) and applied to a certain traffic type such as users or client
+machines. It ensures that the traffic complies with the particular
+protocol standards, and allows you to perform specific actions with the
+traffic.
