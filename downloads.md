@@ -15,11 +15,10 @@ Sources
 Binaries
 --------
 
--   *Zorp GPL* packages from [Debian](http://packages.debian.org) and
-    [Ubuntu](http://packages.ubuntu.com) distribution
--   *Zorp GPL* and related packages for Debian and Ubuntu distribution
-    on [MadHouse
-    Project](http://asylum.madhouse-project.org/projects/debian)
+-   Official Linux distribution packages
+    -   [Debian](http://packages.debian.org/search?keywords=zorp&searchon=names&suite=all&section=all)
+    -   [Ubuntu](http://packages.ubuntu.com/search?keywords=zorp&searchon=names&suite=all&section=all)
+-   Official *Zorp GPL* packages on [openSUSE Build Service](https://build.opensuse.org/project/subprojects/security:Zorp)
 
 Evaluate
 --------
