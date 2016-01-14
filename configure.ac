@@ -242,6 +242,13 @@ AM_COND_IF([PYTHON_VERSION_MATCHES],, AC_MSG_ERROR(Cannot find Python version = 
 
 LIBS=$save_LIBS
 
+AC_CHECK_DECLS([IP_FREEBIND], [], [], [[#include <linux/in.h>]])
+AC_CHECK_DECLS([IP_TRANSPARENT], [], [], [[#include <linux/in.h>]])
+AC_CHECK_DECLS([IPV6_TRANSPARENT], [], [], [[#include <linux/in6.h>]])
+
+AC_CHECK_DECLS([IP_BINDANY], [], [], [#include <netinet/in.h>])
+AC_CHECK_DECLS([IPV6_BINDANY], [], [], [[#include <netinet6/in6.h>]])
+
 AC_CHECK_DECLS([TCP_CORK], [], [], [[#include <linux/tcp.h>]])
 AC_CHECK_DECLS([TCP_NOPUSH], [], [], [[#include <netinet/tcp.h>]])
 
