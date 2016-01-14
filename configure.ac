@@ -242,6 +242,9 @@ AM_COND_IF([PYTHON_VERSION_MATCHES],, AC_MSG_ERROR(Cannot find Python version = 
 
 LIBS=$save_LIBS
 
+AC_CHECK_DECLS([TCP_CORK], [], [], [[#include <linux/tcp.h>]])
+AC_CHECK_DECLS([TCP_NOPUSH], [], [], [[#include <netinet/tcp.h>]])
+
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= $GLIB_MIN_VERSION,,
 	AC_MSG_ERROR(Cannot find GLib library version >= $GLIB_MIN_VERSION: is pkg-config in path?))
 
