@@ -69,12 +69,14 @@ print_tos(int sock)
   socklen_t size;
 
   size = sizeof(buf);
-  if (getsockopt(sock, SOL_IP, IP_PKTOPTIONS, &buf, &size) < 0)
+/*
+  if (getsockopt(sock, IPPROTO_IP, IP_PKTOPTIONS, &buf, &size) < 0)
     {
-      perror("getsockopt(SOL_IP, IP_PKTOPTIONS)");
+      perror("getsockopt(IPPROTO_IP, IP_PKTOPTIONS)");
       exit(EXIT_FAILURE);
     }
   else
+*/
     {
       struct msghdr msg;
       struct cmsghdr *cmsg;
@@ -85,7 +87,7 @@ print_tos(int sock)
 
       for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg))
 	{
-	  if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_TOS)
+	  if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_TOS)
 	    {
 	      unsigned char tos = *((unsigned char *) CMSG_DATA(cmsg));
 
@@ -119,9 +121,9 @@ main(void)
     }
 
   flag = 1;
-  if (setsockopt(sock, SOL_IP, IP_RECVTOS, &flag, sizeof(flag)) < 0)
+  if (setsockopt(sock, IPPROTO_IP, IP_RECVTOS, &flag, sizeof(flag)) < 0)
     {
-      perror("setsockopt(SOL_IP, IP_RECVTOS)");
+      perror("setsockopt(IPPROTO_IP, IP_RECVTOS)");
       exit(EXIT_FAILURE);
     }
 
