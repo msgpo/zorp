@@ -328,7 +328,7 @@ zorpeval()
 {
 	OLD=$1
 	NEW=`eval echo $1`
-	while /usr/bin/test "x$OLD" != "x$NEW"
+	while test "x$OLD" != "x$NEW"
 	do
 		OLD=$NEW
 		NEW=`eval echo $OLD`
