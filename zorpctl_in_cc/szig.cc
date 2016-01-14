@@ -24,6 +24,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <glib.h>
 
 static const int SZIG_MAX_CMD_LENGTH = 131072 + 256; /* 128KiB is the max length of a single argument + a little room */
