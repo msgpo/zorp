@@ -442,9 +442,9 @@ def init(names, virtual_name, is_master):
     Globals.rules = Rule.RuleSet()
 
     if config.options.kzorp_enabled:
-        import kzorp.communication
         # ping kzorp to see if it's there
         try:
+            import kzorp.communication
             h = kzorp.communication.Handle()
             Globals.kzorp_available = True
         except:

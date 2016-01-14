@@ -118,6 +118,10 @@ AC_ARG_WITH(pidfiledir,
               pidfiledir="$with_pidfiledir",
               pidfiledir='${localstatedir}/run/zorp/')
 
+AC_ARG_ENABLE(kzorp,
+              [  --enable-kzorp       Enable kzorp],,
+	      enable_kzorp=yes)
+
 ZORP_MUNIN_CONF_DIR="${sysconfdir}/munin/plugin-conf.d"
 ZORP_NAGIOS_CONF_DIR="${sysconfdir}/nagios/nrpe.d"
 ZORP_SUDOERSD_CONF_DIR="${sysconfdir}/sudoers.d"
@@ -308,6 +312,7 @@ AC_SUBST(ZORP_NAGIOS_CONF_DIR)
 AC_SUBST(ZORP_PYTHON_DIR)
 AC_SUBST(ZORPCTL_PYTHON_DIR)
 AC_SUBST(ZORP_SUDOERSD_CONF_DIR)
+AC_SUBST(ENABLE_KZORP)
 
 zorpeval()
 {
@@ -391,6 +396,7 @@ AC_DEFINE_UNQUOTED(ENABLE_TRACE, `enable_value $enable_trace`, [Enable trace mes
 AC_DEFINE_UNQUOTED(ENABLE_IPOPTIONS, `enable_value $enable_ip_options`, [Enable IP option processing])
 AC_DEFINE_UNQUOTED(ENABLE_IPV6, `enable_value $enable_ipv6`, [Enable IPv6 support])
 AC_DEFINE_UNQUOTED(ENABLE_PREFORK, `enable_value $enable_prefork`, [Enable prefork support])
+AC_DEFINE_UNQUOTED(ENABLE_KZORP, `enable_value $enable_kzorp`, [Enable kzorp support])
 
 # CPPFLAGS as supplied by dependencies
 DEPS_CPPFLAGS="$CPPFLAGS $ZORPLL_CFLAGS $ZORPLIC_CFLAGS $ZORPMISC_CFLAGS $PYTHON_CFLAGS $OPENSSL_CFLAGS $LIBADPALERTING_CFLAGS"
@@ -461,6 +467,7 @@ coverage: $enable_coverage
 ipoptions: $enable_ip_options
 ipv6: $enable_ipv6
 prefork: $enable_prefork
+kzorp: $enable_kzorp
 License: $ZORP_PACKAGE_LICENSE
 
 
