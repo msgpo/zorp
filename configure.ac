@@ -178,9 +178,10 @@ dnl ***************************************************************************
 dnl Checks for header files.
 
 
-AC_CHECK_HEADERS(sys/capability.h sys/prctl.h sys/syscall.h limits.h)
-AC_CHECK_HEADERS([linux/netlink.h])
+AC_CHECK_HEADERS(sys/capability.h sys/prctl.h sys/syscall.h limits.h stdbool.h stdint.h)
 AC_CHECK_HEADERS([sys/thr.h])
+AC_CHECK_HEADERS([arpa/inet.h])
+AC_CHECK_HEADERS([linux/netlink.h])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_CACHE_CHECK(for MSG_PROXY, blb_cv_msg_proxy,
