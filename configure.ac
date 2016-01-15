@@ -276,6 +276,7 @@ PKG_CHECK_MODULES(PYTHON, python-2.7 < $PYTHON_MAX_VERSION,,
 
 
 AM_CONDITIONAL(ALERTING_ENABLED, test x$enable_alerting = xyes)
+AM_CONDITIONAL([ENABLE_KZORP], [test x$enable_kzorp = xtrue])
 
 if test "x$ac_cv_func_gethostbyname_r" = "xyes"; then
 dnl	if test "`uname -s`" = "Linux"; then
