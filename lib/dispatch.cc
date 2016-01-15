@@ -55,7 +55,9 @@ struct ZDispatchChain
   ZDispatchParams params;
   GList *listeners;
   GList *iface_watches;
+#ifdef HAVE_LINUX_NETLINK_H
   ZIfmonGroupWatch *iface_group_watch;
+#endif
 };
 
 /* Each ZDispatchChain structure contains a list of instances of this type */
@@ -804,6 +806,7 @@ z_dispatch_iface_to_sa(gint family, void *addr, guint16 port)
   return NULL;
 }
 
+#ifdef HAVE_LINUX_NETLINK_H
 /**
  * z_dispatch_bind_iface_change:
  *
@@ -904,7 +907,6 @@ z_dispatch_bind_iface_change(const gchar *iface G_GNUC_UNUSED, ZIfChangeType cha
     }
 }
 
-#ifdef HAVE_LINUX_NETLINK_H
 /**
  * z_dispatch_bind_iface_change:
  *
