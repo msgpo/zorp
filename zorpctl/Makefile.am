@@ -3,6 +3,7 @@
 sysconf_DATA = instances.conf.http.sample instances.conf.https.sample instances.conf.ssh.sample zorpctl.conf
 
 pkgdatadir = @ZORPCTL_PYTHON_DIR@
+sysconfdir = @zorp_sysconfdir@
 
 pkgdata_DATA = __init__.py   \
 	CommandResults.py    \

@@ -1,5 +1,6 @@
 pkglibdir=$(libdir)/zorp
 pkglibexecdir=$(libdir)/zorp
+sysconfdir=@zorp_sysconfdir@
 LIBS=@ZORP_LIBS@
 
 
