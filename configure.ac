@@ -453,7 +453,6 @@ pylib/Zorp/Makefile
 scripts/Makefile
 tests/Makefile
 tests/python/Makefile
-tests/tools/Makefile
 tests/unit/Makefile
 tests/zorpctl/Makefile
 zorp/Makefile
