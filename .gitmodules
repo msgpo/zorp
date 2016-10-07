@@ -1,4 +1,4 @@
 [submodule "ci"]
 	path = ci
-	url = git://github.com/balabit/zorp-ci.git
+	url = git://github.com/balasys/zorp-ci.git
 	branch = master
