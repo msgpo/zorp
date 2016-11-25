@@ -1792,6 +1792,5 @@ class Proxy(BuiltinProxy):
         f.close()
         return res
 
-    hash_pattern = re.compile("[0-9a-fA-F]*\.(r){0,1}[0-9]")
 
 

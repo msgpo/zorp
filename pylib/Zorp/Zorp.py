@@ -214,7 +214,6 @@ CORE_POLICY = Common.CORE_POLICY
 CORE_MESSAGE = Common.CORE_MESSAGE
 CORE_AUTH = Common.CORE_AUTH
 CORE_INFO = Common.CORE_INFO
-CORE_ALERTING = Common.CORE_ALERTING
 CORE_SUMMARY = Common.CORE_SUMMARY
 
 # return values returned by event handlers
