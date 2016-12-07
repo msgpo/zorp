@@ -260,7 +260,6 @@ PKG_CHECK_MODULES(LIBPYTHON, python-2.7 < $PYTHON_MAX_VERSION,,
 
 
 
-
 if test "x$ac_cv_func_gethostbyname_r" = "xyes"; then
 dnl	if test "`uname -s`" = "Linux"; then
 dnl		AC_DEFINE(HAVE_LEAK_IN_GETHOSTBYNAME_R, 1, [We have a leak in gethostbyname_r, avoid using it])

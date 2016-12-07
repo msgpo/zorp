@@ -17,7 +17,7 @@ ZORP_H = zorpconfig.h \
 	kzorp.h kzorp-kernel.h \
 	certchain.h pyx509chain.h \
 	session.h session_impl.h \
-	sessionid.h \
+	alerting.h sessionid.h \
 	pyencryption.h
 
 

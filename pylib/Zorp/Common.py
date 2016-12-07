@@ -30,7 +30,6 @@ CORE_POLICY = "core.policy"
 CORE_MESSAGE = "core.message"
 CORE_AUTH = "core.auth"
 CORE_INFO = "core.info"
-CORE_ALERTING = "core.alerting"
 CORE_SUMMARY = "core.summary"
 
 def log(sessionid, logclass, verbosity, msg, args=None):

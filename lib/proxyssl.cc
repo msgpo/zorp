@@ -621,6 +621,19 @@ z_proxy_ssl_load_local_crl_list(ZProxySSLHandshake *handshake, gchar *name)
   z_proxy_return(self, TRUE);
 }
 
+int
+z_proxy_ssl_verify_cb_allow_missing_crl(int ok, X509_STORE_CTX *ctx)
+{
+  bool *found_missing_crl = reinterpret_cast<bool *>(X509_STORE_CTX_get_ex_data(ctx, 0));
+  if (!ok && ctx->error == X509_V_ERR_UNABLE_TO_GET_CRL)
+    {
+     *found_missing_crl = true;
+      return 1;
+    }
+
+  return ok;
+}
+
 /* this function is called to verify the whole chain as provided by
    the peer. The SSL lib takes care about setting up the context,
    we only need to call X509_verify_cert. */
@@ -635,7 +648,8 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void *user_data G_GNUC_UNUSED)
   gboolean new_verify_callback, success;
   guint verdict;
   gboolean ok, verify_valid;
-  gint verify_error, verify_type;
+  gint verify_error;
+  proxy_ssl_verify_type verify_type;
 
   z_proxy_enter(self);
   /* publish the peer's certificate to python, and fetch the calist
@@ -654,16 +668,22 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void *user_data G_GNUC_UNUSED)
   if (side == EP_SERVER)
     z_proxy_ssl_load_local_ca_list(handshake);
 
+  bool found_missing_crl = false;
   if (self->encryption->ssl_opts.verify_crl_directory[side]->len > 0)
     {
       X509_STORE_CTX_set_flags(ctx, X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
+
+      if (self->encryption->ssl_opts.permit_missing_crl[side])
+        {
+          X509_STORE_CTX_set_verify_cb(ctx, z_proxy_ssl_verify_cb_allow_missing_crl);
+          X509_STORE_CTX_set_ex_data(ctx, 0, &found_missing_crl);
+        }
     }
 
   verify_valid = X509_verify_cert(ctx);
   verify_error = X509_STORE_CTX_get_error(ctx);
 
-  if (self->encryption->ssl_opts.permit_missing_crl[side] &&
-      !verify_valid && verify_error == X509_V_ERR_UNABLE_TO_GET_CRL)
+  if (self->encryption->ssl_opts.permit_missing_crl[side] && found_missing_crl)
     {
       /* no CRL was found, but the configuration explicitly permits
        * missing CRLs */
@@ -673,11 +693,6 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void *user_data G_GNUC_UNUSED)
         explicitly allows missing CRLs.
        */
       z_proxy_log(self, CORE_POLICY, 5, "Trying verification without CRL check as directed by the policy");
-
-      /* disable CRL check and redo verify */
-      X509_VERIFY_PARAM_clear_flags(ctx->param, X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
-      verify_valid = X509_verify_cert(ctx);
-      verify_error = X509_STORE_CTX_get_error(ctx);
     }
 
   z_policy_lock(self->thread);
@@ -695,23 +710,26 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void *user_data G_GNUC_UNUSED)
   else
     success = z_proxy_ssl_callback(self, side, "verify_cert", z_policy_var_build("(i)", side), &verdict);
 
+  ok = 0;
   z_policy_unlock(self->thread);
   if (!success)
-    {
-      ok = 0;
-      goto exit;
-    }
+    goto exit;
+
+  if (!verify_valid)
+    z_proxy_log(self, CORE_INFO, 3, "Certificate verification failed, making policy decision; error='%s'",
+                                    X509_verify_cert_error_string(verify_error));
 
   if (verdict == PROXY_SSL_HS_ACCEPT)
     {
-      if (verify_type == ENCRYPTION_VERIFY_REQUIRED_TRUSTED ||
-          verify_type == ENCRYPTION_VERIFY_OPTIONAL_TRUSTED)
+      switch (verify_type)
         {
+        case ENCRYPTION_VERIFY_REQUIRED_TRUSTED:
+        case ENCRYPTION_VERIFY_OPTIONAL_TRUSTED:
           ok = verify_valid;
-        }
-      else if (verify_type == ENCRYPTION_VERIFY_REQUIRED_UNTRUSTED ||
-               verify_type == ENCRYPTION_VERIFY_OPTIONAL_UNTRUSTED)
-        {
+        break;
+
+        case ENCRYPTION_VERIFY_REQUIRED_UNTRUSTED:
+        case ENCRYPTION_VERIFY_OPTIONAL_UNTRUSTED:
           if (!verify_valid &&
               (self->encryption->ssl_opts.permit_invalid_certificates[side] ||
                (verify_error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT ||
@@ -730,10 +748,14 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void *user_data G_GNUC_UNUSED)
             {
               ok = verify_valid;
             }
-        }
-      else
-        {
+        break;
+
+        case ENCRYPTION_VERIFY_NONE:
+          z_proxy_log(self, CORE_POLICY, 3,
+                      "Accepting untrusted certificate as directed by the policy; verify_error='%s'",
+                      X509_verify_cert_error_string(verify_error));
           ok = 1;
+        break;
         }
     }
   else if (verdict == PROXY_SSL_HS_VERIFIED)
@@ -1071,7 +1093,6 @@ z_proxy_ssl_handshake_cb(ZStream *stream, GIOCondition poll_cond G_GNUC_UNUSED, 
           /* no break here: we let the code go to the next case so that the error gets logged */
 
         default:
-          /* SSL handshake failed */
           z_proxy_ssl_handshake_set_error(handshake, ssl_err);
           z_proxy_log(handshake->proxy, CORE_ERROR, 1, "SSL handshake failed; side='%s', error='%s'",
                       EP_STR(handshake->side), z_proxy_ssl_handshake_get_error_str(handshake));
