@@ -10,7 +10,7 @@ Section: net
 Architecture: any
 Depends: ${shlibs:Depends}, python-openssl, python-dnspython, libzorp6.0-10 (= ${binary:Version}), python-zorp-base (>= ${source:Version})
 Suggests: zorp-doc, zorp-modules (= ${source:Version}), zorp-munin-plugins, zorp-nagios-plugins, iptables-kzorp-addon, iptables-zorp-addons, kzorp-dkms (>= ${source:Version}), python-kzorp (>= ${source:Version}), kzorpd, kzorp-utils
-Pre-Depends: zorp-base (= ${source:Version})
+Pre-Depends: openssl, zorp-base (= ${source:Version})
 Description: An advanced protocol analyzing firewall
  Zorp is a new generation firewall. It is essentially a transparent proxy
  firewall, with strict protocol analyzing proxies, a modular architecture,
