@@ -784,7 +784,7 @@ z_policy_dict_ip_get_value(ZPolicyDict *self G_GNUC_UNUSED, ZPolicyDictEntry *en
     }
   else if (entry->type == Z_VT_IP)
     {
-      res = PyInt_FromLong(((struct in_addr *) entry->value)->s_addr);
+      res = PyLong_FromUnsignedLong(((struct in_addr *) entry->value)->s_addr);
     }
   else
     {
