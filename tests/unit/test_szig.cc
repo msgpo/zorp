@@ -33,6 +33,8 @@
 
 #define NUM_CONNS 900
 #define NUM_THREADS 900
+/* The maximum number of threads will be the number of threads plus one (szig's own thread) */
+#define MAX_THREADS (NUM_THREADS + 1)
 #define TICK_TIME 5
 #define S_1_MIN 60
 #define S_5_MIN (5 * S_1_MIN)
@@ -161,7 +163,7 @@ check_thread_counters(void)
     return 1;
   if (check_szig_long("stats.threads_running", 1))
     return 1;
-  if (check_szig_long("stats.threads_max", 2))
+  if (check_szig_long("stats.threads_max", MAX_THREADS))
     return 1;
 
   z_szig_event(Z_SZIG_THREAD_START, NULL);
@@ -171,7 +173,7 @@ check_thread_counters(void)
     return 1;
   if (check_szig_long("stats.threads_running", 2))
     return 1;
-  if (check_szig_long("stats.threads_max", 2))
+  if (check_szig_long("stats.threads_max", MAX_THREADS))
     return 1;
 
   z_szig_event(Z_SZIG_THREAD_START, NULL);
@@ -181,7 +183,7 @@ check_thread_counters(void)
     return 1;
   if (check_szig_long("stats.threads_running", 3))
     return 1;
-  if (check_szig_long("stats.threads_max", 3))
+  if (check_szig_long("stats.threads_max", MAX_THREADS))
     return 1;
 
   z_szig_event(Z_SZIG_THREAD_STOP, NULL);
@@ -191,7 +193,7 @@ check_thread_counters(void)
     return 1;
   if (check_szig_long("stats.threads_running", 2))
     return 1;
-  if (check_szig_long("stats.threads_max", 3))
+  if (check_szig_long("stats.threads_max", MAX_THREADS))
     return 1;
 
   z_szig_event(Z_SZIG_THREAD_STOP, NULL);
@@ -201,7 +203,7 @@ check_thread_counters(void)
     return 1;
   if (check_szig_long("stats.threads_running", 1))
     return 1;
-  if (check_szig_long("stats.threads_max", 3))
+  if (check_szig_long("stats.threads_max", MAX_THREADS))
     return 1;
 
   return 0;
@@ -217,6 +219,9 @@ generate_threads(void)
   for (i = 0; i < NUM_THREADS; i++)
     {
       z_szig_event(Z_SZIG_THREAD_START, NULL);
+    }
+  for (i = 0; i < NUM_THREADS; i++)
+    {
       z_szig_event(Z_SZIG_THREAD_STOP, NULL);
     }
 }
@@ -235,7 +240,7 @@ check_thread_rates(glong avg1, glong avg5, glong avg15)
   if (!failed)
     failed = check_szig_long("stats.threads_running", 1);
   if (!failed)
-    failed = check_szig_long("stats.threads_max", 2);
+    failed = check_szig_long("stats.threads_max", MAX_THREADS);
   if (!failed)
     failed = check_szig_long("stats.thread_rate_max", NUM_THREADS / TICK_TIME);
   if (!failed)
@@ -251,6 +256,12 @@ check_thread_rates(glong avg1, glong avg5, glong avg15)
 BOOST_AUTO_TEST_CASE(test_szig)
 {
   BOOST_CHECK(!init_szig());
+
+  /* szig creates a callback that calls z_szig_event with Z_SZIG_THREAD_START when a thread is started,
+   * then starts a thread.
+   * Wait 1 sec to make sure the callback is called and the test starts with a consistent state
+   * (stats.threads_running == 3) */
+  sleep(1);
 
   /* szig thread count has a skew of 2 that offsets the threads started by Zorp core
    * before SZIG initialization: this makes testing thread counters and averages
