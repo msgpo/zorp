@@ -790,7 +790,7 @@ z_policy_dict_ip_get_value(ZPolicyDict *self G_GNUC_UNUSED, ZPolicyDictEntry *en
     {
       struct in6_addr *in6 = (struct in6_addr *) entry->value;
 
-      res = Py_BuildValue("(iiiiiiii)",
+      res = Py_BuildValue("(HHHHHHHH)",
                           in6->s6_addr[0],
                           in6->s6_addr[2],
                           in6->s6_addr[4],
@@ -832,7 +832,7 @@ z_policy_dict_ip_set_value(ZPolicyDict *self G_GNUC_UNUSED, ZPolicyDictEntry *en
           {
             struct in6_addr *in6 = (struct in6_addr *) entry->value;
 
-            if (!PyArg_Parse(new_value, "(iiiiiiii)",
+            if (!PyArg_Parse(new_value, "(HHHHHHHH)",
                              &in6->s6_addr[0],
                              &in6->s6_addr[2],
                              &in6->s6_addr[4],
