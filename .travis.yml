@@ -36,7 +36,7 @@ env:
     - OBS_PROJECT=Zorp
     - OBS_MAJOR_VERSION=6
     - OBS_MINOR_VERSION=0
-    - OBS_MAINTENANCE_VERSION=9
+    - OBS_MAINTENANCE_VERSION=10
     - OBS_PACKAGE=zorp
     - TEST_OS=Ubuntu
     - TEST_OS_VERSION=14.04
@@ -46,9 +46,9 @@ addons:
   coverity_scan:
     project:
       name: "Balasys/zorp"
-      version: 6.0.9
+      version: 6.0.10
       description: "Build submitted via Travis CI"
     notification_email: github@pfeifferszilard.hu
     build_command_prepend: "./autogen.sh; ./configure"
     build_command:   "make -j4"
-    branch_pattern: 6.0.9
+    branch_pattern: 6.0.10
