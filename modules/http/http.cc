@@ -44,6 +44,7 @@
 #include <fcntl.h>
 
 #include <memory>
+#include <functional>
 
 #include <netdb.h>
 static GHashTable *auth_hash = NULL;
