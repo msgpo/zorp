@@ -20,7 +20,7 @@ before_script:
   - sudo mk-build-deps -i -r -t " apt-get --no-install-recommends --yes"
 
 script:
-  - ./autogen.sh
+  - autoreconf -if
   - ./configure --prefix=$HOME
   - make
   - source ci/obs_prepare.sh
@@ -36,7 +36,7 @@ env:
     - OBS_PROJECT=Zorp
     - OBS_MAJOR_VERSION=6
     - OBS_MINOR_VERSION=0
-    - OBS_MAINTENANCE_VERSION=10
+    - OBS_MAINTENANCE_VERSION=11
     - OBS_PACKAGE=zorp
     - TEST_OS=Ubuntu
     - TEST_OS_VERSION=14.04
@@ -46,9 +46,9 @@ addons:
   coverity_scan:
     project:
       name: "Balasys/zorp"
-      version: 6.0.10
+      version: 6.0.11
       description: "Build submitted via Travis CI"
     notification_email: github@pfeifferszilard.hu
-    build_command_prepend: "./autogen.sh; ./configure"
+    build_command_prepend: "autoreconf -if; ./configure"
     build_command:   "make -j4"
-    branch_pattern: 6.0.10
+    branch_pattern: 6.0.11

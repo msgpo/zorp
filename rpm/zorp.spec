@@ -1,34 +1,41 @@
-Name:                   zorp
-Version:                6.0.10
-Release:                1
-URL:                    https://www.balabit.com/network-security/zorp-gpl
-Source0:                zorp_%{version}.tar.gz
-Summary:                An advanced protocol analyzing firewall
-License:                GPL-2.0
-Group:                  System/Daemons
-BuildRequires:          binutils-devel
-BuildRequires:          automake
-BuildRequires:          autoconf
-BuildRequires:          libtool
-BuildRequires:          gcc-c++
-BuildRequires:          libzorpll-6_0-10-devel
-BuildRequires:          boost-devel
-BuildRequires:          python-devel
-BuildRequires:          binutils-devel
-BuildRequires:          glib2-devel
-BuildRequires:          zlib-devel
-
-Requires:               zorp-base
-Requires:               python-zorp-base
-Requires:               py-radix
-Requires:               python-pydns
-%if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
-Requires:               pyOpenSSL
-Requires(pre):          shadow-utils
+Name:			zorp
+Version:		6.0.11
+Release:		1
+URL:			https://balasys.github.io/zorp/
+%if 0%{?fedora}
 %else
-Requires:               python-pyOpenSSL
-Requires(pre):          pwdutils
-Requires(pre):          shadow
+Vendor:			BalaSys IT
+Packager:		BalaSys Development Team <devel@balasys.hu>
+%endif
+
+Source:			zorp_%{version}.tar.gz
+Summary:		An advanced protocol analyzing firewall
+License:		GPL-2.0
+Group:			System/Daemons
+BuildRequires:		binutils-devel
+BuildRequires:		automake
+BuildRequires:		autoconf
+BuildRequires:		autoconf-archive
+BuildRequires:		libtool
+BuildRequires:		gcc-c++
+BuildRequires:		libzorpll-6_0-11-devel
+BuildRequires:		boost-devel
+BuildRequires:		python-devel
+BuildRequires:		binutils-devel
+BuildRequires:		glib2-devel
+BuildRequires:		zlib-devel
+
+Requires:		zorp-base
+Requires:		python-zorp-base
+Requires:		py-radix
+Requires:		python-pydns
+%if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
+Requires:		pyOpenSSL
+Requires(pre):		shadow-utils
+%else
+Requires:		python-pyOpenSSL
+Requires(pre):		pwdutils
+Requires(pre):		shadow
 %endif
 
 %{!?__python2: %global __python2 /usr/bin/python2}
@@ -55,7 +62,7 @@ is permitted.
 %package devel
 Summary:                Headers for zorp
 Group:                  System/Daemons
-Requires:               libzorpll-6_0-10-devel
+Requires:               libzorpll-6_0-11-devel
 
 %description devel
 This package provides header files for zorp
@@ -64,15 +71,8 @@ This package provides header files for zorp
 %setup -q -n zorp
 
 %build
-./autogen.sh
-%configure --disable-werror \
---prefix=/usr \
---mandir=%{_mandir} \
---infodir=%{_datadir}/info \
---libdir=%{_exec_prefix}/lib \
---with-pidfiledir=%{_localstatedir}/run/zorp/ \
---localstatedir=%{_sharedstatedir}/zorp \
---sysconfdir=%{_sysconfdir}
+autoreconf -if
+%configure --disable-werror
 make %{?_smp_mflags}
 
 %install
@@ -91,81 +91,84 @@ ldconfig
 %files
 %defattr(-,root,root)
 
-%attr(644,root,root) %{_mandir}/man5/instances.conf.5.gz
-%attr(644,root,root) %{_mandir}/man5/policy.py.5.gz
-%attr(644,root,root) %{_mandir}/man8/*
-%attr(755,root,root) %{_exec_prefix}/lib/zorp/zorp
-%attr(755,root,root) %{_sbindir}/zorpctl
+%{_mandir}/man5/instances.conf.5.gz
+%{_mandir}/man5/policy.py.5.gz
+%{_mandir}/man8/*
+%{_sbindir}/zorp
+%{_sbindir}/zorpctl
 
 %dir %{python2_sitelib}/Zorp
 %dir %{python2_sitelib}/zorpctl
-%attr(755,root,root) %{python2_sitelib}/Zorp/Auth.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/AuthDB.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Cache.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Chainer.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Core.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Detector.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Dispatch.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Encryption.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Globals.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Keybridge.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/FileLock.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/LegacyEncryption.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Listener.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Matcher.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/NAT.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Proxy.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Receiver.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Router.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Rule.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Resolver.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Service.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Session.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/SockAddr.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Stack.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Stream.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Util.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Zorp.py
+%{python2_sitelib}/Zorp/Auth.py
+%{python2_sitelib}/Zorp/AuthDB.py
+%{python2_sitelib}/Zorp/Cache.py
+%{python2_sitelib}/Zorp/Chainer.py
+%{python2_sitelib}/Zorp/Core.py
+%{python2_sitelib}/Zorp/Detector.py
+%{python2_sitelib}/Zorp/Dispatch.py
+%{python2_sitelib}/Zorp/Encryption.py
+%{python2_sitelib}/Zorp/Globals.py
+%{python2_sitelib}/Zorp/Keybridge.py
+%{python2_sitelib}/Zorp/FileLock.py
+%{python2_sitelib}/Zorp/LegacyEncryption.py
+%{python2_sitelib}/Zorp/Listener.py
+%{python2_sitelib}/Zorp/Matcher.py
+%{python2_sitelib}/Zorp/NAT.py
+%{python2_sitelib}/Zorp/Proxy.py
+%{python2_sitelib}/Zorp/Receiver.py
+%{python2_sitelib}/Zorp/Router.py
+%{python2_sitelib}/Zorp/Rule.py
+%{python2_sitelib}/Zorp/Resolver.py
+%{python2_sitelib}/Zorp/Service.py
+%{python2_sitelib}/Zorp/Session.py
+%{python2_sitelib}/Zorp/SockAddr.py
+%{python2_sitelib}/Zorp/Stack.py
+%{python2_sitelib}/Zorp/Stream.py
+%{python2_sitelib}/Zorp/Util.py
+%{python2_sitelib}/Zorp/Zorp.py
 
-%attr(755,root,root) %{python2_sitelib}/zorpctl/CommandResults.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/Instances.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/PluginAlgorithms.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/ProcessAlgorithms.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/SZIGMessages.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/szig.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/UInterface.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/utils.py
+%{python2_sitelib}/zorpctl/CommandResults.py
+%{python2_sitelib}/zorpctl/Instances.py
+%{python2_sitelib}/zorpctl/PluginAlgorithms.py
+%{python2_sitelib}/zorpctl/ProcessAlgorithms.py
+%{python2_sitelib}/zorpctl/SZIGMessages.py
+%{python2_sitelib}/zorpctl/szig.py
+%{python2_sitelib}/zorpctl/UInterface.py
+%{python2_sitelib}/zorpctl/utils.py
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
-%attr(755,root,root) %{python2_sitelib}/Zorp/*.pyc
-%attr(755,root,root) %{python2_sitelib}/zorpctl/*.pyc
-%attr(755,root,root) %{python2_sitelib}/Zorp/*.pyo
-%attr(755,root,root) %{python2_sitelib}/zorpctl/*.pyo
+%{python2_sitelib}/Zorp/*.pyc
+%{python2_sitelib}/zorpctl/*.pyc
+%{python2_sitelib}/Zorp/*.pyo
+%{python2_sitelib}/zorpctl/*.pyo
 %endif
 
 %dir %attr(750,root,zorp) %{_sysconfdir}/zorp
 %config %attr(640,root,zorp) %{_sysconfdir}/zorp/*.sample
 
-%package -n libzorp-6_0-10
+%package -n libzorp-6_0-11
 Summary:                The runtime library of Zorp
 Group:                  System/Daemons
 
-%description -n libzorp-6_0-10
+%description -n libzorp-6_0-11
 Zorp is a new generation firewall. It is essentially a transparent proxy
 firewall, with strict protocol analyzing proxies, a modular architecture,
 and fine-grained control over the mediated traffic. Configuration decisions
 
 The library needed to run zorp.
 
-%files -n libzorp-6_0-10
+%files -n libzorp-6_0-11
 %defattr(-,root,root)
-%{_exec_prefix}/lib/libzorp-*.so.*
-%{_exec_prefix}/lib/libzorpproxy-*.so.*
 
-%post -n libzorp-6_0-10
+%dir %{_libdir}/zorp
+
+%{_libdir}/libzorp*.so.*
+%{_libdir}/libzorpproxy*.so.*
+
+%post -n libzorp-6_0-11
 ldconfig
 
-%postun -n libzorp-6_0-10
+%postun -n libzorp-6_0-11
 ldconfig
 
 %package -n libzorp-6_0-devel
@@ -182,13 +185,16 @@ These are the files you need to compile a zorp module.
 
 %files -n libzorp-6_0-devel
 %defattr(-,root,root)
+
+%dir %{_libdir}/zorp
+
 %{_includedir}/zorp
-%{_exec_prefix}/lib/libzorp.la
-%{_exec_prefix}/lib/libzorp.so
-%{_exec_prefix}/lib/libzorpproxy.la
-%{_exec_prefix}/lib/libzorpproxy.so
-%{_exec_prefix}/lib/pkgconfig/libzorp.pc
-%{_exec_prefix}/lib/pkgconfig/libzorpproxy.pc
+%{_libdir}/libzorp.la
+%{_libdir}/libzorp.so
+%{_libdir}/libzorpproxy.la
+%{_libdir}/libzorpproxy.so
+%{_libdir}/pkgconfig/libzorp.pc
+%{_libdir}/pkgconfig/libzorpproxy.pc
 %{_datadir}/zorp/moduledist.conf
 
 %package base
@@ -218,18 +224,18 @@ and fine-grained control over the mediated traffic. Configuration decisions
 Common python files for Zorp and kZorp.
 
 %files -n python-zorp-base
-%attr(755,root,root) %{python2_sitelib}/Zorp/Base.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Common.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Config.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Exceptions.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Instance.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/InstancesConf.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/ResolverCache.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Subnet.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Zone.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/__init__.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/__init__.py
-%attr(755,root,root) %{python2_sitelib}/zorpctl/ZorpctlConf.py
+%{python2_sitelib}/Zorp/Base.py
+%{python2_sitelib}/Zorp/Common.py
+%{python2_sitelib}/Zorp/Config.py
+%{python2_sitelib}/Zorp/Exceptions.py
+%{python2_sitelib}/Zorp/Instance.py
+%{python2_sitelib}/Zorp/InstancesConf.py
+%{python2_sitelib}/Zorp/ResolverCache.py
+%{python2_sitelib}/Zorp/Subnet.py
+%{python2_sitelib}/Zorp/Zone.py
+%{python2_sitelib}/Zorp/__init__.py
+%{python2_sitelib}/zorpctl/__init__.py
+%{python2_sitelib}/zorpctl/ZorpctlConf.py
 
 %package modules
 Summary:                Zorp proxy modules
@@ -247,36 +253,38 @@ SSL, TELNET, WHOIS, and two general modules ANYPY and PLUG.
 
 %files modules
 %defattr(-,root,root)
-%dir %{_exec_prefix}/lib/zorp/
-%{_exec_prefix}/lib/zorp/lib*.so*
-%{_exec_prefix}/lib/zorp/lib*.la
 
-%dir %attr(755,root,root) %{_datadir}/zorp
+%dir %{_libdir}/zorp
 
-%dir %attr(755,root,root) %{_datadir}/zorp/http
-%dir %attr(755,root,root) %{_datadir}/zorp/http/de
-%dir %attr(755,root,root) %{_datadir}/zorp/http/en
-%dir %attr(755,root,root) %{_datadir}/zorp/http/hu
+%{_libdir}/zorp/lib*.so*
+%{_libdir}/zorp/lib*.la
+
+%dir %{_datadir}/zorp
+
+%dir %{_datadir}/zorp/http
+%dir %{_datadir}/zorp/http/de
+%dir %{_datadir}/zorp/http/en
+%dir %{_datadir}/zorp/http/hu
 %attr(644,root,root) %{_datadir}/zorp/http/en/*.html
 %attr(644,root,root) %{_datadir}/zorp/http/de/*.html
 %attr(644,root,root) %{_datadir}/zorp/http/hu/*.html
 
-%dir %attr(755,root,root) %{_datadir}/zorp/pop3
-%dir %attr(755,root,root) %{_datadir}/zorp/pop3/en
-%dir %attr(755,root,root) %{_datadir}/zorp/pop3/hu
+%dir %{_datadir}/zorp/pop3
+%dir %{_datadir}/zorp/pop3/en
+%dir %{_datadir}/zorp/pop3/hu
 %attr(644,root,root) %{_datadir}/zorp/pop3/en/reject.msg
 %attr(644,root,root) %{_datadir}/zorp/pop3/hu/reject.msg
 
-%attr(755,root,root) %{python2_sitelib}/Zorp/AnyPy.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/APR.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Finger.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Ftp.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Http.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Plug.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Pop3.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Smtp.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Telnet.py
-%attr(755,root,root) %{python2_sitelib}/Zorp/Whois.py
+%{python2_sitelib}/Zorp/AnyPy.py
+%{python2_sitelib}/Zorp/APR.py
+%{python2_sitelib}/Zorp/Finger.py
+%{python2_sitelib}/Zorp/Ftp.py
+%{python2_sitelib}/Zorp/Http.py
+%{python2_sitelib}/Zorp/Plug.py
+%{python2_sitelib}/Zorp/Pop3.py
+%{python2_sitelib}/Zorp/Smtp.py
+%{python2_sitelib}/Zorp/Telnet.py
+%{python2_sitelib}/Zorp/Whois.py
 
 
 %package munin-plugins
@@ -291,13 +299,13 @@ Zorp is a new generation firewall. It is essentially a transparent proxy
 firewall, with strict protocol analyzing proxies, a modular architecture,
 and fine-grained control over the mediated traffic. Configuration decisions
 are scriptable with the Python based configuration language.
- 
+
 This package contains plugins for the Munin monitoring tool.
 
 %files munin-plugins
 %dir %{_datadir}/munin/
 %dir %{_datadir}/munin/plugins/
-%attr(755,root,root) %{_datadir}/munin/plugins/*
+%{_datadir}/munin/plugins/*
 %dir %{_sysconfdir}/munin
 %dir %{_sysconfdir}/munin/plugin-conf.d
 %config %attr(644,root,root) %{_sysconfdir}/munin/plugin-conf.d/*
@@ -314,7 +322,7 @@ Zorp is a new generation firewall. It is essentially a transparent proxy
 firewall, with strict protocol analyzing proxies, a modular architecture,
 and fine-grained control over the mediated traffic. Configuration decisions
 are scriptable with the Python based configuration language.
- 
+
 This package contains plugins for the Nagios monitoring tool.
 
 %files nagios-plugins
@@ -325,9 +333,9 @@ This package contains plugins for the Nagios monitoring tool.
 %config %attr(644,root,root) %{_sysconfdir}/nagios/nrpe.d/zorp.cfg
 %dir %{_exec_prefix}/lib/nagios
 %dir %{_exec_prefix}/lib/nagios/plugins
-%attr(755,root,root) %{_exec_prefix}/lib/nagios/plugins/*
+%{_exec_prefix}/lib/nagios/plugins/*
 
-%package -n kzorp 
+%package -n kzorp
 Summary:                Python bindings for kzorp.
 Group:                  System/Daemons
 
@@ -340,6 +348,8 @@ Standalone daemon that handles zones and updates dynamic zones.
 
 
 %changelog
+* Wed Sep 13 2017 Balasys Development Team <devel@balasys.hu> - 6.0.11
+  - New upstream release 6.0.11
 * Fri Nov 25 2016 Balasys Development Team <devel@balasys.hu> - 6.0.10
   - New upstream release 6.0.10
 * Wed Apr 13 2016 Balasys Development Team <devel@balasys.hu> - 6.0.9

@@ -1,6 +1,7 @@
 ############################################################################
 ##
 ## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
+## Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
 ##
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -81,7 +82,7 @@ class DetectorProxy(Proxy):
                 service = Globals.services.get(service_name, None)
                 if not service:
                     raise ValueError, "No such service defined; service='%s'" % (service_name,)
-                log(self.session.session_id, CORE_POLICY, 3, "Detector starting service; service='%s'" % service)
+                log(self.session.session_id, CORE_SESSION, 3, "Detector starting service; service='%s'" % service)
                 return service
             elif res.result == DetectResult.NOMATCH:
                 count_nomatch_detectors += 1
@@ -92,4 +93,12 @@ class DetectorProxy(Proxy):
         if len(self._detector_config) == count_nomatch_detectors:
             service = Globals.services.get(self._detector_default_service_name, None)
             self.quit = TRUE
+
+            if not service:
+                raise ValueError, "Could not find default service; service='%s'" % (self._detector_default_service_name,)
+            else:
+                log(self.session.session_id, CORE_SESSION, 3, "Detector starting default service; service='%s'" % service)
+        else:
+            log(self.session.session_id, CORE_DEBUG, 6, "Detector still undecided;")
+
         return service
