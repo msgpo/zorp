@@ -348,7 +348,6 @@ ZProxyFuncs plug_proxy_funcs =
   /* .nonblocking_init = */ plug_nonblocking_init,
   /* .nonblocking_deinit = */ plug_nonblocking_deinit,
   /* .wakeup = */ NULL,
-
 };
 
 Z_CLASS_DEF(PlugProxy, ZProxy, plug_proxy_funcs);

@@ -437,7 +437,6 @@ z_proxy_control_stream_read(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gp
 }
 
 
-
 /**
  * Start a program as a filtering child proxy.
  *
@@ -527,7 +526,6 @@ z_proxy_stack_program(ZProxy *self, const gchar *program, ZStackedProxy **stacke
   z_proxy_leave(self);
   return TRUE;
 }
-
 
 /**
  * Parse a (how, what) Python tuple and call the appropriate stacking method.

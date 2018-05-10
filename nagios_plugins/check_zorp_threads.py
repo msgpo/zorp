@@ -24,7 +24,6 @@
 ############################################################################
 
 # Zorp running threads control in Nagios
-# Created by Gabor Timar <gaboca@balabit.hu>
 
 import sys
 import subprocess

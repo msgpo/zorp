@@ -1087,7 +1087,8 @@ smtp_process_transfer(SmtpProxy *self)
 		rejects it.
 	       */
               z_proxy_log(self, SMTP_POLICY, 3, "Invalid contents; stack_info='%s'", z_transfer2_get_stack_info(self->transfer));
-
+              g_string_assign(self->error_code, "550");
+              g_string_assign(self->error_info, "Error storing message");
               smtp_format_stack_info(self, "Error storing message", z_transfer2_get_stack_info(self->transfer));
             }
           else if (z_transfer2_get_stack_decision(self->transfer) == ZV_DROP)

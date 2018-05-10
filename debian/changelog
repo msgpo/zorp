@@ -1,5 +1,5 @@
-zorp (6.0.11) zorp60gpl; urgency=low
+zorp (6.0.12) zorp60gpl; urgency=low
 
   * New upstream version.
 
- -- BalaBit Development Team <devel@balabit.hu>  Thu, 07 Dec 2017 10:33:38 +0100
+ -- BalaSys Development Team <devel@balasys.hu>  Thu, 10 May 2018 11:25:36 +0200

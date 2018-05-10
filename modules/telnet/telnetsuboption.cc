@@ -163,7 +163,6 @@ telnet_subopt_terminal_type(TelnetProxy *self, ZEndpoint ep, guint8 option, ZPkt
       res = telnet_policy_suboption(self, ep, option, subcommand, TELNET_POLICY_TERMTYPE_NAME, self->policy_value->str);
       if (res == ZV_ACCEPT)
         {
-
           /* copy possibly changed value from policy_value back to the buffer */
           update_suboption_value_in_buffer_from_str(suboption_buffer, self->policy_value);
         }
@@ -807,7 +806,6 @@ telnet_subopt_naws(TelnetProxy *self, ZEndpoint ep, guint8 option, ZPktBuf *subo
   g_string_sprintf(self->policy_value, "%hu,%hu", width, height);
 
   res = telnet_policy_suboption(self, ep, option, 0, TELNET_POLICY_NAWS_NAME, self->policy_value->str);
-
 
   z_proxy_return(self, res);
 }

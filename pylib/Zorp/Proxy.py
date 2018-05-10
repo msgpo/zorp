@@ -828,6 +828,7 @@ class Proxy(BuiltinProxy):
               from these CAs.
               Unless you are authenticating the clients based on their certificates,
               use the <parameter>self.ssl.client_verify_ca_directory</parameter> option instead.
+              Use of <parameter>client_ca_directory</parameter> option is deprecated.
             </description>
           </attribute>
           <attribute maturity="stable">
@@ -873,6 +874,7 @@ class Proxy(BuiltinProxy):
               require a huge amount of memory.
               Unless you are authenticating the clients based on their certificates,
               use the <parameter>self.ssl.client_verify_crl_directory</parameter> option instead.
+              Use of <parameter>client_crl_directory</parameter> option is deprecated.
             </description>
           </attribute>
           <attribute maturity="stable">
@@ -916,6 +918,7 @@ class Proxy(BuiltinProxy):
               and <parameter>self.ssl.client_crl_directory</parameter>.
               Unless you are authenticating the clients based on their certificates,
               use the <parameter>self.ssl.client_verify_cagroup_directories</parameter> option instead.
+              Use of <parameter>client_cagroup_directories</parameter> option is deprecated.
             </description>
           </attribute>
           <attribute state="stable">
@@ -1049,6 +1052,7 @@ class Proxy(BuiltinProxy):
               in the directory are loaded when the proxy is starting up.
               Unless you are authenticating the clients based on their certificates,
               use the <parameter>self.ssl.server_verify_ca_directory</parameter> option instead.
+              Use of <parameter>server_ca_directory</parameter> option is deprecated.
             </description>
           </attribute>
           <attribute maturity="stable">
@@ -1091,6 +1095,7 @@ class Proxy(BuiltinProxy):
               require a huge amount of memory.
               Unless you are authenticating the clients based on their certificates,
               use the <parameter>self.ssl.server_verify_crl_directory</parameter> option instead.
+              Use of <parameter>server_crl_directory</parameter> option is deprecated.
             </description>
           </attribute>
           <attribute maturity="stable">
@@ -1134,6 +1139,7 @@ class Proxy(BuiltinProxy):
               and <parameter>self.ssl.server_crl_directory</parameter>.
               Unless you are authenticating the clients based on their certificates,
               use the <parameter>self.ssl.server_verify_cagroup_directories</parameter> option instead.
+              Use of <parameter>server_cagroup_directories</parameter> option is deprecated.
             </description>
           </attribute>
           <attribute>
@@ -1726,8 +1732,8 @@ class Proxy(BuiltinProxy):
                 # connect to the server side
                 # multiple times, which is not
                 # supported. Please report this
-                # event to the Zorp QA team (at
-                # devel@balabit.com).
+                # event to the BalaSys Development
+                # Team (at devel@balasys.hu).
                 ##
                 log(self.session.session_id, CORE_ERROR, 1, "Internal error, stacked proxy reconnected to server multiple times;")
                 return None
@@ -1795,8 +1801,6 @@ class Proxy(BuiltinProxy):
         res = f.read()
         f.close()
         return res
-
-
 
     def _hasMethod(self, obj, name):
         v = vars(obj.__class__)

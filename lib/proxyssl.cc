@@ -572,13 +572,17 @@ z_proxy_ssl_load_local_ca_list(ZProxySSLHandshake *handshake)
   z_proxy_enter(self);
 
   z_policy_lock(self->thread);
-
-  if (!z_proxy_ssl_callback(self, ndx, "setup_ca_list", z_policy_var_build("(i)", ndx), &policy_type) ||
-      policy_type != PROXY_SSL_HS_ACCEPT)
+  if (z_proxy_ssl_callback_exists(self, ndx, "setup_ca_list"))
     {
-      z_policy_unlock(self->thread);
-      z_proxy_log(self, CORE_POLICY, 1, "Error fetching local trusted CA list; side='%s'", EP_STR(ndx));
-      z_proxy_return(self, FALSE);
+      z_proxy_log(self, CORE_DEBUG, 3, "Use of setup_ca_list SSL callback is deprecated.");
+
+      if (!z_proxy_ssl_callback(self, ndx, "setup_ca_list", z_policy_var_build("(i)", ndx), &policy_type) ||
+          policy_type != PROXY_SSL_HS_ACCEPT)
+        {
+          z_policy_unlock(self->thread);
+          z_proxy_log(self, CORE_POLICY, 1, "Error fetching local trusted CA list; side='%s'", EP_STR(ndx));
+          z_proxy_return(self, FALSE);
+        }
     }
   z_policy_unlock(self->thread);
 
@@ -615,13 +619,19 @@ z_proxy_ssl_load_local_crl_list(ZProxySSLHandshake *handshake, gchar *name)
   int i;
 
   z_proxy_enter(self);
+
   z_policy_lock(self->thread);
-  if (!z_proxy_ssl_callback(self, ndx, "setup_crl_list", z_policy_var_build("(si)", name, ndx), &policy_type) ||
-      policy_type != PROXY_SSL_HS_ACCEPT)
+  if (z_proxy_ssl_callback_exists(self, ndx, "setup_crl_list"))
     {
-      z_policy_unlock(self->thread);
-      z_proxy_log(self, CORE_POLICY, 1, "Error fetching CRL list for CA; side='%s', ca='%s'", EP_STR(ndx), name);
-      z_proxy_return(self, FALSE);
+      z_proxy_log(self, CORE_DEBUG, 3, "Use of setup_crl_list SSL callback is deprecated.");
+
+      if (!z_proxy_ssl_callback(self, ndx, "setup_crl_list", z_policy_var_build("(si)", name, ndx), &policy_type) ||
+          policy_type != PROXY_SSL_HS_ACCEPT)
+        {
+          z_policy_unlock(self->thread);
+          z_proxy_log(self, CORE_POLICY, 1, "Error fetching CRL list for CA; side='%s', ca='%s'", EP_STR(ndx), name);
+          z_proxy_return(self, FALSE);
+        }
     }
   z_policy_unlock(self->thread);
 
@@ -1708,16 +1718,20 @@ z_proxy_ssl_sni_do_handshake(ZProxy *self, ZPktBuf *buf, gsize bytes_read)
 void
 z_proxy_ssl_get_sni_from_client(ZProxy *self, ZStream *stream)
 {
-  ZPktBuf *buf = z_pktbuf_new();
-  z_pktbuf_resize(buf, 1024);
-  gsize bytes_read = 0;
-
   ZStream *ssl_stream = z_stream_search_stack(stream, G_IO_OUT, Z_CLASS(ZStreamSsl));
   if (!ssl_stream)
     {
       z_proxy_log(self, CORE_ERROR, 1, "Could not find ssl stream on stream stack");
       return;
     }
+
+  std::unique_ptr<ZPktBuf, decltype(&z_pktbuf_unref)> buf(
+    z_pktbuf_new(),
+    &z_pktbuf_unref
+  );
+  z_pktbuf_resize(buf.get(), 1024);
+  gsize bytes_read = 0;
+
   GIOStatus status = z_stream_read(ssl_stream, buf->data, buf->allocated, &bytes_read, NULL);
   if (status == G_IO_STATUS_ERROR || status == G_IO_STATUS_EOF)
     {
@@ -1726,15 +1740,13 @@ z_proxy_ssl_get_sni_from_client(ZProxy *self, ZStream *stream)
     }
   else
     {
-      z_proxy_ssl_sni_do_handshake(self, buf, bytes_read);
+      z_proxy_ssl_sni_do_handshake(self, buf.get(), bytes_read);
 
       z_stream_ref(ssl_stream);
       ZStream *fd_stream = z_stream_pop(ssl_stream);
       z_stream_unget(fd_stream, buf->data, bytes_read, NULL);
       z_stream_push(fd_stream, ssl_stream);
     }
-
-  z_pktbuf_unref(buf);
 }
 
 /**

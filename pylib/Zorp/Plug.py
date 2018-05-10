@@ -209,7 +209,7 @@ class AbstractPlugProxy(Proxy):
             <type>
               <integer/>
             </type>
-            <default>60000</default>
+            <default>600000</default>
             <conftime>
               <write/>
             </conftime>

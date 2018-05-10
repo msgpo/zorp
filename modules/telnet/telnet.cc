@@ -63,7 +63,6 @@ static TelnetOptions telnet_option_negotiation_table[] =
     { 0,                                NULL }
   };
 
-
 /**
  * telnet_set_defaults:
  * @self:
@@ -188,7 +187,6 @@ telnet_register_vars(TelnetProxy *self)
                   &self->server_port);
 
 
-
   z_proxy_return(self);
 }
 
@@ -243,9 +241,7 @@ telnet_write_packet(TelnetProxy *self, ZEndpoint ep, ZPktBuf *pkt)
       z_proxy_return(self, G_IO_STATUS_NORMAL);
     }
 
-    {
-      res = z_stream_write_packet(self->super.endpoints[ep], pkt, NULL);
-    }
+  res = z_stream_write_packet(self->super.endpoints[ep], pkt, NULL);
 
   z_proxy_return(self, res);
 }
@@ -410,7 +406,6 @@ telnet_init_server_stream(TelnetProxy *self)
   telnet_init_stream(self, EP_SERVER, telnet_server_read, self, NULL);
 
   self->server_stream_initialized = TRUE;
-
 
   z_proxy_return(self, ret);
 }
@@ -751,7 +746,6 @@ telnet_proxy_free(ZObject *s)
   TelnetProxy *self = Z_CAST(s, TelnetProxy);
 
   z_enter();
-
 
   telnet_lineedit_destroy(&self->line_editor);
   telnet_protocol_destroy(&self->protocol[EP_CLIENT]);

@@ -47,7 +47,6 @@ gboolean usr1_received = 0;
 gboolean usr2_received = 0;
 static gboolean term_received = 0;
 
-
 static gboolean hup_received = 0;
 static gboolean reload_result = FALSE;
 static gboolean initial_policy_load_done = FALSE;
@@ -219,16 +218,14 @@ z_main_loop(const gchar *policy_file, const gchar *instance_name,
           usr1_received = 0;
           z_log_change_verbose_level(1, 1, &new_verbosity);
 
-
           z_mem_trace_stats();
         }
       if (usr2_received)
         {
           usr2_received = 0;
           z_log_change_verbose_level(-1, 1, &new_verbosity);
-
-
         }
+
       if (hup_received)
 	{
 	  /*LOG
@@ -251,6 +248,7 @@ z_main_loop(const gchar *policy_file, const gchar *instance_name,
 	  hup_received = 0;
 	  z_generate_policy_load_event(policy_file, reload_result);
 	}
+
       if (term_received)
         {
           z_main_loop_quit(0);

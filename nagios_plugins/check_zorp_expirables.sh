@@ -22,9 +22,9 @@
 ##
 ############################################################################
 
-#Nagios plugin for BalaBit licenses and certificates ==
+#Nagios plugin for BalaSys licenses and certificates ==
 
-CHECKER=/etc/cron.daily/expiration_check.py
+CHECKER=/usr/lib/zms-transfer-agent/expiration_check.py
 CHECKER_PARAM="-n" #Do not send mail for nagios checks
 
 usage() {

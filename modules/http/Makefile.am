@@ -1,9 +1,5 @@
-SUBDIRS =
-DIST_SUBDIRS =
-
-
-SUBDIRS += . messages tests
-DIST_SUBDIRS += . messages tests
+SUBDIRS = . messages tests
+DIST_SUBDIRS = . messages tests
 
 pkgdatadir = @ZORP_PYTHON_DIR@
 pkglibdir = ${ZORP_LIBDIR}

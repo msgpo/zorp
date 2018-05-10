@@ -57,5 +57,4 @@ none_encryption = None
 detectors = {}
 policy_zones_reload_lock = threading.Lock()
 virtual_instance_name = ''
-
 deinit_callbacks = []

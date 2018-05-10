@@ -291,10 +291,12 @@ z_policy_attach_free(ZPolicyAttach *self)
     {
       z_attach_free(self->attach);
     }
+
   if (self->policy)
     {
       z_policy_unref(self->policy);
     }
+
   z_sockaddr_unref(self->local);
 
   PyObject_Del(self);

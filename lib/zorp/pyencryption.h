@@ -62,6 +62,49 @@ typedef enum
   ENCRYPTION_METHOD_TLSV1_2 = 4
 } encryption_method_type;
 
+class SessionTicketKey
+{
+public:
+  SessionTicketKey() : is_set(false)
+    {};
+  SessionTicketKey(const std::array<unsigned char, 16> &hmac_key, const std::array<unsigned char, 16> &aes_key, const std::array<unsigned char, 16> key_name, int timeout) : hmac_key(hmac_key), aes_key(aes_key), key_name(key_name), is_set(true)
+    {
+      std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+      encrypt_expire_time = now + std::chrono::duration<int>(timeout);
+      decrypt_expire_time = now + std::chrono::duration<int>(timeout) + std::chrono::duration<int>(timeout);
+    };
+  bool can_be_used_to_encrypt()
+    {
+      return (is_set && encrypt_expire_time >= std::chrono::steady_clock::now());
+    }
+  bool can_be_used_to_decrypt()
+    {
+      return (is_set && decrypt_expire_time >= std::chrono::steady_clock::now());
+    }
+  unsigned char *get_key_name()
+    {
+      return key_name.data();
+    }
+  unsigned char *get_aes_key()
+    {
+      return aes_key.data();
+    }
+  unsigned char *get_hmac_key()
+    {
+      return hmac_key.data();
+    }
+  bool find_key(const std::array<unsigned char, 16> &other_key_name)
+    {
+      return key_name == other_key_name;
+    }
+private:
+  std::array<unsigned char, 16> hmac_key;
+  std::array<unsigned char, 16> aes_key;
+  std::array<unsigned char, 16> key_name;
+  std::chrono::steady_clock::time_point encrypt_expire_time, decrypt_expire_time;
+  bool is_set;
+};
+
 typedef struct _ZProxySsl {
   ZPolicyDict *ssl_dict;
   ZPolicyObj *ssl_struct;

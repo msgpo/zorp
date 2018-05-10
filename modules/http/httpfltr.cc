@@ -28,7 +28,6 @@
 #include <sys/socket.h>
 #include <netinet/tcp.h>
 
-
 /* transfer states */
 
 #define HTTP_SR_INITIAL           0
@@ -374,7 +373,6 @@ http_transfer_dst_write_preamble(HttpTransfer *self, ZStream *stream, GError **e
         {
           res = G_IO_STATUS_AGAIN;
         }
-
     }
   else if (self->src_read_state == HTTP_SR_INITIAL && g_error_matches(local_error, G_IO_CHANNEL_ERROR, G_IO_CHANNEL_ERROR_PIPE))
     {
@@ -593,7 +591,6 @@ http_transfer_dst_write(ZTransfer2 *s, ZStream *stream, const gchar *buf, gsize 
              * is returned */
             res = z_stream_write(stream, &buf[count - self->dst_chunk_left], self->dst_chunk_left, &bw, &local_error);
 
-
             if (res == G_IO_STATUS_NORMAL)
               {
                 self->dst_chunk_length += bw;
@@ -691,7 +688,6 @@ http_transfer_dst_shutdown(ZTransfer2 *s, ZStream *stream, GError **err)
               gchar line_buf[] = "0\r\n\r\n";
 
               res = z_stream_write(stream, line_buf, 5, &bw, &local_error);
-
 
               if (bw != 5)
                 {

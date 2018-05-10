@@ -51,6 +51,8 @@
 static GHashTable *auth_hash = NULL;
 G_LOCK_DEFINE_STATIC(auth_mutex);
 
+const std::string HttpProxy::zorp_realm_cookie_name("ZorpRealm");
+
 typedef struct _ZorpAuthInfo
 {
   time_t last_auth_time;
@@ -60,7 +62,6 @@ typedef struct _ZorpAuthInfo
   gchar **groups;
   gchar *basic_auth_creds;
 } ZorpAuthInfo;
-
 
 /**
  * http_filter_hash_compare:
@@ -201,9 +202,7 @@ http_config_set_defaults(HttpProxy *self)
 
   self->request_categories = NULL;
 
-
   z_proxy_return(self);
-
 }
 
 /**
@@ -969,8 +968,8 @@ http_error_message(HttpProxy *self, gint response_code, guint message_code, GStr
     {
       /*LOG
         This message indicates that Zorp caught an invalid error code
-        internally. Please report this event to the Zorp QA team (at
-        devel@balabit.com).
+        internally. Please report this event to the BalaSys Development Team
+	(at devel@balasys.hu).
       */
       z_proxy_log(self, HTTP_ERROR, 2, "Internal error, error code out of range; error_code='%d'", message_code);
       z_proxy_return(self, FALSE);
@@ -1155,8 +1154,8 @@ http_write(HttpProxy *self, guint side, gchar *buf, size_t buflen)
     {
       /*LOG
         This message reports that Zorp was about to write to an invalid
-        stream. Please report this event to the Zorp QA team (at
-        devel@balabit.com).
+        stream. Please report this event to the BalaSys Development Team (at
+        devel@balasys.hu).
       */
       z_proxy_log(self, HTTP_ERROR, 1, "Error writing stream, stream is NULL; side='%s'", side == EP_CLIENT ? "client" : "server");
       z_proxy_return(self, G_IO_STATUS_ERROR);
@@ -1727,55 +1726,61 @@ http_process_create_realm(HttpProxy *self, time_t now, gchar *buf, guint buflen)
   return buf;
 }
 
+
 static gboolean
-http_get_client_info(HttpProxy *self, gchar *key, guint key_length)
+http_extract_client_info_from_cookies(HttpProxy *self, gchar *key, const guint key_length)
 {
-  ZCode *coder;
-  guchar raw_key[32];
-  gsize pos;
-  GHashTable *cookie_hash;
-  gchar *our_value;
-
-  cookie_hash = http_parse_header_cookie(&self->headers[EP_CLIENT]);
-
-  if (cookie_hash)
+  CookiePairVector cookie_vector = http_parse_header_cookie(&self->headers[EP_CLIENT]);
+  if (! cookie_vector.empty())
     {
-      our_value = static_cast<gchar *>(g_hash_table_lookup(cookie_hash, "ZorpRealm"));
-
-      if (our_value)
+      // FIXME: for now only the first matching cookie will be used
+      CookiePairVector::iterator cookie_pair = http_find_cookie_by_name(cookie_vector, HttpProxy::zorp_realm_cookie_name);
+      if (cookie_pair != cookie_vector.end())
         {
-          g_strlcpy(key, our_value, key_length);
+          g_strlcpy(key, cookie_pair->second.c_str(), key_length);
 
-          g_hash_table_destroy(cookie_hash);
+          // removing the Zorp auth cookie, because of security reasons (information leaking)
+          cookie_vector.erase(cookie_pair);
 
-          goto exit;
+          http_write_header_cookie(&self->headers[EP_CLIENT], cookie_vector);
+
+          return TRUE;
         }
-
-      g_hash_table_destroy(cookie_hash);
     }
+
+  return FALSE;
+}
+
+static gboolean
+http_generate_client_info(gchar *key, const guint key_length)
+{
+  guchar raw_key[32];
 
   if (!z_random_sequence_get(Z_RANDOM_STRONG, raw_key, sizeof(raw_key)))
-    {
-      return FALSE;
-    }
+    return FALSE;
 
-  coder = z_code_base64_encode_new(256, 255);
-
+  ZCode * coder = z_code_base64_encode_new(256, 255);
   if (coder == NULL)
-    {
-      return FALSE;
-    }
+    return FALSE;
 
   if (!z_code_transform(coder, raw_key, sizeof(raw_key)) ||
       !z_code_finish(coder))
-    {
-      return FALSE;
-    }
+    return FALSE;
 
-  pos = z_code_get_result(coder, key, key_length - 1);
+  gsize pos = z_code_get_result(coder, key, key_length - 1);
   key[pos-2] = 0;
- exit:
+
   return TRUE;
+}
+
+static gboolean
+http_get_client_info(HttpProxy *self, gchar *key, const guint key_length)
+{
+  if (http_extract_client_info_from_cookies(self, key, key_length) ||
+      http_generate_client_info(key, key_length))
+    return TRUE;
+
+  return FALSE;
 }
 
 static gboolean
@@ -1964,11 +1969,6 @@ http_set_response(HttpProxy *self, int error_code, unsigned int error_status)
 static void
 http_add_authorization_hdr(HttpProxy *self, ZorpAuthInfo *auth_info)
 {
-  if (!auth_info->basic_auth_creds)
-    return;
-
-  g_string_assign(self->auth_header_value, auth_info->basic_auth_creds);
-
   if (self->transparent_mode && (self->auth_by_form || self->auth_by_cookie))
     {
       z_proxy_log(self, HTTP_POLICY, 4, "Relaying Basic authentication after successful client "
@@ -2017,6 +2017,7 @@ http_process_request(HttpProxy *self)
   else
     g_string_truncate(self->remote_server, 0);
 
+  // please mind, that auth can be set to NULL in case of keep-alive connections further requests!
   if (self->auth)
     {
       if (self->proto_version[EP_CLIENT] >= 0x0100)
@@ -2082,9 +2083,15 @@ http_process_request(HttpProxy *self)
                 {
                   auth_info->last_auth_time = now;
                 }
-              if (self->auth_forward && (self->auth_by_cookie || (self->auth_by_form && !basic_auth_header_exists)))
+
+              if (self->auth_forward && auth_info->basic_auth_creds)
                 {
-                  http_add_authorization_hdr(self, auth_info);
+                  g_string_assign(self->auth_header_value, auth_info->basic_auth_creds);
+
+                  if (self->auth_by_cookie || (self->auth_by_form && !basic_auth_header_exists))
+                    {
+                      http_add_authorization_hdr(self, auth_info);
+                    }
                 }
               G_UNLOCK(auth_mutex);
             }
@@ -2290,8 +2297,8 @@ http_process_request(HttpProxy *self)
       g_string_sprintf(self->error_info, "Badly formatted url: %s", self->request_url->str);
       /*LOG
         This message indicates that there was an error parsing an already
-        canonicalized URL.  Please report this event to the Zorp QA team (at
-        devel@balabit.com)
+        canonicalized URL.  Please report this event to the BalaSys
+	Development Team (at devel@balasys.hu)
       */
       z_proxy_log(self, HTTP_ERROR, 1, "Error parsing URL; url='%s', reason='%s'", self->request_url->str, reason);
       z_proxy_return(self, FALSE);
@@ -2303,8 +2310,8 @@ http_process_request(HttpProxy *self)
       g_string_sprintf(self->error_info, "Error canonicalizing url (%s): %s", reason, self->request_url->str);
       /*LOG
         This message indicates that there was an error parsing an already
-        canonicalized URL.  Please report this event to the Zorp QA team (at
-        devel@balabit.com)
+        canonicalized URL.  Please report this event to the BalaSys
+	Development Team (at devel@balasys.hu)
       */
       z_proxy_log(self, HTTP_ERROR, 1, "Error parsing URL; url='%s', reason='%s'", self->request_url->str, reason);
       z_proxy_return(self, FALSE);
@@ -2329,7 +2336,7 @@ http_process_request(HttpProxy *self)
           nextdotpos = strchr(dotpos + 1, '.');
         }
 
-      std::string append_cookie {std::string("ZorpRealm=") + client_key + std::string("; path=/; domain=") + startpos};
+      std::string append_cookie { HttpProxy::zorp_realm_cookie_name + "=" + client_key + "; path=/; domain=" + startpos};
       if (self->auth_by_form)
         {
           g_string_append_printf(self->error_headers, "Set-Cookie: %s\r\n", append_cookie.c_str());
@@ -2789,8 +2796,8 @@ http_connect_server(HttpProxy *self)
       /* should never happen */
       /*LOG
         This message indicates that initializing the server stream
-        failed. Please report this event to the Zorp QA team (at
-        devel@balabit.com).
+        failed. Please report this event to the BalaSys Development Team (at
+        devel@balasys.hu).
       */
       z_proxy_log(self, HTTP_ERROR, 1, "Internal error initializing server stream;");
       z_proxy_return(self, FALSE);
@@ -3431,7 +3438,7 @@ http_handle_connect(HttpProxy *self)
       /*LOG
         This message indicates that an internal error occurred, the
         connectMethod function did not return an integer. Please report this
-        event to the Zorp QA team (at devel@balabit.com).
+        event to the BalaSys Development Team (at devel@balasys.hu).
       */
       z_proxy_log(self, HTTP_ERROR, 1, "Internal error, connectMethod is expected to return a proxy instance;");
       z_proxy_report_policy_abort(&(self->super));
@@ -3454,7 +3461,6 @@ http_handle_connect(HttpProxy *self)
 
   z_proxy_return(self, TRUE);
 }
-
 
 static void
 http_main(ZProxy *s)
@@ -3670,7 +3676,8 @@ http_main(ZProxy *s)
         {
           /*LOG
             This message indicates an internal error in HTTP proxy. Please
-            report this event to the Zorp QA team (at devel@balabit.com).
+            report this event to the BalaSys Development Team (at
+	    devel@balasys.hu).
           */
           z_proxy_log(self, CORE_ERROR, 1, "Internal error, invalid server_protocol; server_protocol='%d'", self->server_protocol);
         }
@@ -3746,7 +3753,6 @@ http_main(ZProxy *s)
   z_proxy_return(self);
 }
 
-
 static gboolean
 http_config(ZProxy *s)
 {
@@ -3781,7 +3787,6 @@ http_proxy_free(ZObject *s)
 
   if (self->request_data)
     z_blob_unref(self->request_data);
-
 
   g_string_free(self->old_auth_header, TRUE);
   g_string_free(self->auth_header_value, TRUE);
@@ -3826,11 +3831,10 @@ ZProxyFuncs http_proxy_funcs =
 
 Z_CLASS_DEF(HttpProxy, ZProxy, http_proxy_funcs);
 
-
-
 static ZProxyModuleFuncs http_module_funcs =
   {
     /* .create_proxy = */ http_proxy_new,
+    /* .module_py_init = */ NULL,
   };
 
 gint

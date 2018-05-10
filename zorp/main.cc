@@ -595,7 +595,6 @@ main(int argc, char *argv[])
 
   z_setup_signals();
 
-
 #ifdef PREDICTABLE_RANDOM_ENABLED
   RAND_set_rand_method(RAND_stdlib());
   unsigned int seed = 0x12345;
@@ -630,7 +629,6 @@ main(int argc, char *argv[])
   /* avoid second dump of dmalloc */
   rename("logfile", "logfile.dm");
 #endif
-
 
   if (exit_code != 0)
     z_process_startup_failed(exit_code, TRUE);

@@ -4,6 +4,13 @@ from Config import config
 import types
 
 class LegacyEncryption(object):
+    client_ca_directory_deprecation_warning = True
+    client_crl_directory_deprecation_warning = True
+    client_cagroup_directories_deprecation_warning = True
+    server_ca_directory_deprecation_warning = True
+    server_crl_directory_deprecation_warning = True
+    server_cagroup_directories_deprecation_warning = True
+
     def __init__(self):
         self.client_trusted_certs_directory = ''
         self.server_trusted_certs_directory = ''
@@ -104,6 +111,10 @@ class LegacyEncryption(object):
                 self.client_key_file = self.client_keypair_files[1]
 
             if hasattr(self, "client_cagroup_directories"):
+                if LegacyEncryption.client_cagroup_directories_deprecation_warning:
+                    LegacyEncryption.client_cagroup_directories_deprecation_warning = False
+                    log(None, CORE_DEBUG, 3, "Use of client_cagroup_directories option is deprecated, client_verify_cagroup_directories should be used instead.")
+
                 self.client_ca_directory = self.client_cagroup_directories[0]
                 self.client_crl_directory = self.client_cagroup_directories[1]
 
@@ -120,10 +131,18 @@ class LegacyEncryption(object):
                 proxy.tls.client_local_privatekey = self.readPEM(self.client_key_file)
 
             if hasattr(self, "client_ca_directory"):
+                if LegacyEncryption.client_ca_directory_deprecation_warning:
+                    LegacyEncryption.client_ca_directory_deprecation_warning = False
+                    log(None, CORE_DEBUG, 3, "Use of client_ca_directory option is deprecated, client_verify_ca_directory should be used instead.")
+
                 log(proxy.session.session_id, SSL_DEBUG, 6, "Compatibility feature, processing client_ca_directory; value='%s'" % self.client_ca_directory)
                 self.readHashDir(encryption.settings.client_local_ca_list, self.client_ca_directory)
 
             if hasattr(self, "client_crl_directory"):
+                if LegacyEncryption.client_crl_directory_deprecation_warning:
+                    LegacyEncryption.client_crl_directory_deprecation_warning = False
+                    log(None, CORE_DEBUG, 3, "Use of client_crl_directory option is deprecated, client_verify_crl_directory should be used instead.")
+
                 log(proxy.session.session_id, SSL_DEBUG, 6, "Compatibility feature, processing client_crl_directory; value='%s'" % self.client_crl_directory)
                 self.readHashDir(encryption.settings.client_local_crl_list, self.client_crl_directory)
 
@@ -145,6 +164,10 @@ class LegacyEncryption(object):
                 self.server_key_file = self.server_keypair_files[1]
 
             if hasattr(self, "server_cagroup_directories"):
+                if LegacyEncryption.server_cagroup_directories_deprecation_warning:
+                    LegacyEncryption.server_cagroup_directories_deprecation_warning = False
+                    log(None, CORE_DEBUG, 3, "Use of server_cagroup_directories option is deprecated, server_verify_cagroup_directories should be used instead.")
+
                 self.server_ca_directory = self.server_cagroup_directories[0]
                 self.server_crl_directory = self.server_cagroup_directories[1]
 
@@ -161,10 +184,18 @@ class LegacyEncryption(object):
                 proxy.tls.server_local_privatekey = self.readPEM(self.server_key_file)
 
             if hasattr(self, "server_ca_directory"):
+                if LegacyEncryption.server_ca_directory_deprecation_warning:
+                    LegacyEncryption.server_ca_directory_deprecation_warning = False
+                    log(None, CORE_DEBUG, 3, "Use of server_ca_directory option is deprecated, server_verify_ca_directory should be used instead.")
+
                 log(proxy.session.session_id, SSL_DEBUG, 6, "Compatibility feature, processing server_ca_directory; value='%s'" % self.server_ca_directory)
                 self.readHashDir(encryption.settings.server_local_ca_list, self.server_ca_directory)
 
             if hasattr(self, "server_crl_directory"):
+                if LegacyEncryption.server_crl_directory_deprecation_warning:
+                    LegacyEncryption.server_crl_directory_deprecation_warning = False
+                    log(None, CORE_DEBUG, 3, "Use of server_crl_directory option is deprecated, server_verify_crl_directory should be used instead.")
+
                 log(proxy.session.session_id, SSL_DEBUG, 6, "Compatibility feature, processing server_crl_directory; value='%s'" % self.server_crl_directory)
                 self.readHashDir(encryption.settings.server_local_crl_list, self.server_crl_directory)
 

@@ -491,7 +491,6 @@ def init(names, virtual_name, is_master):
 
     return TRUE
 
-
 def deinit(names, virtual_name):
     """
     <function internal="yes">

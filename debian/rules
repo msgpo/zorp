@@ -4,6 +4,6 @@
 	dh $@ --with autoreconf,python2 --parallel
 
 override_dh_strip:
-	dh_strip -plibzorp6.0-11-dbg --dbg-package=libzorp6.0-11-dbg
+	dh_strip -plibzorp6.0-12-dbg --dbg-package=libzorp6.0-12-dbg
 	dh_strip -pzorp --dbg-package=zorp-dbg
 	dh_strip -pzorp-modules --dbg-package=zorp-modules-dbg

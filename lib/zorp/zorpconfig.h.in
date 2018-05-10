@@ -188,6 +188,9 @@
 /* Required product name in license */
 #undef ZORP_PRODUCT_NAME
 
+/* Zorp source revision number */
+#undef ZORP_SOURCE_REVISION
+
 /* Enable large inode numbers on Mac OS X 10.5.  */
 #ifndef _DARWIN_USE_64_BIT_INODE
 # define _DARWIN_USE_64_BIT_INODE 1

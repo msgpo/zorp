@@ -918,7 +918,6 @@ z_policy_thread_destroy(ZPolicyThread *self)
   g_free(self);
 }
 
-
 /**
  * z_policy_free:
  * @self: this
@@ -950,7 +949,6 @@ z_policy_want_free(ZPolicy *self)
 {
   g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, (GSourceFunc) z_policy_free, self, NULL);
 }
-
 
 /**
  * z_policy_ref:
@@ -1019,7 +1017,6 @@ z_policy_unref(ZPolicy *self)
       G_UNLOCK(policy_ref_lock);
     }
 }
-
 
 void
 z_policy_module_call_py_init_function(const gchar *name,
@@ -1109,7 +1106,6 @@ z_policy_boot(ZPolicy *self)
 
 
 
-  z_policy_modules_py_init_notify();
 
   z_policy_thread_release(self->main_thread);
 

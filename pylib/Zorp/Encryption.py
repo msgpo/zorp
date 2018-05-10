@@ -1192,6 +1192,7 @@ class AbstractVerifier(object):
                   from these CAs.
                   Unless you are authenticating the peers based on their certificates,
                   use the <parameter>verify_ca_directory</parameter> option instead.
+                  Use of <parameter>ca_directory</parameter> option is deprecated.
                 </description>
             </attribute>
             <attribute maturity="stable">
@@ -1214,6 +1215,7 @@ class AbstractVerifier(object):
                   require a huge amount of memory.
                   Unless you are authenticating the peers based on their certificates,
                   use the <parameter>verify_crl_directory</parameter> option instead.
+                  Use of <parameter>crl_directory</parameter> option is deprecated.
                 </description>
             </attribute>
             <attribute state="stable">
@@ -1403,6 +1405,7 @@ class AbstractVerifier(object):
                       from these CAs.
                       Unless you are authenticating the peers based on their certificates,
                       use the <parameter>verify_ca_directory</parameter> option instead.
+                      Use of <parameter>ca_directory</parameter> option is deprecated.
                     </description>
                 </argument>
                 <argument maturity="stable">
@@ -1418,6 +1421,7 @@ class AbstractVerifier(object):
                       require a huge amount of memory.
                       Unless you are authenticating the peers based on their certificates,
                       use the <parameter>verify_crl_directory</parameter> option instead.
+                      Use of <parameter>crl_directory</parameter> option is deprecated.
                     </description>
                 </argument>
                 <argument state="stable">
@@ -1607,6 +1611,7 @@ class ClientCertificateVerifier(AbstractVerifier):
                   from these CAs.
                   Unless you are authenticating the peers based on their certificates,
                   use the <parameter>verify_ca_directory</parameter> option instead.
+                  Use of <parameter>ca_directory</parameter> option is deprecated.
                 </description>
             </attribute>
             <attribute maturity="stable">
@@ -1629,6 +1634,7 @@ class ClientCertificateVerifier(AbstractVerifier):
                   require a huge amount of memory.
                   Unless you are authenticating the peers based on their certificates,
                   use the <parameter>verify_crl_directory</parameter> option instead.
+                  Use of <parameter>crl_directory</parameter> option is deprecated.
                 </description>
             </attribute>
             <attribute state="stable">
@@ -1785,6 +1791,9 @@ class ClientCertificateVerifier(AbstractVerifier):
       </metainfo>
     </class>
     """
+
+    ca_directory_deprecation_warning = True
+    crl_directory_deprecation_warning = True
     def __init__(self, ca_directory=None, crl_directory=None, trusted_certs_directory=None, required=True, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False):
         """
         <method maturity="stable">
@@ -1815,6 +1824,7 @@ class ClientCertificateVerifier(AbstractVerifier):
                       from these CAs.
                       Unless you are authenticating the peers based on their certificates,
                       use the <parameter>verify_ca_directory</parameter> option instead.
+                      Use of <parameter>ca_directory</parameter> option is deprecated.
                     </description>
                 </argument>
                 <argument maturity="stable">
@@ -1830,6 +1840,7 @@ class ClientCertificateVerifier(AbstractVerifier):
                       require a huge amount of memory.
                       Unless you are authenticating the peers based on their certificates,
                       use the <parameter>verify_crl_directory</parameter> option instead.
+                      Use of <parameter>crl_directory</parameter> option is deprecated.
                     </description>
                 </argument>
                 <argument state="stable">
@@ -1942,8 +1953,14 @@ class ClientCertificateVerifier(AbstractVerifier):
         encryption.settings.client_permit_missing_crl = self.permit_missing_crl
 
         if self.ca_directory:
+            if ClientCertificateVerifier.ca_directory_deprecation_warning:
+                ClientCertificateVerifier.ca_directory_deprecation_warning = False
+                log(None, CORE_DEBUG, 3, "Use of ca_directory option is deprecated, verify_ca_directory should be used instead.")
             self.readHashDir(encryption.settings.client_local_ca_list, self.ca_directory)
         if self.crl_directory:
+            if ClientCertificateVerifier.crl_directory_deprecation_warning:
+                ClientCertificateVerifier.crl_directory_deprecation_warning = False
+                log(None, CORE_DEBUG, 3, "Use of crl_directory option is deprecated, verify_crl_directory should be used instead.")
             self.readHashDir(encryption.settings.client_local_crl_list, self.crl_directory)
 
         if self.verify_ca_directory:
@@ -2174,6 +2191,9 @@ class ServerCertificateVerifier(AbstractVerifier):
       </metainfo>
     </class>
     """
+
+    ca_directory_deprecation_warning = True
+    crl_directory_deprecation_warning = True
     def __init__(self, ca_directory=None, crl_directory=None, trusted_certs_directory=None, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False, check_subject=True):
         """
         <method maturity="stable">
@@ -2204,6 +2224,7 @@ class ServerCertificateVerifier(AbstractVerifier):
                       from these CAs.
                       Unless you are authenticating the peers based on their certificates,
                       use the <parameter>verify_ca_directory</parameter> option instead.
+                      Use of <parameter>ca_directory</parameter> option is deprecated.
                     </description>
                 </argument>
                 <argument maturity="stable">
@@ -2219,6 +2240,7 @@ class ServerCertificateVerifier(AbstractVerifier):
                       require a huge amount of memory.
                       Unless you are authenticating the peers based on their certificates,
                       use the <parameter>verify_crl_directory</parameter> option instead.
+                      Use of <parameter>crl_directory</parameter> option is deprecated.
                     </description>
                 </argument>
                 <argument state="stable">
@@ -2343,8 +2365,14 @@ class ServerCertificateVerifier(AbstractVerifier):
         encryption.settings.server_permit_missing_crl = self.permit_missing_crl
 
         if self.ca_directory:
+            if ServerCertificateVerifier.ca_directory_deprecation_warning:
+                ServerCertificateVerifier.ca_directory_deprecation_warning = False
+                log(None, CORE_DEBUG, 3, "Use of ca_directory option is deprecated, verify_ca_directory should be used instead.")
             self.readHashDir(encryption.settings.server_local_ca_list, self.ca_directory)
         if self.crl_directory:
+            if ServerCertificateVerifier.crl_directory_deprecation_warning:
+                ServerCertificateVerifier.crl_directory_deprecation_warning = False
+                log(None, CORE_DEBUG, 3, "Use of crl_directory option is deprecated, verify_crl_directory should be used instead.")
             self.readHashDir(encryption.settings.server_local_crl_list, self.crl_directory)
 
         if self.verify_ca_directory:

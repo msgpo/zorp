@@ -257,7 +257,6 @@ typedef struct _TelnetProxy
   /* option check function lookup table */
   TelnetOptionFunction    telnet_option_negotiation_handlers[256];
 
-
   /* Whether the connection requires STARTTLS before sending any data */
   gboolean                tls_required[EP_MAX];
   gboolean                tls_completed[EP_MAX];
@@ -268,7 +267,6 @@ typedef struct _TelnetProxy
 } TelnetProxy;
 
 extern ZClass TelnetProxy__class;
-
 
 /* I/O */
 GIOStatus telnet_send_suboption(TelnetProxy *self, ZEndpoint ep, ZPktBuf *suboption);

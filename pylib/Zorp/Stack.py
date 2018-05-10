@@ -20,7 +20,6 @@
 ##
 ############################################################################
 
-
 """
 <module>
 <summary>The Stack module defines the classes used to connect to a stacking provider.
@@ -229,4 +228,3 @@ class RemoteStackingBackend(AbstractStackingBackend):
                 log(None, CORE_ERROR, 3, "Error performing stack handshake with peer; addr='%s'", str(addr))
         log(None, CORE_DEBUG, 6, "Could not finish handshake with any of the stacking peers;")
         return None
-

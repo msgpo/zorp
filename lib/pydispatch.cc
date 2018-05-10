@@ -644,11 +644,13 @@ z_policy_dispatch_free(ZPolicyDispatch *self)
       Py_END_ALLOW_THREADS;
       self->policy_thread = NULL;
     }
+
   if (self->policy)
     {
       z_policy_unref(self->policy);
       self->policy = NULL;
     }
+
   PyObject_Del(self);
 }
 

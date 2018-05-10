@@ -25,7 +25,6 @@ ZORPLL_MIN_VERSION="6.0.11.0"
 ZORPLIC_MIN_VERSION="6.0.11.0"
 ZORPMISC_MIN_VERSION="6.0.11.0"
 OPENSSL_MIN_VERSION="1.0.1"
-OPENSSL_MAX_VERSION="1.1.1"
 PYTHON_MIN_VERSION="2.7"
 PYTHON_MAX_VERSION="2.8"
 m4_define_default([_AM_PYTHON_INTERPRETER_LIST], [python2.7])
@@ -213,8 +212,8 @@ PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= $GLIB_MIN_VERSION,,
 PKG_CHECK_MODULES(ZORPLL, zorpll-${LIBZORP_LT_RELEASE} >= $ZORPLL_MIN_VERSION,,
 	AC_MSG_ERROR(Cannot find ZORP Lowlevel library version >= $ZORPLL_MIN_VERSION: is pkg-config in path?))
 
-PKG_CHECK_MODULES(OPENSSL, openssl >= $OPENSSL_MIN_VERSION openssl < $OPENSSL_MAX_VERSION,,
-        AC_MSG_ERROR(Cannot find OpenSSL library version >= $OPENSSL_MIN_VERSION && version < OPENSSL_MAX_VERSION: is pkg-config in path?))
+PKG_CHECK_MODULES(OPENSSL, openssl >= $OPENSSL_MIN_VERSION,,
+        AC_MSG_ERROR(Cannot find OpenSSL library version >= $OPENSSL_MIN_VERSION: is pkg-config in path?))
 
 PKG_CHECK_MODULES(PYTHON, python-2.7 >= $PYTHON_MIN_VERSION,,
 	AC_MSG_ERROR(Cannot find Python library version >= $PYTHON_MIN_VERSION: is pkg-config in path?))
@@ -302,6 +301,7 @@ AC_SUBST(ZORP_PRODUCT_NAME)
 
 AC_DEFINE_UNQUOTED(BROCHURE_VERSION, "$BROCHURE_VERSION", [Zorp brochure version])
 AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Zorp package version])
+AC_DEFINE_UNQUOTED(ZORP_SOURCE_REVISION, "$SOURCE_REVISION", [Zorp source revision number])
 
 AC_DEFINE_UNQUOTED(ENABLE_TRACE, `enable_value $enable_trace`, [Enable trace messages])
 AC_DEFINE_UNQUOTED(ENABLE_IPOPTIONS, `enable_value $enable_ip_options`, [Enable IP option processing])
@@ -407,11 +407,11 @@ AC_SUBST(ZORPLL_MIN_VERSION)
 AC_SUBST(ZORPLIC_MIN_VERSION)
 AC_SUBST(ZORPMISC_MIN_VERSION)
 AC_SUBST(OPENSSL_MIN_VERSION)
-AC_SUBST(OPENSSL_MAX_VERSION)
 AC_SUBST(PYTHON_MIN_VERSION)
 AC_SUBST(CURRDATE)
 
 AC_CONFIG_LINKS([pylib/Zorp/__init__.py:pylib/Zorp/__init__.py])
+
 
 AC_CONFIG_FILES([
 Makefile

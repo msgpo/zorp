@@ -47,7 +47,6 @@
 #endif
 #include <sys/types.h>
 
-
 /*
  * The SZIG framework serves as a means to publish internal statistics. It
  * consists of three main parts:
