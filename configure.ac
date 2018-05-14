@@ -412,7 +412,6 @@ AC_CONFIG_LINKS([pylib/Zorp/__init__.py:pylib/Zorp/__init__.py])
 AC_CONFIG_FILES([
 Makefile
 doc/Makefile
-doc/examples/Makefile
 doc/man/Makefile
 doc/man/zorp-entities.ent
 lib/Makefile
