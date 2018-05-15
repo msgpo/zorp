@@ -126,7 +126,7 @@ z_policy_encryption_set_methods_and_security(ZPolicyEncryption *self,
           case ENCRYPTION_METHOD_SSLV23:
             self->ssl_server_context = SSL_CTX_new(SSLv23_client_method());
             break;
-#ifdef ENABLE_SSLV3
+#if ENABLE_SSLV3
           case ENCRYPTION_METHOD_SSLV3:
             self->ssl_server_context = SSL_CTX_new(SSLv3_client_method());
             break;
