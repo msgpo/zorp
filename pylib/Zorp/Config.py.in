@@ -1,7 +1,7 @@
 ############################################################################
 ##
 ## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
-## Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+## Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
 ##
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -196,5 +196,3 @@ config.options.zone_dispatcher_shift_threshold = 1000
 # KZorp enabled or not. If KZorp is not present in the kernel and this is
 # enabled, Zorp startup/shutdown/reload will be delayed by about 5sec
 config.options.kzorp_enabled = TRUE
-
-config.options.ssl3_enabled = @ENABLE_SSLV3@

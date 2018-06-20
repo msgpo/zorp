@@ -15,9 +15,6 @@
 /* Enable prefork support */
 #undef ENABLE_PREFORK
 
-/* Enable SSLv3 support */
-#undef ENABLE_SSLV3
-
 /* Enable trace messages */
 #undef ENABLE_TRACE
 
@@ -47,10 +44,6 @@
    you don't. */
 #undef HAVE_DECL_IP_TRANSPARENT
 
-/* Define to 1 if you have the declaration of `OPENSSL_NO_SSL3', and to 0 if
-   you don't. */
-#undef HAVE_DECL_OPENSSL_NO_SSL3
-
 /* Define to 1 if you have the declaration of `TCP_CORK', and to 0 if you
    don't. */
 #undef HAVE_DECL_TCP_CORK
@@ -70,9 +63,6 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
-
-/* Define to 1 if you have the `ssl' library (-lssl). */
-#undef HAVE_LIBSSL
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H

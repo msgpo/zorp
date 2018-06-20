@@ -1,7 +1,7 @@
 /***************************************************************************
  *
  * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
- * Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+ * Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,17 +50,6 @@ typedef enum
   ENCRYPTION_VERIFY_REQUIRED_UNTRUSTED  = 3,
   ENCRYPTION_VERIFY_REQUIRED_TRUSTED    = 4,
 } proxy_ssl_verify_type;
-
-typedef enum
-{
-  ENCRYPTION_METHOD_SSLV23  = 0,
-#ifdef ENABLE_SSLV3
-  ENCRYPTION_METHOD_SSLV3   = 1,
-#endif
-  ENCRYPTION_METHOD_TLSV1   = 2,
-  ENCRYPTION_METHOD_TLSV1_1 = 3,
-  ENCRYPTION_METHOD_TLSV1_2 = 4
-} encryption_method_type;
 
 class SessionTicketKey
 {
@@ -111,7 +100,6 @@ typedef struct _ZProxySsl {
 
   encryption_security_type security[EP_MAX];
 
-  GString *ssl_method[EP_MAX];
   GString *ssl_cipher[EP_MAX];
 
   ZPolicyObj *server_setup_key_cb, *server_setup_ca_list_cb, *server_setup_crl_list_cb, *server_verify_cert_cb;
@@ -129,8 +117,6 @@ typedef struct _ZProxySsl {
 
   proxy_ssl_verify_type verify_type[EP_MAX];
   int verify_depth[EP_MAX];
-  gboolean disable_proto_sslv2[EP_MAX];
-  gboolean disable_proto_sslv3[EP_MAX];
   gboolean disable_proto_tlsv1[EP_MAX];
   gboolean disable_proto_tlsv1_1[EP_MAX];
   gboolean disable_proto_tlsv1_2[EP_MAX];

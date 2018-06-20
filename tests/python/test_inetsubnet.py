@@ -3,7 +3,7 @@
 ############################################################################
 ##
 ## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
-## Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+## Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
 ##
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -30,9 +30,9 @@ import unittest
 
 config.options.kzorp_enabled = FALSE
 
-class TestInetDomain(unittest.TestCase):
+class TestInetSubnet(unittest.TestCase):
     def test_attributes(self):
-        dom = InetDomain("192.168.0.1/24")
+        dom = InetSubnet("192.168.0.1/24")
         self.assertEqual(dom.addr_str(), "192.168.0.1")
         self.assertEqual(dom.broadcast(), struct.unpack("I", inet_aton("192.168.0.255"))[0])
         self.assertEqual(dom.netmask_int(), struct.unpack("I", inet_aton("255.255.255.0"))[0])

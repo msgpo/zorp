@@ -14,17 +14,18 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl ***************************************************************************
 dnl Definitions
 
-BROCHURE_VERSION="6"
+BROCHURE_VERSION="7"
 ZORP_PRODUCT_NAME="Zorp Professional"
 
 dnl ***************************************************************************
 dnl Dependencies
 
 GLIB_MIN_VERSION="2.32.0"
-ZORPLL_MIN_VERSION="6.0.11.0"
-ZORPLIC_MIN_VERSION="6.0.11.0"
-ZORPMISC_MIN_VERSION="6.0.11.0"
-OPENSSL_MIN_VERSION="1.0.1"
+ZORPLL_MIN_VERSION="7.0.1.0~alpha0"
+ZORPLIC_MIN_VERSION="7.0.1.0~alpha0"
+ZORPMISC_MIN_VERSION="7.0.1.0~alpha0"
+OPENSSL_MIN_VERSION=1.1.0
+OPENSSL_MAX_VERSION=1.1.1
 PYTHON_MIN_VERSION="2.7"
 PYTHON_MAX_VERSION="2.8"
 m4_define_default([_AM_PYTHON_INTERPRETER_LIST], [python2.7])
@@ -73,10 +74,6 @@ AC_ARG_ENABLE(ipv6,
               [  --enable-ipv6        Enable IPv6 support (EXPERIMENTAL)],,
               enable_ipv6=yes)
 
-AC_ARG_ENABLE(sslv3,
-              [  --enable-sslv3        Enable SSLv3 support],,
-              enable_sslv3=auto)
-
 AC_ARG_ENABLE(prefork,
               [  --enable-prefork             Enable prefork],,
 	      enable_prefork=no)
@@ -96,7 +93,7 @@ ZORP_SUDOERSD_CONF_DIR="${sysconfdir}/sudoers.d"
 dnl Library versioning, the resulting shared object is named:
 dnl 	zorplib-<RELEASE>.so.<AGE>
 dnl
-VERSION_NOSNAPSHOT="`echo $VERSION | cut -d '+' -f 1`"
+VERSION_NOSNAPSHOT="`echo $VERSION | cut -d '+' -d '~' -f 1`"
 
 VERSION_MAJOR=`echo $VERSION_NOSNAPSHOT |  cut -d '.' -f 1`
 VERSION_MINOR=`echo $VERSION_NOSNAPSHOT |  cut -d '.' -f 2`
@@ -212,8 +209,9 @@ PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= $GLIB_MIN_VERSION,,
 PKG_CHECK_MODULES(ZORPLL, zorpll-${LIBZORP_LT_RELEASE} >= $ZORPLL_MIN_VERSION,,
 	AC_MSG_ERROR(Cannot find ZORP Lowlevel library version >= $ZORPLL_MIN_VERSION: is pkg-config in path?))
 
-PKG_CHECK_MODULES(OPENSSL, openssl >= $OPENSSL_MIN_VERSION,,
-        AC_MSG_ERROR(Cannot find OpenSSL library version >= $OPENSSL_MIN_VERSION: is pkg-config in path?))
+PKG_CHECK_MODULES(OPENSSL, [openssl >= $OPENSSL_MIN_VERSION openssl < $OPENSSL_MAX_VERSION],,
+        AC_MSG_ERROR(Cannot find OpenSSL library $OPENSSL_MIN_VERSION <= version < $OPENSSL_MAX_VERSION: is pkg-config in path?)
+)
 
 PKG_CHECK_MODULES(PYTHON, python-2.7 >= $PYTHON_MIN_VERSION,,
 	AC_MSG_ERROR(Cannot find Python library version >= $PYTHON_MIN_VERSION: is pkg-config in path?))
@@ -231,8 +229,6 @@ dnl		AC_DEFINE(HAVE_LEAK_IN_GETHOSTBYNAME_R, 1, [We have a leak in gethostbyname
 		AC_DEFINE(HAVE_SUN_GETHOSTBYNAME_R, 1, [We have a Solaris style gethostbyname_r];)
 	fi
 fi
-
-AC_CHECK_LIB(ssl, SSL_accept,, AC_MSG_ERROR(Cannot find SSL_accept in ssl library))
 
 dnl ***************************************************************************
 dnl Misc checks
@@ -319,15 +315,6 @@ fi
 
 GENERAL_CXXFLAGS="-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I$top_srcdir/lib $COVERAGE_CXXFLAGS $WARNING_CXXFLAGS $DIRECTORY_CXXFLAGS"
 
-AS_IF([test "x$enable_sslv3" = "xauto"],
-      [AC_CHECK_DECLS([OPENSSL_NO_SSL3], [ENABLE_SSLV3=0], [ENABLE_SSLV3=1], [[#include <openssl/opensslconf.h>]])],
-      [AS_IF([test "x$enable_sslv3" = "xyes"],
-            [ENABLE_SSLV3=1],
-            [ENABLE_SSLV3=0]
-      )]
-)
-AC_DEFINE_UNQUOTED(ENABLE_SSLV3, [$ENABLE_SSLV3], [Enable SSLv3 support])
-
 # Dependencies outside the source tree
 DEPS_CXXFLAGS="$ZORPLL_CFLAGS $ZORPLIC_CFLAGS $ZORPMISC_CFLAGS $PYTHON_CFLAGS $OPENSSL_CFLAGS"
 DEPS_LIBS="$ZORPLL_LIBS $ZORPLIC_LIBS $ZORPMISC_LIBS $PYTHON_LIBS $PYTHON_DEPS $COREDUMP_LIBS $OPENSSL_LIBS"
@@ -377,8 +364,6 @@ AC_SUBST(ZORP_PIDFILEDIR)
 AC_SUBST(ZORP_SYSCONFDIR)
 AC_SUBST(ZORP_STATEDIR)
 
-AC_SUBST(ENABLE_SSLV3)
-
 date=`date +%Y/%m/%d`
 AC_DEFINE_UNQUOTED(ZORP_CONFIG_DATE, "$date", [Configuration date])
 
@@ -390,7 +375,6 @@ Compile time options:
 coverage: $enable_coverage
 ipoptions: $enable_ip_options
 ipv6: $enable_ipv6
-sslv3: $enable_sslv3
 prefork: $enable_prefork
 kzorp: $enable_kzorp
 License: $ZORP_PACKAGE_LICENSE
@@ -436,11 +420,10 @@ debian/zorp${PACKAGE_SUFFIX}-munin-plugins.install:debian/zorp-munin-plugins.ins
 debian/zorp${PACKAGE_SUFFIX}-munin-plugins.links:debian/zorp-munin-plugins.links.in
 debian/zorp${PACKAGE_SUFFIX}-nagios-plugins.install:debian/zorp-nagios-plugins.install.in
 debian/zorp${PACKAGE_SUFFIX}.docs:debian/zorp.docs.in
-debian/zorp${PACKAGE_SUFFIX}.init:debian/zorp.init.in
+debian/zorp${PACKAGE_SUFFIX}.service:debian/zorp.service.in
 debian/zorp${PACKAGE_SUFFIX}.manpages:debian/zorp.manpages.in
 debian/source/Makefile
 doc/Makefile
-doc/examples/Makefile
 doc/man/Makefile
 doc/man/zorp-entities.ent
 lib/Makefile

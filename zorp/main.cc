@@ -1,7 +1,7 @@
 /***************************************************************************
  *
  * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
- * Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+ * Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -211,14 +211,12 @@ z_version(void)
          "Config-Date: %s\n"
          "Trace: %s\n"
          "IPOptions: %s\n\n"
-         "SSLv3: %s\n\n"
          "%s\n"
          ,
          BROCHURE_VERSION, VERSION,
          ZORP_CONFIG_DATE,
          ON_OFF_STR(ENABLE_TRACE),
          ON_OFF_STR(ENABLE_IPOPTIONS),
-         ON_OFF_STR(ENABLE_SSLV3),
          z_libzorpll_version_info()
          );
 }

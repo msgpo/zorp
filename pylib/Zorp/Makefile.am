@@ -7,7 +7,7 @@ pkgdata_DATA = Auth.py AuthDB.py Base.py Core.py Chainer.py Common.py \
 	SockAddr.py Stream.py Zone.py Zorp.py __init__.py \
 	Globals.py Cache.py Resolver.py Stack.py Config.py \
 	Keybridge.py Util.py Rule.py Exceptions.py \
-	Encryption.py LegacyEncryption.py Detector.py \
+	Encryption.py Detector.py \
 	Instance.py InstancesConf.py \
 	ResolverCache.py FileLock.py
 
