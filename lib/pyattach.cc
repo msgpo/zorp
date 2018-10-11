@@ -1,7 +1,7 @@
 /***************************************************************************
  *
  * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
- * Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+ * Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -291,10 +291,12 @@ z_policy_attach_free(ZPolicyAttach *self)
     {
       z_attach_free(self->attach);
     }
+
   if (self->policy)
     {
       z_policy_unref(self->policy);
     }
+
   z_sockaddr_unref(self->local);
 
   PyObject_Del(self);

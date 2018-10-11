@@ -1,7 +1,7 @@
 /***************************************************************************
  *
  * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
- * Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+ * Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -257,7 +257,6 @@ typedef struct _TelnetProxy
   /* option check function lookup table */
   TelnetOptionFunction    telnet_option_negotiation_handlers[256];
 
-
   /* Whether the connection requires STARTTLS before sending any data */
   gboolean                tls_required[EP_MAX];
   gboolean                tls_completed[EP_MAX];
@@ -268,7 +267,6 @@ typedef struct _TelnetProxy
 } TelnetProxy;
 
 extern ZClass TelnetProxy__class;
-
 
 /* I/O */
 GIOStatus telnet_send_suboption(TelnetProxy *self, ZEndpoint ep, ZPktBuf *suboption);

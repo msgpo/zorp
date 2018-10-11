@@ -1,7 +1,7 @@
 ############################################################################
 ##
 ## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
-## Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+## Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
 ##
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -57,5 +57,4 @@ none_encryption = None
 detectors = {}
 policy_zones_reload_lock = threading.Lock()
 virtual_instance_name = ''
-
 deinit_callbacks = []

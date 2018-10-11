@@ -1,7 +1,7 @@
 ############################################################################
 ##
 ## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
-## Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+## Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
 ##
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -1259,7 +1259,7 @@ class AbstractFtpProxy(Proxy):
                         ret = FALSE
         else:
             ## LOG ##
-            # This message indicates an internal error, please contact the BalaBit QA team.
+            # This message indicates an internal error, please contact the Balasys QA team (devel@balasys.hu).
             ##
             proxyLog(self, FTP_POLICY, 3, "Unknown side when calling bounceCheck; side='%d'" % side)
             ret = FALSE

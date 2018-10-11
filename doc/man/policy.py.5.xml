@@ -41,13 +41,13 @@
     <title>See Also</title>
     <para>For further information on <filename>policy.py</filename> refer to the following sources:</para>
     <para>A tutorial on manually editing the <filename>policy.py</filename> file can be found at
-        <link xmlns:ns1="http://www.w3.org/1999/xlink" ns1:href="http://www.balabit.com/network-security/zorp-gateway/gpl/tutorial/">
-        http://www.balabit.com/network-security/zorp-gateway/gpl/tutorial/</link>. </para>
+        <link xmlns:ns1="http://www.w3.org/1999/xlink" ns1:href="http://www.balasys.hu/documentation/">
+        http://www.balasys.hu/documentation/</link>. </para>
     <para>Additional information can also be found in the <emphasis>Zorp Administrator's
       Guide</emphasis>, the <emphasis>Zorp Reference Guide</emphasis>, and in the various tutorials
-      available at the BalaBit Documentation Page at <link xmlns:ns1="http://www.w3.org/1999/xlink"
-        ns1:href="http://www.balabit.com/network-security/zorp-gateway/support/documentation">
-        http://www.balabit.com/network-security/zorp-gateway/support/documentation</link>. </para>
+      available at the BalaSys Documentation Page at <link xmlns:ns1="http://www.w3.org/1999/xlink"
+        ns1:href="http://www.balasys.hu/documentation">
+        http://www.balasys.hu/documentation</link>. </para>
   </refsection>
   <xi:include href="manpage_authors.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="manpage_copyright.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <refsect1>
     <title>Copyright</title>
-    <para>Copyright &#169; 2006 BalaBit IT Security Ltd. All rights reserved. For more information about
-        the legal status of this document please read: <ulink
-            url="http://www.balabit.com/products/zorp/docs/legal_notice.bbq"
-            >http://www.balabit.com/products/zorp/docs/legal_notice.bbq</ulink>
+
+    <para>Copyright &#169; 2006-2015 BalaBit IT Security, 2015-2017 BalaSys IT
+        Security. All rights reserved.
     </para>
 </refsect1>

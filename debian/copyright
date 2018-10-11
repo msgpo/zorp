@@ -1,13 +1,7 @@
-This program is downloaded from BalaBit's version control system directly
-so it's may be newer than any public site.
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: zorp-core
+Upstream-Contact: BalaSys Development Team <devel@balasys.hu>
 
-You may download this program from
-http://www.balabit.hu/downloads/files/zorp/
-
-Copyright Holder: BalaBit IT, Ltd.
-Upstream Author(s): Scheidler Balázs <bazsi@balabit.hu>
-Program License: GPLv2 + permission to use OpenSSL
-
-On Debian systems, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL-2'.
-
+Files: *
+Copyright: 2000-2015 BalaBit IT Security, 2015-2017 BalaSys IT Security
+License: GPL-2 with OpenSSL exception

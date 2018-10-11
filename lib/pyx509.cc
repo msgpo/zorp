@@ -1,7 +1,7 @@
 /***************************************************************************
  *
  * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
- * Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+ * Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,18 +76,19 @@ z_py_zorp_certificate_new(X509 *cert)
 {
   ZorpCertificate *self;
 
-  if (cert)
-    {
+  if (!cert)
+    return z_policy_none_ref();
 
-      self = PyObject_New(ZorpCertificate, &z_py_zorp_certificate_type);
-      self->cert = cert;
-      CRYPTO_add(&cert->references,1,CRYPTO_LOCK_X509);
-      return (PyObject *) self;
-    }
-  else
+  self = PyObject_New(ZorpCertificate, &z_py_zorp_certificate_type);
+  self->cert = cert;
+
+  if (!X509_up_ref(cert))
     {
+      PyErr_SetString(PyExc_RuntimeError, "X509_up_ref failed.");
       return z_policy_none_ref();
     }
+
+  return (PyObject *) self;
 }
 
 static PyObject *
@@ -221,7 +222,7 @@ z_py_zorp_certificate_handle_extensions(gpointer user_data, ZPolicyObj *args, ZP
   zorp_certificate_fix_key_usage(certificate);
 
   // Let OpenSSL know that it needs to re_encode.
-  certificate->cert_info->enc.modified = 1;
+  i2d_re_X509_tbs(certificate, NULL);
 
   BIO *bio = BIO_new(BIO_s_mem());
   PEM_write_bio_X509(bio, certificate);
@@ -325,7 +326,12 @@ z_py_zorp_crl_new(X509_CRL *crl)
 
   self = PyObject_New(ZorpCRL, &z_py_zorp_crl_type);
   self->crl = crl;
-  CRYPTO_add(&crl->references,1,CRYPTO_LOCK_X509_CRL);
+  if (!X509_CRL_up_ref(crl))
+    {
+      PyErr_SetString(PyExc_RuntimeError, "X509_up_ref failed.");
+      return nullptr;
+    }
+
   return (PyObject *) self;
 }
 

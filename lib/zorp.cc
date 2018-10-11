@@ -1,7 +1,7 @@
 /***************************************************************************
  *
  * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
- * Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+ * Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@ gboolean is_kzorp_enabled = TRUE;
 gboolean usr1_received = 0;
 gboolean usr2_received = 0;
 static gboolean term_received = 0;
-
 
 static gboolean hup_received = 0;
 static gboolean reload_result = FALSE;
@@ -219,16 +218,14 @@ z_main_loop(const gchar *policy_file, const gchar *instance_name,
           usr1_received = 0;
           z_log_change_verbose_level(1, 1, &new_verbosity);
 
-
           z_mem_trace_stats();
         }
       if (usr2_received)
         {
           usr2_received = 0;
           z_log_change_verbose_level(-1, 1, &new_verbosity);
-
-
         }
+
       if (hup_received)
 	{
 	  /*LOG
@@ -251,6 +248,7 @@ z_main_loop(const gchar *policy_file, const gchar *instance_name,
 	  hup_received = 0;
 	  z_generate_policy_load_event(policy_file, reload_result);
 	}
+
       if (term_received)
         {
           z_main_loop_quit(0);

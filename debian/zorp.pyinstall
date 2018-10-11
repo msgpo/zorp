@@ -6,7 +6,6 @@ pylib/Zorp/Core.py Zorp
 pylib/Zorp/Detector.py Zorp
 pylib/Zorp/Dispatch.py Zorp
 pylib/Zorp/Encryption.py Zorp
-pylib/Zorp/LegacyEncryption.py Zorp
 pylib/Zorp/Globals.py Zorp
 pylib/Zorp/Keybridge.py Zorp
 pylib/Zorp/FileLock.py Zorp
@@ -25,6 +24,7 @@ pylib/Zorp/Stack.py Zorp
 pylib/Zorp/Stream.py Zorp
 pylib/Zorp/Util.py Zorp
 pylib/Zorp/Zorp.py Zorp
+zorpctl/CommandResults.py zorpctl
 zorpctl/Instances.py zorpctl
 zorpctl/PluginAlgorithms.py zorpctl
 zorpctl/ProcessAlgorithms.py zorpctl

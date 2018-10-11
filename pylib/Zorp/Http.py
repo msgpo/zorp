@@ -1,7 +1,7 @@
 ############################################################################
 ##
 ## Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
-## Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+## Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
 ##
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -148,7 +148,7 @@ Content-Length: 14
       </para>
       <para>
       Several examples and considerations on how to enable virus filtering in the HTTP traffic are discussed in the
-        Technical White Paper and Tutorial <emphasis>Virus filtering in HTTP</emphasis>, available at the BalaBit Documentation Page <link xmlns:ns1="http://www.w3.org/1999/xlink" ns1:href="http://www.balabit.com/network-security/zorp-gateway/support/documentation/">http://www.balabit.com/network-security/zorp-gateway/support/documentation/</link>.
+        Technical White Paper and Tutorial <emphasis>Virus filtering in HTTP</emphasis>, available at the BalaSys Documentation Page <link xmlns:ns1="http://www.w3.org/1999/xlink" ns1:href="http://www.balasys.hu/documentation/">http://www.balasys.hu/documentation/</link>.
       </para>
       <section>
         <title>Transparent and non-transparent modes</title>
@@ -285,7 +285,7 @@ Proxy-agent: My-Proxy/1.1</synopsis>
         <example>
           <title>URL redirection in HTTP proxy</title>
           <para>
-          This example redirects all HTTP GET requests to the 'http://www.balabit.com/' URL by modifying the value of the requested URL.
+          This example redirects all HTTP GET requests to the 'http://www.example.com/' URL by modifying the value of the requested URL.
           </para>
           <synopsis>class MyHttp(HttpProxy):
         def config(self):
@@ -293,7 +293,7 @@ Proxy-agent: My-Proxy/1.1</synopsis>
                 self.request["GET"] = (HTTP_REQ_POLICY, self.filterURL)
 
         def filterURL(self, method, url, version):
-                self.request_url = "http://www.balabit.com/"
+                self.request_url = "http://www.example.com/"
                 return HTTP_REQ_ACCEPT</synopsis>
         </example>
         <example>
@@ -492,7 +492,7 @@ def instance():
                     <para>To enable url-filtering, set the <parameter>enable_url_filter</parameter> and <parameter>enable_url_filter_dns</parameter> options to <parameter>TRUE</parameter>. The <parameter>enable_url_filter_dns</parameter> option is needed only to ensure that a domain or URL is correctly categorized even when it is listed in the database using its domain name, but the client tries to access it with its IP address (or vice-versa).</para>
                     <note>
                         <para>URL-filtering is handled by the Zorp Http proxy, without the need of using ZCV. The URL-filtering capability of Zorp is available only after purchasing the <parameter>url-filter</parameter> license option.</para>
-                        <para>Updates to the URL database are automatically downloaded daily from the BalaBit website using the <command>zavupdate</command> utility. </para>
+                        <para>Updates to the URL database are automatically downloaded daily from the BalaSys website using the <command>zavupdate</command> utility. </para>
                     </note>
              <para>Access to specific categories can be set using the <parameter>url_category</parameter> option, which is a hash indexed by the name of the category. The following actions are possible:</para>
              <inline type="actiontuple" target="action.http.url"/>

@@ -1,7 +1,7 @@
 /***************************************************************************
  *
  * Copyright (c) 2000-2015 BalaBit IT Ltd, Budapest, Hungary
- * Copyright (c) 2015-2017 BalaSys IT Ltd, Budapest, Hungary
+ * Copyright (c) 2015-2018 BalaSys IT Ltd, Budapest, Hungary
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@ typedef ZObjectFuncs ZCertificateChainFuncs;
 extern ZClass ZCertificateChain__class;
 
 ZCertificateChain *z_certificate_chain_new(void);
-void z_certificate_chain_set_cert(ZCertificateChain *self, X509 *cert);
-void z_certificate_chain_add_cert_to_chain(ZCertificateChain *self, X509 *chain);
+int z_certificate_chain_set_cert(ZCertificateChain *self, X509 *cert);
+int z_certificate_chain_add_cert_to_chain(ZCertificateChain *self, X509 *chain);
 X509 *z_certificate_chain_get_cert_from_chain(ZCertificateChain *self, gint idx);
 
 static inline gsize
