@@ -1,15 +1,10 @@
 [Unit]
-Description=The Zorp firewall
-After=syslog.target network.target remote-fs.target
+Description=The Zorp firewall starter
 
 [Service]
-Type=forking
+Type=oneshot
+RemainAfterExit=yes
 ExecStart=/usr/sbin/zorpctl start
-ExecStop=/usr/sbin/zorpctl stop
-ExecReload=/usr/sbin/zorpctl reload
-Restart=on-abort
-TimeoutStartSec=infinity
-TimeoutStopSec=infinity
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+[Unit]
+Description=The Zorp firewall (instance %i)
+PartOf=zorp-pro.service
+ReloadPropagatedFrom=zorp-pro.service
+After=syslog.target network.target remote-fs.target
+
+[Service]
+Type=forking
+GuessMainPID=no
+Environment=ZORPCTL_STARTED_BY_SYSTEMD=true
+ExecStartPre=/bin/mkdir -m 770 -p /var/run/zorp/
+ExecStartPre=/bin/chown -R zorp:zorp /var/run/zorp/
+ExecStart=/usr/sbin/zorpctl start %i
+ExecStop=/usr/sbin/zorpctl stop %i
+ExecReload=/usr/sbin/zorpctl reload %i
+Restart=on-abort
+TimeoutStartSec=infinity
+TimeoutStopSec=infinity
+
+[Install]
+WantedBy=multi-user.target

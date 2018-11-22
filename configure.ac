@@ -259,12 +259,12 @@ ZORP_NAGIOS_DIR="${prefix}/lib/nagios/plugins"
 ZORP_PYTHON_DIR="${pythondir}/Zorp"
 ZORPCTL_PYTHON_DIR="${pythondir}/zorpctl"
 
-ZORP_SYSCONFDIR="$sysconfdir/zorp"
-ZORP_DATADIR="$datadir/zorp"
-ZORP_LIBDIR="$libdir/zorp"
-ZORP_SBINDIR="$sbindir"
-ZORP_STATEDIR="$localstatedir/lib/zorp"
-ZORP_PIDFILEDIR="$localstatedir/run/zorp/"
+ZORP_SYSCONFDIR="${sysconfdir}/zorp"
+ZORP_DATADIR="${datadir}/zorp"
+ZORP_LIBDIR="${libdir}/zorp"
+ZORP_SBINDIR="${sbindir}"
+ZORP_STATEDIR="${localstatedir}/lib/zorp"
+ZORP_PIDFILEDIR="${localstatedir}/run/zorp/"
 
 dnl ***************************************************************************
 dnl Export results
@@ -359,6 +359,7 @@ AC_SUBST(ZORP_LIBDIR)
 AC_SUBST(ZORP_PIDFILEDIR)
 AC_SUBST(ZORP_SYSCONFDIR)
 AC_SUBST(ZORP_STATEDIR)
+AC_SUBST(ZORP_SBINDIR)
 
 date=`date +%Y/%m/%d`
 AC_DEFINE_UNQUOTED(ZORP_CONFIG_DATE, "$date", [Configuration date])
@@ -431,7 +432,7 @@ modules/whois/Makefile
 munin_plugins/Makefile
 nagios_plugins/Makefile
 pylib/Makefile
-pylib/Zorp/Config.py
+pylib/Zorp/Config_.py
 pylib/Zorp/Makefile
 scripts/Makefile
 tests/Makefile
@@ -439,8 +440,7 @@ tests/python/Makefile
 tests/unit/Makefile
 tests/zorpctl/Makefile
 zorp/Makefile
-zorpctl/Makefile
-zorpctl_in_cc/Makefile],
+zorpctl/Makefile],
 [chmod +x debian/rules]
 )
 AC_OUTPUT

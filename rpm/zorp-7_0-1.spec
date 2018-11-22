@@ -1,5 +1,5 @@
 Name:			zorp
-Version:		7.0.1~alpha1
+Version:		7.0.1~alpha2
 Release:		0.1%{?dist}
 URL:			https://balasys.github.io/zorp/
 %if 0%{?fedora}
@@ -115,6 +115,7 @@ ldconfig
 %{python2_sitelib}/Zorp/Encryption.py
 %{python2_sitelib}/Zorp/Globals.py
 %{python2_sitelib}/Zorp/Keybridge.py
+%{python2_sitelib}/Zorp/Listener.py
 %{python2_sitelib}/Zorp/FileLock.py
 %{python2_sitelib}/Zorp/Matcher.py
 %{python2_sitelib}/Zorp/NAT.py
@@ -352,6 +353,8 @@ Standalone daemon that handles zones and updates dynamic zones.
 
 
 %changelog
+* Wed Nov 21 2018 Balasys Development Team <devel@balasys.hu> - 7.0.1-0.2
+  - New upstream release 7.0.1~alpha2
 * Thu May 17 2018 Balasys Development Team <devel@balasys.hu> - 7.0.1-0.1
   - New upstream release 7.0.1~alpha1
 * Thu May 10 2018 Balasys Development Team <devel@balasys.hu> - 6.0.12
