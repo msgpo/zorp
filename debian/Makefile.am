@@ -8,6 +8,7 @@ EXTRA_DIST = changelog compat control copyright rules instances.conf \
 	zorp@PACKAGE_SUFFIX@.install \
 	zorp@PACKAGE_SUFFIX@.pyinstall \
 	zorp@PACKAGE_SUFFIX@.service \
+	zorp@PACKAGE_SUFFIX@@.service \
 	zorp@PACKAGE_SUFFIX@.manpages \
 	zorp@PACKAGE_SUFFIX@.postinst \
 	zorp@PACKAGE_SUFFIX@-base.install \

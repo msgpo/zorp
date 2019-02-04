@@ -24,17 +24,6 @@ Description: An advanced protocol analyzing firewall
  of the attacks do not cross a Zorp based firewall even if the given service
  is permitted.
 
-Package: zorp-dbg
-Architecture: any
-Depends: zorp (= ${source:Version})
-Description: An advanced protocol analyzing firewall
- Zorp is a new generation firewall. It is essentially a transparent proxy
- firewall, with strict protocol analyzing proxies, a modular architecture,
- and fine-grained control over the mediated traffic. Configuration decisions
- are scriptable with the Python based configuration language.
- .
- Debug symbols.
-
 Package: libzorp@LIBZORP_LT_COMPAT_BRANCH@
 Section: libs
 Architecture: any
@@ -46,17 +35,6 @@ Description: The runtime library of Zorp
  and fine-grained control over the mediated traffic. Configuration decisions
  .
  The library needed to run zorp.
-
-Package: libzorp@LIBZORP_LT_COMPAT_BRANCH@-dbg
-Section: libs
-Architecture: any
-Depends: libzorp@LIBZORP_LT_COMPAT_BRANCH@
-Description: The runtime library of Zorp
- Zorp is a new generation firewall. It is essentially a transparent proxy
- firewall, with strict protocol analyzing proxies, a modular architecture,
- and fine-grained control over the mediated traffic. Configuration decisions
- .
- Debug symbols.
 
 Package: libzorp@LIBZORP_LT_RELEASE@-dev
 Section: libdevel
@@ -85,17 +63,6 @@ Description: Default proxy modules for Zorp
  This package includes proxies for the protocols: FINGER, FTP, HTTP,
  SSL, TELNET, WHOIS, and two general modules ANYPY and PLUG.
 
-
-Package: zorp-modules-dbg
-Architecture: any
-Depends: zorp-modules (= ${source:Version})
-Description: Default proxy modules for Zorp
- Zorp is a new generation firewall. It is essentially a transparent proxy
- firewall, with strict protocol analyzing proxies, a modular architecture,
- and fine-grained control over the mediated traffic. Configuration decisions
- are scriptable with the Python based configuration language.
- .
- This package includes debug symbol of proxies.
 
 Package: zorp-doc
 Section: doc

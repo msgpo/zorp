@@ -25,7 +25,7 @@ ZORPLL_MIN_VERSION="7.0.1.0~alpha0"
 ZORPLIC_MIN_VERSION="7.0.1.0~alpha0"
 ZORPMISC_MIN_VERSION="7.0.1.0~alpha0"
 OPENSSL_MIN_VERSION=1.1.0
-OPENSSL_MAX_VERSION=1.1.1
+OPENSSL_MAX_VERSION=1.1.2
 PYTHON_MIN_VERSION="2.7"
 PYTHON_MAX_VERSION="2.8"
 m4_define_default([_AM_PYTHON_INTERPRETER_LIST], [python2.7])
@@ -263,12 +263,12 @@ ZORP_NAGIOS_DIR="${prefix}/lib/nagios/plugins"
 ZORP_PYTHON_DIR="${pythondir}/Zorp"
 ZORPCTL_PYTHON_DIR="${pythondir}/zorpctl"
 
-ZORP_SYSCONFDIR="$sysconfdir/zorp"
-ZORP_DATADIR="$datadir/zorp"
-ZORP_LIBDIR="$libdir/zorp"
-ZORP_SBINDIR="$sbindir"
-ZORP_STATEDIR="$localstatedir/lib/zorp"
-ZORP_PIDFILEDIR="$localstatedir/run/zorp/"
+ZORP_SYSCONFDIR="${sysconfdir}/zorp"
+ZORP_DATADIR="${datadir}/zorp"
+ZORP_LIBDIR="${libdir}/zorp"
+ZORP_SBINDIR="${sbindir}"
+ZORP_STATEDIR="${localstatedir}/lib/zorp"
+ZORP_PIDFILEDIR="${localstatedir}/run/zorp/"
 
 dnl ***************************************************************************
 dnl Export results
@@ -363,6 +363,7 @@ AC_SUBST(ZORP_LIBDIR)
 AC_SUBST(ZORP_PIDFILEDIR)
 AC_SUBST(ZORP_SYSCONFDIR)
 AC_SUBST(ZORP_STATEDIR)
+AC_SUBST(ZORP_SBINDIR)
 
 date=`date +%Y/%m/%d`
 AC_DEFINE_UNQUOTED(ZORP_CONFIG_DATE, "$date", [Configuration date])
@@ -421,6 +422,7 @@ debian/zorp${PACKAGE_SUFFIX}-munin-plugins.links:debian/zorp-munin-plugins.links
 debian/zorp${PACKAGE_SUFFIX}-nagios-plugins.install:debian/zorp-nagios-plugins.install.in
 debian/zorp${PACKAGE_SUFFIX}.docs:debian/zorp.docs.in
 debian/zorp${PACKAGE_SUFFIX}.service:debian/zorp.service.in
+debian/zorp${PACKAGE_SUFFIX}@.service:debian/zorp@.service.in
 debian/zorp${PACKAGE_SUFFIX}.manpages:debian/zorp.manpages.in
 debian/source/Makefile
 doc/Makefile
@@ -459,7 +461,7 @@ modules/whois/Makefile
 munin_plugins/Makefile
 nagios_plugins/Makefile
 pylib/Makefile
-pylib/Zorp/Config.py
+pylib/Zorp/Config_.py
 pylib/Zorp/Makefile
 scripts/Makefile
 tests/Makefile
@@ -468,8 +470,7 @@ tests/tools/Makefile
 tests/unit/Makefile
 tests/zorpctl/Makefile
 zorp/Makefile
-zorpctl/Makefile
-zorpctl_in_cc/Makefile],
+zorpctl/Makefile],
 [chmod +x debian/rules]
 )
 AC_OUTPUT

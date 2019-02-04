@@ -2,8 +2,3 @@
 
 %:
 	dh $@ --with autoreconf,python2 --parallel --with systemd
-
-override_dh_strip:
-	dh_strip -plibzorp7.0-1-dbg --dbg-package=libzorp7.0-1-dbg
-	dh_strip -pzorp --dbg-package=zorp-dbg
-	dh_strip -pzorp-modules --dbg-package=zorp-modules-dbg
