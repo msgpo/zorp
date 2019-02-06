@@ -93,7 +93,7 @@ ZORP_SUDOERSD_CONF_DIR="${sysconfdir}/sudoers.d"
 dnl Library versioning, the resulting shared object is named:
 dnl 	zorplib-<RELEASE>.so.<AGE>
 dnl
-VERSION_NOSNAPSHOT="`echo $VERSION | cut -d '+' -d '~' -f 1`"
+VERSION_NOSNAPSHOT="`echo $VERSION | cut -d '+' -f 1 | cut -d '~' -f 1`"
 
 VERSION_MAJOR=`echo $VERSION_NOSNAPSHOT |  cut -d '.' -f 1`
 VERSION_MINOR=`echo $VERSION_NOSNAPSHOT |  cut -d '.' -f 2`
@@ -305,7 +305,7 @@ AC_DEFINE_UNQUOTED(ENABLE_IPV6, `enable_value $enable_ipv6`, [Enable IPv6 suppor
 AC_DEFINE_UNQUOTED(ENABLE_PREFORK, `enable_value $enable_prefork`, [Enable prefork support])
 AC_DEFINE_UNQUOTED(ENABLE_KZORP, `enable_value $enable_kzorp`, [Enable kzorp support])
 
-WARNING_CXXFLAGS="-Wall -W -Werror-implicit-function-declaration"
+WARNING_CXXFLAGS="-Wall -W -Werror-implicit-function-declaration -Wwrite-strings"
 DIRECTORY_CXXFLAGS="-DZORP_PIDFILEDIR=\\\"${ZORP_PIDFILEDIR}\\\" -DZORP_STATEDIR=\\\"${ZORP_STATEDIR}\\\" -DZORP_SBINDIR=\\\"${ZORP_SBINDIR}\\\" -DZORP_SYSCONFDIR=\\\"${ZORP_SYSCONFDIR}\\\" -DZORP_DATADIR=\\\"${ZORP_DATADIR}\\\" -DZORP_LIBDIR=\\\"${ZORP_LIBDIR}\\\""
 
 if test "x$enable_coverage" = "xyes"; then

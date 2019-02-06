@@ -52,7 +52,7 @@ ftp_transfer_src_read(ZTransfer2 *s, ZStream *stream, gchar *buf, gsize count, g
 }
 
 static GIOStatus
-ftp_transfer_dst_write_preamble(FtpTransfer *self G_GNUC_UNUSED, ZStream *stream G_GNUC_UNUSED, GError **err G_GNUC_UNUSED)
+ftp_transfer_dst_write_preamble(FtpTransfer *self, ZStream * /* stream */, GError ** /* err */)
 {
   GIOStatus res = G_IO_STATUS_NORMAL;
   FtpProxy *owner = (FtpProxy *) self->super.owner;

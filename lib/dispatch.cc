@@ -814,7 +814,7 @@ z_dispatch_iface_to_sa(gint family, void *addr, guint16 port)
  * NOTE: this runs in the main thread
  **/
 static void
-z_dispatch_bind_iface_change(const gchar *iface G_GNUC_UNUSED, ZIfChangeType change, gint family, void *addr, gpointer user_data)
+z_dispatch_bind_iface_change(const gchar * /* iface */, ZIfChangeType change, gint family, void *addr, gpointer user_data)
 {
   ZDispatchChain *chain = (ZDispatchChain *) user_data;
   ZListener *listener;

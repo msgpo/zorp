@@ -937,7 +937,7 @@ z_szig_tree_lookup(const gchar *node_name, gboolean create, ZSzigNode **parent, 
  * This aggregator function simply stores its argument in the SZIG tree.
  **/
 void
-z_szig_agr_store(ZSzigNode *node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_store(ZSzigNode *node, ZSzigEvent  /* ev */, ZSzigValue *p, gpointer  /* user_data */)
 {
   z_enter();
   z_szig_value_copy(&node->value, p);
@@ -955,7 +955,7 @@ z_szig_agr_store(ZSzigNode *node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p, gp
  * synchronized manner.
  **/
 void
-z_szig_agr_count_inc(ZSzigNode *node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_count_inc(ZSzigNode *node, ZSzigEvent  /* ev */, ZSzigValue * /* p */, gpointer  /* user_data */)
 {
   z_enter();
   node->value.type = Z_SZIG_TYPE_LONG;
@@ -974,7 +974,7 @@ z_szig_agr_count_inc(ZSzigNode *node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p
  * synchronized manner.
  **/
 void
-z_szig_agr_count_dec(ZSzigNode *node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_count_dec(ZSzigNode *node, ZSzigEvent  /* ev */, ZSzigValue * /* p */, gpointer  /* user_data */)
 {
   z_enter();
   node->value.type = Z_SZIG_TYPE_LONG;
@@ -996,7 +996,7 @@ z_szig_agr_count_dec(ZSzigNode *node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p
  * @note the maximum starts from 0, so it won't work with negative values.
  **/
 static void
-z_szig_agr_maximum(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p G_GNUC_UNUSED, gpointer user_data)
+z_szig_agr_maximum(ZSzigNode *target_node, ZSzigEvent  /* ev */, ZSzigValue * /* p */, gpointer user_data)
 {
   const gchar * const source_node_name = (const gchar * const) user_data;
   ZSzigNode *source_node;
@@ -1057,7 +1057,7 @@ typedef struct _ZSzigMaxDiffState
  * @note the maximum starts from 0, so it won't work with negative values.
  **/
 void
-z_szig_agr_maximum_diff(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p G_GNUC_UNUSED, gpointer user_data)
+z_szig_agr_maximum_diff(ZSzigNode *target_node, ZSzigEvent  /* ev */, ZSzigValue * /* p */, gpointer user_data)
 {
   const gchar *source_node_name = (const gchar *) user_data;
   ZSzigMaxDiffState *max_state = NULL;
@@ -1172,7 +1172,7 @@ z_szig_agr_average_is_older(GTimeVal check_time, GTimeVal end_time, glong interv
  * The increments will be averaged.
  **/
 static void
-z_szig_agr_average_rate(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p, gpointer user_data)
+z_szig_agr_average_rate(ZSzigNode *target_node, ZSzigEvent  /* ev */, ZSzigValue *p, gpointer user_data)
 {
   const gchar *source_node_name = (const gchar *) user_data;
   ZSzigAvgState *avg_state;
@@ -1278,7 +1278,7 @@ z_szig_agr_average_rate(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSz
  * node.
  **/
 void
-z_szig_agr_append_string(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_append_string(ZSzigNode *target_node, ZSzigEvent  /* ev */, ZSzigValue *p, gpointer  /* user_data */)
 {
   z_enter();
   if (target_node->value.type == Z_SZIG_TYPE_NOTINIT)
@@ -1448,7 +1448,7 @@ z_szig_add_zone_cnt(ZSzigServiceProps *props, ZSzigNode *related)
  * under target_node. It is used to represent service information.
  **/
 void
-z_szig_agr_flat_connection_props(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_flat_connection_props(ZSzigNode *target_node, ZSzigEvent  /* ev */, ZSzigValue *p, gpointer  /* user_data */)
 {
   ZSzigServiceProps *props;
   ZSzigNode *service, *instance, *sec_conn, *related, *node;
@@ -1498,7 +1498,7 @@ z_szig_agr_flat_connection_props(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UN
  * target_node.
  **/
 void
-z_szig_agr_del_connection_props(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_del_connection_props(ZSzigNode *target_node, ZSzigEvent  /* ev */, ZSzigValue *p, gpointer  /* user_data */)
 {
   ZSzigServiceProps *props;
   ZSzigNode *service, *instance, *secondary;
@@ -1546,7 +1546,7 @@ z_szig_agr_del_connection_props(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNU
  * children. But this is enough for current uses (e.g. RELOAD)
  **/
 void
-z_szig_agr_flat_props(ZSzigNode *target_node, ZSzigEvent ev G_GNUC_UNUSED, ZSzigValue *p, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_flat_props(ZSzigNode *target_node, ZSzigEvent  /* ev */, ZSzigValue *p, gpointer  /* user_data */)
 {
   ZSzigProps *props;
   ZSzigNode *root, *node;
@@ -1628,7 +1628,7 @@ z_szig_agr_service_average_rate(ZSzigNode *target_node, ZSzigEvent ev, ZSzigValu
 }
 
 static void
-z_szig_agr_service_maximum(ZSzigNode *target_node, ZSzigEvent ev, ZSzigValue *p, gpointer user_data G_GNUC_UNUSED)
+z_szig_agr_service_maximum(ZSzigNode *target_node, ZSzigEvent ev, ZSzigValue *p, gpointer  /* user_data */)
 {
   guint i;
 
@@ -1765,7 +1765,7 @@ z_szig_register_handler(ZSzigEvent ev, ZSzigEventHandler func, const gchar *node
  * Z_SZIG_THREAD_START event.
  **/
 static void
-z_szig_thread_started(ZThread *self G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_szig_thread_started(ZThread * /* self */, gpointer  /* user_data */)
 {
   z_szig_event(Z_SZIG_THREAD_START, NULL);
 }
@@ -1779,7 +1779,7 @@ z_szig_thread_started(ZThread *self G_GNUC_UNUSED, gpointer user_data G_GNUC_UNU
  * Z_SZIG_THREAD_STOP event.
  **/
 static void
-z_szig_thread_stopped(ZThread *self G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_szig_thread_stopped(ZThread * /* self */, gpointer  /* user_data */)
 {
   z_szig_event(Z_SZIG_THREAD_STOP, NULL);
 }
@@ -1790,7 +1790,7 @@ z_szig_thread_stopped(ZThread *self G_GNUC_UNUSED, gpointer user_data G_GNUC_UNU
  * @param[in] source GSource instance
  **/
 static gboolean
-z_szig_tick_callback(GSource *source G_GNUC_UNUSED)
+z_szig_tick_callback(GSource * /* source */)
 {
   GTimeVal current_time;
   static guint ticks = 0;
@@ -1810,7 +1810,7 @@ z_szig_tick_callback(GSource *source G_GNUC_UNUSED)
  * processes SZIG events sent by z_szig_event().
  **/
 static gpointer
-z_szig_thread(gpointer st G_GNUC_UNUSED)
+z_szig_thread(gpointer  /* st */)
 {
   if (!szig_queue)
     return NULL;
@@ -2058,7 +2058,7 @@ z_szig_handle_command(ZSzigConnection *conn, gchar *cmd_line)
  * z_szig_handle_command().
  **/
 static gboolean
-z_szig_read_callback(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_szig_read_callback(ZStream *stream, GIOCondition  /* cond */, gpointer user_data)
 {
   ZSzigConnection *conn = (ZSzigConnection *) user_data;
   gchar *buf;
@@ -2107,7 +2107,7 @@ static gboolean
 z_szig_accept_callback(ZStream *fdstream,
                        ZSockAddr *client,
                        ZSockAddr *dest,
-                       gpointer  user_data G_GNUC_UNUSED)
+                       gpointer   /* user_data */)
 {
   ZSzigConnection *conn;
   ZStream *linestream, *bufstream;

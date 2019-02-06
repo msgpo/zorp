@@ -30,12 +30,12 @@
  * NOTE: this function requires the Python lock to be held.
  **/
 gboolean
-z_auth_provider_check_passwd(ZAuthProvider *self G_GNUC_UNUSED,
-                             gchar *session_id G_GNUC_UNUSED,
-                             gchar *username G_GNUC_UNUSED,
-                             gchar *passwd G_GNUC_UNUSED,
-                             gchar ***groups G_GNUC_UNUSED,
-                             ZProxy *proxy G_GNUC_UNUSED)
+z_auth_provider_check_passwd(ZAuthProvider * /* self */,
+                             gchar * /* session_id */,
+                             gchar * /* username */,
+                             const gchar * /* passwd */,
+                             gchar *** /* groups */,
+                             ZProxy * /* proxy */)
 {
   return FALSE;
 }

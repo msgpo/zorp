@@ -365,7 +365,7 @@ z_proxy_ssl_register_host_iface(ZProxy *self)
  * @return TRUE if a callback called "name" exists, FALSE otherwise
  */
 static inline gboolean
-z_proxy_ssl_callback_exists(ZProxy *self, gint ndx, gchar *name)
+z_proxy_ssl_callback_exists(ZProxy *self, gint ndx, const gchar *name)
 {
   return !!g_hash_table_lookup(self->encryption->ssl_opts.handshake_hash[ndx], name);
 }
@@ -386,7 +386,7 @@ z_proxy_ssl_callback_exists(ZProxy *self, gint ndx, gchar *name)
  * @return TRUE if evaluating the policy settings was successful, FALSE otherwise
  */
 static gboolean
-z_proxy_ssl_callback(ZProxy *self, gint ndx, gchar *name, ZPolicyObj *args, guint *retval)
+z_proxy_ssl_callback(ZProxy *self, gint ndx, const gchar *name, ZPolicyObj *args, guint *retval)
 {
   ZPolicyObj *tuple, *cb, *res;
   gboolean rc = FALSE;
@@ -682,7 +682,7 @@ z_proxy_ssl_verify_error_is_untrusted(int verify_error)
    the peer. The SSL lib takes care about setting up the context,
    we only need to call X509_verify_cert. */
 int
-z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void *user_data G_GNUC_UNUSED)
+z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void * /* user_data */)
 {
   SSL *ssl = (SSL *) X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
   ZProxySSLHandshake *handshake = (ZProxySSLHandshake *) SSL_get_app_data(ssl);
@@ -1108,7 +1108,7 @@ z_proxy_ssl_handshake_timeout(gpointer user_data)
  * @return TRUE if needs to be called again
  */
 static gboolean
-z_proxy_ssl_handshake_cb(ZStream *stream, GIOCondition poll_cond G_GNUC_UNUSED, gpointer s)
+z_proxy_ssl_handshake_cb(ZStream *stream, GIOCondition  /* poll_cond */, gpointer s)
 {
   ZProxySSLHandshake *handshake = (ZProxySSLHandshake *) s;
   gint result;

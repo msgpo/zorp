@@ -94,7 +94,7 @@ static PyTypeObject z_policy_attach_type =
  * The new data stream (Zorp.Stream) otherwise
  */
 static PyObject *
-z_policy_attach_start_method(ZPolicyAttach *self, PyObject *args G_GNUC_UNUSED)
+z_policy_attach_start_method(ZPolicyAttach *self, PyObject * /* args */)
 {
   PyObject *res;
   ZConnection *conn;
@@ -179,14 +179,15 @@ z_policy_attach_getattr(PyObject *o, char *name)
  * The new instance
  */
 static PyObject *
-z_policy_attach_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args, PyObject *keywords)
+z_policy_attach_new_instance(PyObject * /* s */, PyObject *args, PyObject *keywords)
 {
   ZPolicyAttach *self;
   PyObject *local, *remote;
   PyObject *fake_args, *proxy_instance;
   ZAttachParams params;
-  static gchar *tcp_keywords[] = { "timeout", "local_loose", "tos", "local_random", "server_socket_mark", NULL };
-  static gchar *udp_keywords[] = { "timeout", "local_loose", "tos", "local_random", "server_socket_mark", NULL };
+  static const gchar *tcp_keywords[] = { "timeout", "local_loose", "tos", "local_random", "server_socket_mark", NULL };
+  static const gchar *udp_keywords[] = { "timeout", "local_loose", "tos", "local_random", "server_socket_mark", NULL };
+
   gchar buf1[MAX_SOCKADDR_STRING], buf2[MAX_SOCKADDR_STRING];
   ZSockAddr *local_sa, *remote_sa;
   guint protocol;
@@ -218,16 +219,18 @@ z_policy_attach_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args, PyObject
   switch (protocol)
     {
     case ZD_PROTO_TCP:
-      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", tcp_keywords, &params.timeout, &params.loose,
-                                       &params.tos, &params.random, &params.server_socket_mark))
+      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", const_cast<char**>(tcp_keywords),
+                                       &params.timeout, &params.loose, &params.tos, &params.random,
+                                       &params.server_socket_mark))
         {
           Py_XDECREF(fake_args);
           z_return(NULL);
         }
       break;
     case ZD_PROTO_UDP:
-      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", udp_keywords, &params.timeout, &params.loose,
-                                       &params.tos, &params.random, &params.server_socket_mark))
+      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", const_cast<char**>(udp_keywords),
+                                       &params.timeout, &params.loose, &params.tos, &params.random,
+                                       &params.server_socket_mark))
         {
           Py_XDECREF(fake_args);
           z_return(NULL);

@@ -227,7 +227,7 @@ smtp_set_defaults(SmtpProxy *self)
  * currently does nothing.
  **/
 static gboolean
-smtp_config_init(SmtpProxy *self G_GNUC_UNUSED)
+smtp_config_init(SmtpProxy *self)
 {
   z_proxy_enter(self);
   z_proxy_return(self, TRUE);
@@ -247,7 +247,7 @@ smtp_config_init(SmtpProxy *self G_GNUC_UNUSED)
  * Returns: TRUE to indicate success
  **/
 static gboolean
-smtp_parse_request(SmtpProxy *self, gchar *line, gint line_len)
+smtp_parse_request(SmtpProxy *self, const gchar *line, gint line_len)
 {
   gint i;
 
@@ -590,7 +590,7 @@ smtp_set_response(SmtpProxy *self, const gchar *code, const gchar *param)
  * appropriate parameters. Returns TRUE to indicate success.
  **/
 static gboolean
-smtp_parse_response(SmtpProxy *self G_GNUC_UNUSED,
+smtp_parse_response(SmtpProxy *self,
                     gchar *line, gint line_len,
                     gboolean *continuation,
                     gchar **code, gint *code_len,
@@ -1217,7 +1217,7 @@ smtp_config(ZProxy *s)
  * loop.
  */
 static void
-smtp_plug_finish(ZPlugSession *session G_GNUC_UNUSED, gpointer user_data)
+smtp_plug_finish(ZPlugSession * /* session */, gpointer user_data)
 {
   SmtpProxy *self = (SmtpProxy *) user_data;
 
@@ -1234,7 +1234,7 @@ smtp_plug_finish(ZPlugSession *session G_GNUC_UNUSED, gpointer user_data)
  * iteration.
  */
 static void
-smtp_plug_timeout(ZPlugSession *session G_GNUC_UNUSED, gpointer user_data)
+smtp_plug_timeout(ZPlugSession * /* session */, gpointer user_data)
 {
   SmtpProxy *self = (SmtpProxy *) user_data;
 

@@ -232,7 +232,7 @@ z_proxy_unregister(ZProxy *self)
  * Sets the stop request flag for the proxy
  */
 static void
-z_proxy_stop_req_cb(gpointer s, gpointer user_data G_GNUC_UNUSED)
+z_proxy_stop_req_cb(gpointer s, gpointer  /* user_data */)
 {
   ZProxy *self = (ZProxy *)s;
 
@@ -279,7 +279,7 @@ z_proxy_stop_request(const gchar *session_id)
  * unrefs all proxy in the list
  */
 static void
-z_proxy_hash_unref_proxy(gpointer key G_GNUC_UNUSED, gpointer value, gpointer user_data G_GNUC_UNUSED)
+z_proxy_hash_unref_proxy(gpointer  /* key */, gpointer value, gpointer  /* user_data */)
 {
   GList *list = static_cast<GList *>(value), *l;
 
@@ -330,7 +330,7 @@ z_proxy_hash_destroy(void)
  * Returns: a boolean value
  */
 static gboolean
-z_proxy_policy_call_event(ZProxy *self, gchar *event, gchar *old_event_name)
+z_proxy_policy_call_event(ZProxy *self, const gchar *event, const gchar *old_event_name)
 {
   ZPolicyObj *res;
   gboolean called;
@@ -375,7 +375,7 @@ z_proxy_policy_call_event(ZProxy *self, gchar *event, gchar *old_event_name)
  * Returns: TRUE if all call is success, FALSE otherwise
  */
 static gboolean
-z_proxy_policy_call(ZProxy *self, gchar *event, gchar *old_event_name)
+z_proxy_policy_call(ZProxy *self, const gchar *event, const gchar *old_event_name)
 {
   gchar event_string[512];
 
@@ -523,7 +523,7 @@ z_proxy_policy_destroy(ZProxy *self)
 
 
 static void
-z_proxy_propagate_channel_props(ZProxy *self G_GNUC_UNUSED)
+z_proxy_propagate_channel_props(ZProxy * /* self */)
 {
 }
 
@@ -684,7 +684,7 @@ z_proxy_user_authenticated(ZProxy *self, const gchar *entity, gchar const **grou
       groups_tuple = z_policy_none_ref();
     }
 
-  gchar *auth_info = "";
+  const gchar *auth_info = "";
   switch (type)
     {
       case Z_PROXY_USER_AUTHENTICATED_NONE:
@@ -1117,7 +1117,7 @@ z_proxy_var_new(ZProxy *self, const gchar *name, guint flags, ...)
  * stale stream.
  **/
 static ZPolicyObj *
-z_proxy_query_stream(ZProxy *self, gchar *name, gpointer value G_GNUC_UNUSED)
+z_proxy_query_stream(ZProxy *self, gchar *name, gpointer  /* value */)
 {
   ZPolicyObj *res;
   gint side;
@@ -1222,8 +1222,8 @@ z_proxy_startup_method(ZProxy *self)
  * class. Currently it does nothing and should be overriden in descendant
  * classes.
  **/
-void
-z_proxy_main_method(ZProxy *self G_GNUC_UNUSED)
+void __attribute__((const))
+z_proxy_main_method(ZProxy * /* self */)
 {
   ;
 }
@@ -1667,7 +1667,7 @@ z_proxy_basic_iface_get_var_method(ZProxyBasicIface *self, const gchar *var_name
 }
 
 static gboolean
-z_proxy_basic_iface_set_var_method(ZProxyBasicIface *self G_GNUC_UNUSED, const gchar *var_name G_GNUC_UNUSED, gchar *value G_GNUC_UNUSED)
+z_proxy_basic_iface_set_var_method(ZProxyBasicIface * /* self */, const gchar * /* var_name */, gchar * /* value */)
 {
   return FALSE;
 }

@@ -41,7 +41,7 @@
  * atom can be 0 characters in length).
  **/
 static gboolean
-smtp_parse_atom(SmtpProxy *self G_GNUC_UNUSED, gchar *path, gchar **end)
+smtp_parse_atom(SmtpProxy * self, const gchar *path, const gchar **end)
 {
   /* characters excluded from <c> in RFC821, that is, members of <special> and <SP> */
   static const gchar specials[] = { '(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '.', '[', ']', ' ', '\0' };
@@ -66,14 +66,14 @@ smtp_parse_atom(SmtpProxy *self G_GNUC_UNUSED, gchar *path, gchar **end)
  * is filled with the character position where parsing ended.
  **/
 static gboolean
-smtp_parse_domain(SmtpProxy *self, gchar *path, gchar **end)
+smtp_parse_domain(SmtpProxy *self, const gchar *path, const gchar **end)
 {
-  gchar *src;
+  const gchar *src;
 
   z_proxy_enter(self);
   if (path[0] == '#')
     {
-      IGNORE_UNUSED_RESULT(strtol(&path[1], &src, 10));
+      IGNORE_UNUSED_RESULT(strtol(&path[1], (char**)&src, 10));
       *end = src;
     }
   else if (path[0] == '[')
@@ -128,9 +128,9 @@ smtp_parse_domain(SmtpProxy *self, gchar *path, gchar **end)
  * is filled with the character position where parsing ended.
  **/
 static gboolean
-smtp_parse_source_route(SmtpProxy *self, gchar *path, gchar **end)
+smtp_parse_source_route(SmtpProxy *self, const gchar *path, const gchar **end)
 {
-  gchar *src, *p;
+  const gchar *src, *p;
   gboolean continued = FALSE;
 
   z_proxy_enter(self);
@@ -177,9 +177,9 @@ smtp_parse_source_route(SmtpProxy *self, gchar *path, gchar **end)
  * is filled with the character position where parsing ended.
  **/
 static gboolean
-smtp_parse_local_part(SmtpProxy *self, gchar *path, gchar **end)
+smtp_parse_local_part(SmtpProxy *self, const gchar *path, const gchar **end)
 {
-  gchar *src;
+  const gchar *src;
 
   z_proxy_enter(self);
   src = path;
@@ -233,10 +233,10 @@ smtp_parse_local_part(SmtpProxy *self, gchar *path, gchar **end)
  * was successful the address string is stored in the argument @result.
  **/
 static gboolean
-smtp_parse_address(SmtpProxy *self, GString *result, gchar *path, gchar **end)
+smtp_parse_address(SmtpProxy *self, GString *result, const gchar *path, const gchar **end)
 {
-  gchar *src = path;
-  gchar *start;
+  const gchar *src = path;
+  const gchar *start;
 
   z_proxy_enter(self);
   start = src;
@@ -303,9 +303,10 @@ smtp_parse_address(SmtpProxy *self, GString *result, gchar *path, gchar **end)
  * Returns: TRUE to indicate success
  **/
 gboolean
-smtp_sanitize_address(SmtpProxy *self, GString *result, gchar *path, gboolean empty_path_ok, gchar **final_end)
+smtp_sanitize_address(SmtpProxy *self, GString *result, const gchar *path, gboolean empty_path_ok,
+                      const gchar **final_end)
 {
-  gchar *src, *end;
+  const gchar *src, *end;
   gboolean res;
   gboolean unbracketed = FALSE;
 
@@ -407,9 +408,9 @@ smtp_sanitize_address(SmtpProxy *self, GString *result, gchar *path, gboolean em
  * Returns: TRUE to indicate success
  **/
 static gboolean
-smtp_is_domain(SmtpProxy *self, gchar *domain)
+smtp_is_domain(SmtpProxy *self, const gchar *domain)
 {
-  gchar *end;
+  const gchar *end;
 
   if (smtp_parse_domain(self, domain, &end) && *end == '\0')
     return TRUE;
@@ -426,8 +427,8 @@ smtp_is_domain(SmtpProxy *self, gchar *domain)
  *
  * Returns: TRUE to indicate success
  **/
-static gboolean
-smtp_is_queue_tag(SmtpProxy *self G_GNUC_UNUSED, gchar *tag)
+static gboolean __attribute__((pure))
+smtp_is_queue_tag(SmtpProxy * /* self */, gchar *tag)
 {
   gchar *p = tag;
   while (*p)
@@ -448,8 +449,8 @@ smtp_is_queue_tag(SmtpProxy *self G_GNUC_UNUSED, gchar *tag)
  *
  * Returns: TRUE to indicate success
  **/
-static gboolean
-smtp_is_xtext(SmtpProxy *self G_GNUC_UNUSED, gchar *xtext)
+static gboolean __attribute__((pure))
+smtp_is_xtext(SmtpProxy * /* self */, gchar *xtext)
 {
   const guchar *p = (const guchar *) xtext;
 
@@ -707,7 +708,8 @@ smtp_request_MAIL(SmtpProxy *self)
   if (g_ascii_strncasecmp(self->request_param->str, FROM_ADDR, strlen(FROM_ADDR)) == 0)
     {
       sanitized_address = g_string_sized_new(128);
-      if (smtp_sanitize_address(self, sanitized_address, &self->request_param->str[strlen(FROM_ADDR)], TRUE, &end))
+      if (smtp_sanitize_address(self, sanitized_address, &self->request_param->str[strlen(FROM_ADDR)], TRUE,
+          (const char**)&end))
         {
           if (*end)
             forward_extensions = g_string_sized_new(strlen(end) + 1);

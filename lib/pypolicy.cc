@@ -244,7 +244,7 @@ z_policy_setattr(PyObject *handler, char *name, PyObject *value)
  * The attribute value on success, otherwise NULL
  */
 PyObject *
-z_policy_getattr(PyObject *handler, char *name)
+z_policy_getattr(PyObject *handler, const char *name)
 {
   PyObject *res;
 
@@ -1020,9 +1020,9 @@ z_policy_unref(ZPolicy *self)
 
 void
 z_policy_module_call_py_init_function(const gchar *name,
-                                      gint type G_GNUC_UNUSED,
+                                      gint  /* type */,
                                       gpointer value,
-                                      gpointer user_data G_GNUC_UNUSED)
+                                      gpointer  /* user_data */)
 {
   g_assert(value);
 
@@ -1054,11 +1054,16 @@ z_policy_zorp_builtin_init(void)
 /**
  * Modules that are exist in Python and extended from C should be imported.
  */
-static void
+static bool
 z_policy_import_extendable_python_modules(void)
 {
   for (const char *module_name : { "Zorp.Zorp", "Zorp.SockAddr", "Zorp.Stream" } )
-    PyImport_ImportModule(module_name);
+    if (!PyImport_ImportModule(module_name))
+      {
+        z_log(NULL, CORE_ERROR, 0, "Error importing python module; modulename='%s'", module_name);
+        return false;
+      }
+  return true;
 }
 
 static void
@@ -1084,14 +1089,16 @@ z_policy_forbid_writting_bytecode(void)
 gboolean
 z_policy_boot(ZPolicy *self)
 {
-  FILE *bootstrap;
-
   z_policy_thread_acquire(self->main_thread);
 
   z_policy_forbid_writting_bytecode();
-  z_policy_import_extendable_python_modules();
 
-  z_policy_import_extendable_python_modules();
+  if (!z_policy_import_extendable_python_modules())
+    {
+      z_policy_thread_release(self->main_thread);
+      return FALSE;
+    }
+
   z_py_zorp_core_init();
   z_policy_zorp_builtin_init();
   z_policy_struct_module_init();
@@ -1187,7 +1194,7 @@ z_policy_init(ZPolicy *self, gchar const **instance_name, gchar const *virtual_i
   saved_caps = cap_save();
   cap_enable(CAP_NET_ADMIN);
 
-  res = PyObject_CallFunction(init_func, "(Osi)",
+  res = PyObject_CallFunction(init_func, const_cast<char*>("(Osi)"),
                               z_policy_convert_strv_to_list(instance_name),
                               virtual_instance_name, is_master);
 
@@ -1229,7 +1236,7 @@ z_policy_deinit(ZPolicy *self, gchar const **instance_name, gchar const *virtual
   main_module = PyImport_AddModule("__main__");
   deinit_func = PyObject_GetAttrString(main_module, "deinit");
 
-  res = PyObject_CallFunction(deinit_func, "(Os)",
+  res = PyObject_CallFunction(deinit_func, const_cast<char*>("(Os)"),
                               z_policy_convert_strv_to_list(instance_name),
                               virtual_instance_name);
   Py_XDECREF(deinit_func);
@@ -1263,7 +1270,7 @@ z_policy_purge(ZPolicy *self)
   main_module = PyImport_AddModule("__main__");
   purge_func = PyObject_GetAttrString(main_module, "purge");
 
-  res = PyObject_CallFunction(purge_func, "()");
+  res = PyObject_CallFunction(purge_func, const_cast<char*>("()"));
   Py_XDECREF(purge_func);
   if (!res)
     {
@@ -1302,7 +1309,7 @@ z_policy_cleanup(ZPolicy *self, gchar const **instance_name, gchar const *virtua
   saved_caps = cap_save();
   cap_enable(CAP_NET_ADMIN);
 
-  res = PyObject_CallFunction(cleanup_func, "(Osi)",
+  res = PyObject_CallFunction(cleanup_func, const_cast<char*>("(Osi)"),
                               z_policy_convert_strv_to_list(instance_name),
                               virtual_instance_name, is_master);
 
@@ -1388,7 +1395,7 @@ z_policy_raise_exception_obj(PyObject *exc, const gchar *desc)
  * Generate a Python exception with the given name and descriptions
  */
 void
-z_policy_raise_exception(gchar *exception_name, const gchar *desc)
+z_policy_raise_exception(const gchar *exception_name, const gchar *desc)
 {
   PyObject *main_module, *license_exc;
 

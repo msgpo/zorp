@@ -57,7 +57,7 @@ PyObject *PyExc_LicenseException;
  * Returns: Py_None
  **/
 static PyObject *
-z_py_log(PyObject *self G_GNUC_UNUSED, PyObject *args)
+z_py_log(PyObject * /* self */, PyObject *args)
 {
   unsigned long verbosity;
   char *class_, *msg;
@@ -132,7 +132,7 @@ z_py_log(PyObject *self G_GNUC_UNUSED, PyObject *args)
 /*+
   +*/
 static PyObject *
-z_py_quit(PyObject *self G_GNUC_UNUSED, PyObject *args)
+z_py_quit(PyObject * /* self */, PyObject *args)
 {
   int exit_code;
 
@@ -147,7 +147,7 @@ z_py_quit(PyObject *self G_GNUC_UNUSED, PyObject *args)
 
 
 static PyObject *
-z_py_stream_pair(PyObject *self G_GNUC_UNUSED, PyObject *args)
+z_py_stream_pair(PyObject * /* self */, PyObject *args)
 {
   int domain, type, proto = 0;
   int result[2];
@@ -179,7 +179,7 @@ z_py_stream_pair(PyObject *self G_GNUC_UNUSED, PyObject *args)
 }
 
 static PyObject *
-z_py_get_instance_id(PyObject *self G_GNUC_UNUSED, PyObject *args)
+z_py_get_instance_id(PyObject * /* self */, PyObject *args)
 {
   static GHashTable *instance_ids = NULL;
   gint *value;
@@ -207,7 +207,7 @@ z_py_get_instance_id(PyObject *self G_GNUC_UNUSED, PyObject *args)
 
 
 static PyObject *
-z_py_szig_event(PyObject *self G_GNUC_UNUSED, PyObject *args)
+z_py_szig_event(PyObject * /* self */, PyObject *args)
 {
   gint event;
   guint type;
@@ -337,7 +337,7 @@ z_py_szig_event(PyObject *self G_GNUC_UNUSED, PyObject *args)
 /**
  *  **/
 static PyObject *
-z_policy_notify_event(PyObject *self G_GNUC_UNUSED, PyObject *args G_GNUC_UNUSED)
+z_policy_notify_event(PyObject * /* self */, PyObject * /* args */)
 {
   return z_policy_none_ref();
 }
@@ -353,7 +353,7 @@ z_policy_notify_event(PyObject *self G_GNUC_UNUSED, PyObject *args G_GNUC_UNUSED
  * Returns: PyInt TRUE during the initial policy load, FALSE otherwise
  */
 static PyObject *
-z_py_is_initial_policy_load(PyObject *self G_GNUC_UNUSED, PyObject *args G_GNUC_UNUSED)
+z_py_is_initial_policy_load(PyObject * /* self */, PyObject * /* args */)
 {
   return PyInt_FromLong(z_main_loop_is_initial_policy_load() ? TRUE : FALSE);
 }

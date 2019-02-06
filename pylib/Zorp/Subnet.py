@@ -72,10 +72,10 @@ class Subnet(object):
         based on the string whether or not the subnet is IPv6 or IPv4.
         </method>
         """
-        if '.' in addr:
-            return InetSubnet(addr)
-        elif ':' in addr:
+        if ':' in addr:
             return Inet6Subnet(addr)
+        elif '.' in addr:
+            return InetSubnet(addr)
 
 class InetSubnet(Subnet):
     """

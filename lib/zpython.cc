@@ -46,10 +46,12 @@ z_python_init(void)
       g_snprintf(buf, sizeof(buf), "PYTHONPATH=%s:%s", ZORP_SYSCONFDIR, getenv("PYTHONPATH"));
     }
   putenv(buf);
-  putenv("PYTHONOPTIMIZE=2");
-  PySys_AddWarnOption("ignore:hex/oct constants > sys.maxint will return positive values in Python 2.4 and up:FutureWarning");
-  PySys_AddWarnOption("ignore:x<<y losing bits or changing sign will return a long in Python 2.4 and up:FutureWarning");
-  PySys_AddWarnOption("ignore:Non-ASCII character:DeprecationWarning");
+  putenv(const_cast<char*>("PYTHONOPTIMIZE=2"));
+  PySys_AddWarnOption(const_cast<char*>("ignore:hex/oct constants > "
+      "sys.maxint will return positive values in Python 2.4 and up:FutureWarning"));
+  PySys_AddWarnOption(const_cast<char*>("ignore:x<<y losing bits or changing sign will return "
+      "a long in Python 2.4 and up:FutureWarning"));
+  PySys_AddWarnOption(const_cast<char*>("ignore:Non-ASCII character:DeprecationWarning"));
   Py_Initialize();
   PyEval_InitThreads();
 

@@ -348,7 +348,7 @@ http_transfer_src_read(ZTransfer2 *s, ZStream *stream, gchar *buf, gsize count, 
 }
 
 static GIOStatus
-http_transfer_src_shutdown(ZTransfer2 *self G_GNUC_UNUSED, ZStream *s G_GNUC_UNUSED, GError **err G_GNUC_UNUSED)
+http_transfer_src_shutdown(ZTransfer2 * /* self */, ZStream * /* s */, GError ** /* err */)
 {
   /* do nothing */
   return G_IO_STATUS_NORMAL;

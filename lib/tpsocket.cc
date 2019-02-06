@@ -32,7 +32,7 @@
 #include <netinet/in.h>
 
 static gint
-z_do_ll_getdestname(gint fd, struct sockaddr *sa, socklen_t *salen, guint32 sock_flags G_GNUC_UNUSED)
+z_do_ll_getdestname(gint fd, struct sockaddr *sa, socklen_t *salen, guint32  /* sock_flags */)
 {
   return getsockname(fd, sa, salen);
 }

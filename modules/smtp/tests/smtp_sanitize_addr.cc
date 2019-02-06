@@ -31,13 +31,14 @@ int exit_code = 0;
 #define SAFE_STR(x)  ((x) ? x : "(NULL)")
 
 void
-test_case(gchar *path, gchar *email, gboolean expected)
+test_case(const gchar *path, const gchar *email, gboolean expected)
 {
   GString *result = g_string_sized_new(128);
-  gchar *end = 0;
+  const gchar *end = 0;
 
   BOOST_CHECK_MESSAGE(smtp_sanitize_address(dummy, result, path, TRUE, &end) == expected, "failure, different parsing, path=" << path << ", email=" << email << ", result=" << result->str << ", end=" << end);
-  BOOST_CHECK_MESSAGE(expected && (strcmp(result->str, email) == 0) || !expected, "failure, different email, path=" << path <<", email=" << email << ", end=" << end);
+  BOOST_CHECK_MESSAGE(!expected || (strcmp(result->str, email) == 0),
+                      "failure, different email, path=" << path <<", email=" << email << ", end=" << end);
 }
 
 BOOST_AUTO_TEST_CASE(test_sanitize_addr)

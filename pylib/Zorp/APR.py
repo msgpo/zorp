@@ -20,7 +20,7 @@
 ##
 ############################################################################
 
-from Zorp import log, CORE_SESSION, CORE_POLICY, Globals, TRUE, ZD_PROTO_AUTO
+from Zorp import log, getInstanceId, CORE_SESSION, CORE_POLICY, Globals, TRUE, ZD_PROTO_AUTO, CORE_DEBUG
 from Dispatch import BaseDispatch
 from Session import MasterSession
 from Proxy import Proxy
@@ -59,7 +59,8 @@ class DetectorProxy(Proxy):
                                 client_stream=self.session.client_stream,
                                 client_local=self.session.client_local,
                                 client_listen=self.session.client_listen,
-                                client_address=self.session.client_address)
+                                client_address=self.session.client_address,
+                                instance_id=getInstanceId(service.name))
 
         BaseDispatch.startService(service, session)
 

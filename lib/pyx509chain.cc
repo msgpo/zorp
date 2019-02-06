@@ -167,7 +167,7 @@ z_py_zorp_certificate_chain_free(ZorpCertificateChain *self)
 }
 
 ZPolicyObj *
-z_py_ssl_certificate_chain_get(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value)
+z_py_ssl_certificate_chain_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
 {
   ZCertificateChain **chain = (ZCertificateChain **) value;
 
@@ -215,7 +215,7 @@ z_py_ssl_certificate_chain_set_chain(ZCertificateChain *chain, gchar *input, gsi
 }
 
 int
-z_py_ssl_certificate_chain_set(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value, ZPolicyObj *new_)
+z_py_ssl_certificate_chain_set(ZProxy * /* self */, gchar * /* name */, gpointer value, ZPolicyObj *new_)
 {
   ZCertificateChain **chain = (ZCertificateChain **) value;
 

@@ -90,24 +90,24 @@ z_logtag_lookup(const gchar *tag, gsize len)
 }
 
 void
-z_sigterm_handler(int signo G_GNUC_UNUSED)
+z_sigterm_handler(int  /* signo */)
 {
   z_main_loop_initiate_termination(TRUE);
 }
 
-void
-z_ignore_signal_handler(int signo G_GNUC_UNUSED)
+void __attribute__((const))
+z_ignore_signal_handler(int  /* signo */)
 {
 }
 
 void
-z_sighup_handler(int signo G_GNUC_UNUSED)
+z_sighup_handler(int  /* signo */)
 {
   z_main_loop_initiate_reload(TRUE);
 }
 
 void
-z_sigchild_handler(int signo G_GNUC_UNUSED)
+z_sigchild_handler(int  /* signo */)
 {
   while (waitpid(-1, NULL, WNOHANG) > 0)
     ;
@@ -134,13 +134,13 @@ z_fatal_signal_handler(int signo)
 }
 
 void
-z_sigusr1_handler(int signo G_GNUC_UNUSED)
+z_sigusr1_handler(int  /* signo */)
 {
   usr1_received = 1;
 }
 
 void
-z_sigusr2_handler(int signo G_GNUC_UNUSED)
+z_sigusr2_handler(int  /* signo */)
 {
   usr2_received = 1;
 }
@@ -232,9 +232,8 @@ static gboolean log_escape = FALSE;
 static gboolean display_version = FALSE;
 
 static gboolean
-z_set_instance_name(const gchar *option_name G_GNUC_UNUSED, const gchar *value, gpointer user_datae G_GNUC_UNUSED,
-                    GError **error G_GNUC_UNUSED
-                   )
+z_set_instance_name(const gchar * /* option_name */, const gchar *value, gpointer  /* user_datae */,
+                    GError **error)
 {
   instance_name = static_cast<const gchar *>(g_strdup(value));
   instance_policy_list[0] = (gchar *) instance_name;
@@ -246,8 +245,8 @@ z_set_instance_name(const gchar *option_name G_GNUC_UNUSED, const gchar *value, 
 
 static gboolean
 z_set_virtual_instance_name(const char *option_name, const gchar *value,
-                            gpointer user_data G_GNUC_UNUSED,
-                            GError **error G_GNUC_UNUSED)
+                            gpointer  /* user_data */,
+                            GError ** /* error */)
 {
   if (strcmp(option_name, "--slave") == 0)
     zorp_process_master_mode = FALSE;

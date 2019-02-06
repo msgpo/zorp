@@ -74,7 +74,7 @@ telnet_hash_get_type(ZPolicyObj *tuple, guint *filter_type)
  *
  */
 ZVerdict
-telnet_policy_option(TelnetProxy *self, ZEndpoint ep G_GNUC_UNUSED, guint8 command G_GNUC_UNUSED, guint8 option)
+telnet_policy_option(TelnetProxy *self, ZEndpoint  /* ep */, guint8  /* command */, guint8 option)
 {
   ZVerdict res = ZV_ABORT;
   ZPolicyObj *pol_res;
@@ -209,7 +209,7 @@ telnet_policy_option(TelnetProxy *self, ZEndpoint ep G_GNUC_UNUSED, guint8 comma
  *
  */
 ZVerdict
-telnet_policy_suboption(TelnetProxy *self, ZEndpoint ep G_GNUC_UNUSED, guint8 option, guint8 subcommand, const gchar *name, const gchar *value)
+telnet_policy_suboption(TelnetProxy *self, ZEndpoint  /* ep */, guint8 option, guint8 subcommand, const gchar *name, const gchar *value)
 {
   ZVerdict      res;
   ZPolicyObj    *pol_res;

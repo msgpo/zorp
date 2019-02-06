@@ -68,7 +68,7 @@ bind_policy_object_to_lowlevel_implementation(ZPolicyObj *python_proxy)
  * Returns:
  */
 static ZPolicyObj *
-z_policy_proxy_group_start(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_GNUC_UNUSED)
+z_policy_proxy_group_start(gpointer user_data, ZPolicyObj *args, ZPolicyObj * /* kw */)
 {
   ZProxyGroup *proxy_group = (ZProxyGroup *) user_data;
   ZPolicyObj *proxy_instance;
@@ -105,7 +105,7 @@ z_policy_proxy_group_start(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw 
  * The new instance
  */
 static ZPolicyObj *
-z_policy_proxy_group_new_instance(PyObject *o G_GNUC_UNUSED, PyObject *args)
+z_policy_proxy_group_new_instance(PyObject * /* o */, PyObject *args)
 {
   gint max_sessions;
   ZProxyGroup *proxy_group;

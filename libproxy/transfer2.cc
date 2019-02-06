@@ -598,7 +598,7 @@ z_transfer2_copy_data(ZTransfer2 *self, gint ep_from, gint ep_to, GError **error
  * server-side.
  **/
 static gboolean
-z_transfer2_copy_src_to_dst(ZStream *s G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_transfer2_copy_src_to_dst(ZStream * /* s */, GIOCondition /* cond */, gpointer user_data)
 {
   ZTransfer2 *self = Z_CAST(user_data, ZTransfer2);
 
@@ -619,7 +619,7 @@ z_transfer2_copy_src_to_dst(ZStream *s G_GNUC_UNUSED, GIOCondition cond G_GNUC_U
  * proxy first.
  **/
 static gboolean
-z_transfer2_copy_src_to_down(ZStream *s G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_transfer2_copy_src_to_down(ZStream * /* s */, GIOCondition /* cond */, gpointer user_data)
 {
   ZTransfer2 *self = Z_CAST(user_data, ZTransfer2);
 
@@ -639,7 +639,7 @@ z_transfer2_copy_src_to_down(ZStream *s G_GNUC_UNUSED, GIOCondition cond G_GNUC_
  * stacked stream, and copies data to the server-side.
  **/
 static gboolean
-z_transfer2_copy_down_to_dst(ZStream *s G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_transfer2_copy_down_to_dst(ZStream * /* s */, GIOCondition /* cond */, gpointer user_data)
 {
   ZTransfer2 *self = Z_CAST(user_data, ZTransfer2);
 

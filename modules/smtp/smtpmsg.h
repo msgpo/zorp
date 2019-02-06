@@ -24,8 +24,8 @@
 
 typedef struct
 {
-  char *code;
-  char *long_desc;
+  const char *code;
+  const char *long_desc;
 }SmtpMessage;
 
 typedef enum

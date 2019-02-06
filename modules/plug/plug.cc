@@ -133,7 +133,7 @@ plug_register_vars(PlugProxy *self)
 }
 
 static gboolean
-plug_packet_stat_event(ZPlugSession *session G_GNUC_UNUSED,
+plug_packet_stat_event(ZPlugSession * /* session */,
                        guint64 client_bytes, guint64 client_pkts,
                        guint64 server_bytes, guint64 server_pkts,
                        gpointer user_data)
@@ -189,7 +189,7 @@ plug_packet_stat_event(ZPlugSession *session G_GNUC_UNUSED,
 }
 
 static void
-plug_finish(ZPlugSession *session G_GNUC_UNUSED, gpointer user_data)
+plug_finish(ZPlugSession * /* session */, gpointer user_data)
 {
   PlugProxy *self = (PlugProxy *) user_data;
 
@@ -197,7 +197,7 @@ plug_finish(ZPlugSession *session G_GNUC_UNUSED, gpointer user_data)
 }
 
 static void
-plug_timeout(ZPlugSession *session G_GNUC_UNUSED, gpointer user_data)
+plug_timeout(ZPlugSession * /* session */, gpointer user_data)
 {
   PlugProxy *self = (PlugProxy *) user_data;
 

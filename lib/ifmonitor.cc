@@ -90,7 +90,7 @@ z_netlink_register(gint event, ZNetlinkEventHandlerFunc callback)
 }
 
 static gboolean
-z_netlink_process_responses(gboolean timed_out G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
+z_netlink_process_responses(gboolean  /* timed_out */, gpointer  /* user_data */)
 {
   gchar data[4096];
   gssize data_len;
@@ -212,7 +212,7 @@ G_LOCK_DEFINE_STATIC(iface_watches_lock);
 G_LOCK_DEFINE_STATIC(iface_group_watches_lock);
 
 static gboolean
-match_by_name(guint *ifindex G_GNUC_UNUSED, ZIfaceInfo *info, gchar *iface_name)
+match_by_name(guint * /* ifindex */, ZIfaceInfo *info, gchar *iface_name)
 {
   return strcmp(info->name, iface_name) == 0;
 }
@@ -339,7 +339,7 @@ typedef struct _ZIfmonGroupIterState
 } ZIfmonGroupIterState;
 
 static void
-z_ifmon_iterate_by_group(guint *ifindex G_GNUC_UNUSED, ZIfaceInfo *info, ZIfmonGroupIterState *state)
+z_ifmon_iterate_by_group(guint * /* ifindex */, ZIfaceInfo *info, ZIfmonGroupIterState *state)
 {
   if (info->group == state->group)
     {

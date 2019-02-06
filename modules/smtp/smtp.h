@@ -250,9 +250,8 @@ struct _SmtpProxy
 extern ZClass SmtpProxy__class;
 extern SmtpMessage smtp_known_messages[SMTP_N_MSGS];
 
-gboolean smtp_sanitize_address(SmtpProxy *self, GString *result, gchar *path, gboolean empty_path_ok, gchar **final_end);
-
-gboolean smtp_sanitize_address(SmtpProxy *self, GString *result, gchar *path, gboolean empty_path_ok, gchar **final_end);
+gboolean smtp_sanitize_address(SmtpProxy *self, GString *result, const gchar *path, gboolean empty_path_ok,
+                               const gchar **final_end);
 
 gboolean smtp_generate_received(SmtpProxy *self, GString **dst_string);
 

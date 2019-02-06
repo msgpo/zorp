@@ -191,7 +191,7 @@ smtp_policy_check_response(SmtpProxy *self)
   if (self->request->len)
     key[0] = self->request->str;
   else
-    key[0] = "Null";
+    key[0] = const_cast<char*>("Null");
   key[1] = self->response->str;
   entry = static_cast<ZPolicyObj *>(z_dim_hash_table_search(self->response_policy, 2, key));
   if (!entry)
@@ -322,7 +322,7 @@ ZPolicyObj *
 smtp_policy_sanitize_address(SmtpProxy *self, ZPolicyObj *args)
 {
   gchar *address;
-  gchar *final_end;
+  const gchar *final_end;
   GString *sanitized_address;
   ZPolicyObj *res = NULL;
 

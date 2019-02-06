@@ -97,19 +97,21 @@ http_string_url_decode_hex_byte(guchar *dst, const gchar *src, const gchar **rea
 }
 
 /**
- * http_string_assign_url_decode:
+ * http_string_assign_url_decode_internal:
  * @part: store the decoded string here
  * @permit_invalid_hex_escape: whether to treat invalid url encoding sequences as errors
  * @src: source string to decode
  * @len: length of string pointed to by @src
- * @reason: terror reason text if the operation fails
+ * @reason: the error reason text if the operation fails
+ * @decode_plus: if true, plus character will be decoded as space
  *
  * Decodes an URL part such as username, password or host name. Assumes
  * single byte destination encoding, e.g. US-ASCII with the 128-255 range
  * defined.
  **/
-gboolean
-http_string_assign_url_decode(GString *part, gboolean permit_invalid_hex_escape, const gchar *src, gint len, const gchar **reason)
+static gboolean
+http_string_assign_url_decode_internal(GString *part, gboolean permit_invalid_hex_escape, const gchar *src, gint len,
+                                       const gchar **reason, const bool decode_plus)
 {
   gchar *dst;
   gint left = len;
@@ -146,6 +148,8 @@ http_string_assign_url_decode(GString *part, gboolean permit_invalid_hex_escape,
               left -= 2;
             }
         }
+      else if (decode_plus && *src == '+')
+        c = ' ';
 
       *dst = c;
       dst++;
@@ -158,6 +162,30 @@ http_string_assign_url_decode(GString *part, gboolean permit_invalid_hex_escape,
   /* some space might still be allocated at the end of the string
    * but we don't care to avoid reallocing and possible data copy */
   return TRUE;
+}
+
+/**
+ * http_string_assign_url_decode:
+ *
+ * Proxy to http_string_assign_url_decode_internal() function,
+ * except this does not replace '+' character to space.
+ **/
+gboolean
+http_string_assign_url_decode(GString *part, gboolean permit_invalid_hex_escape, const gchar *src, gint len, const gchar **reason)
+{
+  return http_string_assign_url_decode_internal(part, permit_invalid_hex_escape, src, len, reason, false);
+}
+
+/**
+ * http_string_assign_form_url_decode:
+ *
+ * Proxy to http_string_assign_url_decode_internal() function,
+ * this replaces '+' character to space.
+ **/
+gboolean
+http_string_assign_form_url_decode(GString *part, gboolean permit_invalid_hex_escape, const gchar *src, gint len, const gchar **reason)
+{
+  return http_string_assign_url_decode_internal(part, permit_invalid_hex_escape, src, len, reason, true);
 }
 
 /**
@@ -266,7 +294,7 @@ http_string_assign_url_decode_unicode(GString *part, gboolean permit_invalid_hex
  * unsafe and non-latin characters using URL hexadecimal encoding.
  **/
 gboolean
-http_string_append_url_encode(GString *result, const gchar *unsafe_chars, const gchar *str, gint len, const gchar **reason G_GNUC_UNUSED)
+http_string_append_url_encode(GString *result, const gchar *unsafe_chars, const gchar *str, gint len, const gchar ** /* reason */)
 {
   const guchar *src;
   gchar *dst;
@@ -608,9 +636,10 @@ http_string_assign_url_canonicalize_unicode(GString *result, gboolean permit_inv
  **/
 gboolean
 http_parse_url(HttpURL *url, gboolean permit_unicode_url, gboolean permit_invalid_hex_escape,
-               gboolean permit_relative_url, gchar *url_str, const gchar **reason)
+               gboolean permit_relative_url, const gchar *url_str, const gchar **reason)
 {
-  gchar *p, *end, *part[4], *sep[4], *query_start, *fragment_start, *file_start;
+  const gchar *p, *part[4], *sep[4], *query_start, *fragment_start, *file_start;
+  gchar *end;
   gsize file_len, query_len = 0, fragment_len = 0;
   int i;
   gboolean inside_brackets = FALSE;

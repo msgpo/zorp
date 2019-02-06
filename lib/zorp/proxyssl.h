@@ -86,6 +86,6 @@ void z_proxy_ssl_get_sni_from_client(ZProxy *self, ZStream *stream);
 int z_proxy_ssl_verify_peer_cert_cb(int ok, X509_STORE_CTX *ctx);
 int z_proxy_ssl_client_cert_cb(SSL *ssl, X509 **cert, EVP_PKEY **pkey);
 int z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void *user_data);
-int z_proxy_ssl_tlsext_servername_cb(SSL *ssl, int *_ad G_GNUC_UNUSED, void *_arg G_GNUC_UNUSED);
+int z_proxy_ssl_tlsext_servername_cb(SSL *ssl, int *_ad, void *_arg);
 
 #endif

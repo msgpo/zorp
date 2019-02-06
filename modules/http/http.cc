@@ -46,6 +46,7 @@
 
 #include <memory>
 #include <functional>
+#include <algorithm>
 
 #include <netdb.h>
 static GHashTable *auth_hash = NULL;
@@ -237,7 +238,7 @@ http_config_init(HttpProxy *self)
  * we calculate its value dynamically.
  **/
 static ZPolicyObj *
-http_query_request_version(HttpProxy *self, gchar *name, gpointer value G_GNUC_UNUSED)
+http_query_request_version(HttpProxy *self, gchar *name, gpointer  /* value */)
 {
   ZPolicyObj *res = NULL;
 
@@ -261,7 +262,7 @@ http_query_request_version(HttpProxy *self, gchar *name, gpointer value G_GNUC_U
  * we calculate their value dynamically.
  **/
 static ZPolicyObj *
-http_query_request_url(HttpProxy *self, gchar *name, gpointer value G_GNUC_UNUSED)
+http_query_request_url(HttpProxy *self, gchar *name, gpointer  /* value */)
 {
   ZPolicyObj *res = NULL;
 
@@ -301,7 +302,7 @@ http_query_request_url(HttpProxy *self, gchar *name, gpointer value G_GNUC_UNUSE
  * We need to reparse the URL in these cases.
  **/
 static gint
-http_set_request_url(HttpProxy *self, gchar *name G_GNUC_UNUSED, gpointer value G_GNUC_UNUSED, PyObject *new_)
+http_set_request_url(HttpProxy *self, gchar *name, gpointer  /* value */, PyObject *new_)
 {
   z_proxy_enter(self);
 
@@ -348,7 +349,7 @@ http_set_request_url(HttpProxy *self, gchar *name G_GNUC_UNUSED, gpointer value 
  * dynamically.
  **/
 static ZPolicyObj *
-http_query_mime_type(HttpProxy *self, gchar *name, gpointer value G_GNUC_UNUSED)
+http_query_mime_type(HttpProxy *self, gchar *name, gpointer  /* value */)
 {
   ZPolicyObj *res = NULL;
   HttpHeader *hdr;
@@ -475,13 +476,13 @@ http_query_headers_flat(HttpProxy *self, gint side)
 }
 
 static ZPolicyObj *
-http_query_request_headers_flat(HttpProxy *self, gchar *name G_GNUC_UNUSED, gpointer value G_GNUC_UNUSED)
+http_query_request_headers_flat(HttpProxy *self, gchar * /* name */, gpointer  /* value */)
 {
   return http_query_headers_flat(self, EP_CLIENT);
 }
 
 static ZPolicyObj *
-http_query_response_headers_flat(HttpProxy *self, gchar *name G_GNUC_UNUSED, gpointer value G_GNUC_UNUSED)
+http_query_response_headers_flat(HttpProxy *self, gchar * /* name */, gpointer  /* value */)
 {
   return http_query_headers_flat(self, EP_SERVER);
 }
@@ -1183,7 +1184,7 @@ http_write(HttpProxy *self, guint side, gchar *buf, size_t buflen)
 }
 
 static int
-http_parse_connection_hdr_value(HttpProxy *self G_GNUC_UNUSED, HttpHeader *hdr)
+http_parse_connection_hdr_value(HttpProxy *self, HttpHeader *hdr)
 {
   z_proxy_enter(self);
 
@@ -1463,38 +1464,77 @@ http_format_early_request(HttpProxy *self, gboolean stacked, GString *preamble)
   return TRUE;
 }
 
-static bool
-http_form_auth_get_value(const std::string &stream_line, const std::string &key, std::string &value)
+bool
+http_query_string_get_value(const std::string &stream_line, const std::string &key, std::string &value)
 {
-  size_t value_pos = stream_line.find(key);
-  if (value_pos == std::string::npos)
-    return false;
-  value_pos += key.length();
-  value = "";
-  for (size_t i = value_pos; i != stream_line.length() && stream_line[i] != '&'; i++)
-    value += stream_line[i];
+  std::string::size_type start_from = 0;
+
+  while (start_from != std::string::npos)
+    {
+      const std::string::size_type equal_pos = stream_line.find("=", start_from);
+      const std::string::size_type and_pos = stream_line.find('&', equal_pos + 1);
+
+      if (equal_pos == std::string::npos)
+        {
+          return false;
+        }
+
+      if (!stream_line.compare(start_from, equal_pos - start_from, key))
+        {
+          std::string::size_type value_len = and_pos;
+
+          if (and_pos != std::string::npos)
+            {
+              value_len = and_pos - equal_pos - 1;
+            }
+
+          value = stream_line.substr(equal_pos + 1, value_len);
+          return true;
+        }
+
+      start_from = and_pos;
+      if (and_pos != std::string::npos)
+        start_from++;
+    }
+
+  return false;
+}
+
+static bool
+http_form_auth_get_item(HttpProxy *self, const std::string &stream_line, const std::string &key, std::string &value,
+                        const bool mandatory = false)
+{
+  if (!http_query_string_get_value(stream_line, key, value))
+    {
+      if (mandatory)
+        z_proxy_log(self, HTTP_ERROR, 3, "HTTP auth form's reply does not contain a mandatory input item; inputname='%s'", key.c_str());
+      else
+        z_proxy_log(self, HTTP_INFO, 3, "HTTP auth form's reply does not contain an optional input item, "
+                                        "but the request processing can continue; inputname='%s'", key.c_str());
+
+      return false;
+    }
+
+  const gchar *reason;
+  GString *decoded = g_string_new("");
+  if (http_string_assign_form_url_decode(decoded, TRUE, value.c_str(), value.length(), &reason))
+    {
+      value = decoded->str;
+    }
+  g_string_free(decoded, TRUE);
 
   return true;
 }
 
 static bool
-http_form_auth_get_username_password_redirect(const std::string &stream_line, std::string &username, std::string &password, std::string &redirect_location)
+http_form_auth_get_username_password_redirect(HttpProxy *self, const std::string &stream_line, std::string &username,
+                                              std::string &password, std::string &redirect_location)
 {
-  if (!http_form_auth_get_value(stream_line, "username=", username) ||
-      !http_form_auth_get_value(stream_line, "password=", password))
+  if (!http_form_auth_get_item(self, stream_line, "username", username, true) ||
+      !http_form_auth_get_item(self, stream_line, "password", password, true))
     return false;
 
-  if (http_form_auth_get_value(stream_line, "redirect_location=", redirect_location))
-    {
-      const gchar *reason;
-      GString *decoded = g_string_new("");
-      if (http_string_assign_url_decode(decoded, true, redirect_location.c_str(), redirect_location.length(), &reason))
-        {
-          redirect_location = decoded->str;
-        }
-      g_string_free(decoded, true);
-    }
-
+  http_form_auth_get_item(self, stream_line, "redirect_location", redirect_location, false);
   return true;
 }
 
@@ -1553,6 +1593,7 @@ http_form_auth_set_answer(HttpProxy *self, const std::string &redirect_location)
     {
       self->error_code = HTTP_MSG_REDIRECT;
       self->error_status = 301;
+      g_string_assign(self->error_info, redirect_location.c_str());
       g_string_sprintfa(self->error_headers, "Location: %s\r\n", redirect_location.c_str());
     }
   self->send_custom_response = TRUE;
@@ -1561,12 +1602,55 @@ http_form_auth_set_answer(HttpProxy *self, const std::string &redirect_location)
 static bool
 http_get_form_auth(HttpProxy *self, ZorpAuthInfo *auth_info, std::string &redirect_location)
 {
-  HttpHeader *header;
+  HttpHeader *header, *transfer_encoding_header;
 
-  if (!http_lookup_header(&self->headers[EP_CLIENT], "Transfer-Encoding", &header) &&
+  if (!(self->request_flags & HTTP_REQ_FLG_POST))
+    {
+      z_proxy_log(self, HTTP_ERROR, 3, "HTTP auth form reply's method is not POST;");
+      return false;
+    }
+
+  if (!http_lookup_header(&self->headers[EP_CLIENT], "Transfer-Encoding", &transfer_encoding_header) &&
       !http_lookup_header(&self->headers[EP_CLIENT], "Content-Length", &header))
     {
+      z_proxy_log(self, HTTP_ERROR, 3, "HTTP auth form reply's does not contain either "
+                                       "Content-Length or Transfer-Encoding header;");
       return false;
+    }
+
+  if (transfer_encoding_header &&
+      (strcasecmp(transfer_encoding_header->value->str, "chunked") &&
+       strcasecmp(transfer_encoding_header->value->str, "identity")))
+    {
+      z_proxy_log(self, HTTP_ERROR, 3, "HTTP auth form reply's Transfer-Encoding is not supported, "
+                                       "only chunked and identity are allowed; transfer_encoding='%s'",
+                                       transfer_encoding_header->value->str);
+      return false;
+    }
+
+  const char *content_type = "application/x-www-form-urlencoded";
+  if (!http_lookup_header(&self->headers[EP_CLIENT], "Content-Type", &header) ||
+      strncmp(header->value->str, content_type, sizeof(content_type)-1))
+    {
+      z_proxy_log(self, HTTP_ERROR, 3, "HTTP auth form reply's Content-Type is not %s;", content_type);
+      return false;
+    }
+
+  const std::string charset_delimeter = "charset=";
+  std::string content_type_value(header->value->str);
+  std::string::size_type charset_pos = content_type_value.find(charset_delimeter);
+  if (charset_pos != std::string::npos)
+    {
+      std::string charset = content_type_value.substr(charset_pos + charset_delimeter.length());
+      std::transform(charset.begin(), charset.end(), charset.begin(),
+                     [](unsigned char c){ return std::toupper(c); });
+
+      if (charset.find("UTF-8") == std::string::npos &&
+          charset.find("US-ASCII") == std::string::npos)
+        {
+          z_proxy_log(self, HTTP_ERROR, 3, "HTTP auth form reply's charset is not supported; charset='%s'", charset.c_str());
+          return false;
+        }
     }
 
   std::string post_line = http_form_auth_get_first_post_line(self);
@@ -1574,7 +1658,7 @@ http_get_form_auth(HttpProxy *self, ZorpAuthInfo *auth_info, std::string &redire
     return false;
 
   std::string username, password;
-  if (!http_form_auth_get_username_password_redirect(post_line, username, password, redirect_location))
+  if (!http_form_auth_get_username_password_redirect(self, post_line, username, password, redirect_location))
     return false;
 
   bool res = http_do_authenticate(self, auth_info, username, password);
@@ -1583,7 +1667,7 @@ http_get_form_auth(HttpProxy *self, ZorpAuthInfo *auth_info, std::string &redire
       http_form_auth_set_answer(self, redirect_location);
     }
 
-  z_proxy_return(self, res);
+  return res;
 }
 
 static gboolean
@@ -1695,7 +1779,7 @@ http_fetch_request(HttpProxy *self)
 }
 
 static gboolean
-http_auth_is_expired(gpointer key G_GNUC_UNUSED, gpointer value, gpointer user_data)
+http_auth_is_expired(gpointer  /* key */, gpointer value, gpointer user_data)
 {
   ZorpAuthInfo *real_value = static_cast<ZorpAuthInfo *>(value);
   time_t max_time = MAX(MAX(real_value->last_auth_time, real_value->accept_credit_until), real_value->created_at);
@@ -2340,6 +2424,7 @@ http_process_request(HttpProxy *self)
       if (self->auth_by_form)
         {
           g_string_append_printf(self->error_headers, "Set-Cookie: %s\r\n", append_cookie.c_str());
+          z_proxy_return(self, FALSE);
         }
       else
         {
@@ -3403,7 +3488,7 @@ http_handle_connect(HttpProxy *self)
 
   if (!http_parent_proxy_enabled(self))
     {
-      success = "HTTP/1.0 200 Connection established\r\n\r\n";
+      success = const_cast<char*>("HTTP/1.0 200 Connection established\r\n\r\n");
 
       if (http_write(self, EP_CLIENT, success, strlen(success)) != G_IO_STATUS_NORMAL)
         z_proxy_return(self, FALSE); /* hmm... I/O error */

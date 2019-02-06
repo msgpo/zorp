@@ -87,7 +87,7 @@ void z_main_loop_quit(int exit_code);
 void z_main_loop_init(void);
 void z_main_loop_destroy(void);
 
-void z_log_set_fake_session_id(const gchar *instance_name G_GNUC_UNUSED);
+void z_log_set_fake_session_id(const gchar *instance_name);
 
 gboolean z_main_loop_is_initial_policy_load(void);
 

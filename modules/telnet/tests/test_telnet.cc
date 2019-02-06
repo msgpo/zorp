@@ -198,8 +198,8 @@ public:
 
 BOOST_AUTO_TEST_CASE(test_telnet_protocol_escape_data)
 {
-  char *testdata = T_IAC "alma" T_IAC "korte" T_IAC;
-  char *expecteddata = T_IAC T_IAC "alma" T_IAC T_IAC "korte" T_IAC T_IAC;
+  const char *testdata = T_IAC "alma" T_IAC "korte" T_IAC;
+  const char *expecteddata = T_IAC T_IAC "alma" T_IAC T_IAC "korte" T_IAC T_IAC;
 
   ZPktBuf *buf = z_pktbuf_new();
   z_pktbuf_append(buf, testdata, strlen(testdata));

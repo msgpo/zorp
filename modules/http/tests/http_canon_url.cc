@@ -97,6 +97,8 @@ struct
                                                FALSE, TRUE,  TRUE,  TRUE, "http://user:pass@test.host/fi/../le?%3Fa&%26" },
   { "http://use%72:p%61ss%40@test.host/fi%2f%2e%2e%2fle?%u003f%61&%26#%40",
                                                FALSE, TRUE,  TRUE,  TRUE, "http://user:pass%40@test.host/fi/../le?%3Fa&%26#%40" },
+  { "http://user+name:pass@test.host/",
+                                               FALSE, TRUE,  TRUE,  TRUE, "http://user%2Bname:pass@test.host/" },
 /* Not implemented yet.
   { "http://use%72:p%61ss%40@test.host/fi%%le",
                                                FALSE, FALSE, TRUE,  TRUE, "http://user:pass%40@test.host/fi%%le" }, */

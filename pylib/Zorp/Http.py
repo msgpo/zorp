@@ -1073,6 +1073,7 @@ def instance():
       <description>
       </description>
       <item><name>HTTP_DEBUG</name><value>"http.debug"</value></item>
+      <item><name>HTTP_INFO</name><value>"http.info"</value></item>
       <item><name>HTTP_ERROR</name><value>"http.error"</value></item>
       <item><name>HTTP_POLICY</name><value>"http.policy"</value></item>
       <item><name>HTTP_REQUEST</name><value>"http.request"</value></item>

@@ -42,7 +42,7 @@ z_policy_encryption_free(ZPolicyEncryption *self)
 
 
 int
-z_policy_encryption_tlsext_servername_cb(SSL *ssl, int *_ad G_GNUC_UNUSED, void *_arg G_GNUC_UNUSED)
+z_policy_encryption_tlsext_servername_cb(SSL *ssl, int * /* _ad */, void * /* _arg */)
 {
   ZProxySSLHandshake *handshake = (ZProxySSLHandshake *) SSL_get_app_data(ssl);
   ZProxy *self = handshake->proxy;
@@ -309,14 +309,14 @@ z_policy_encryption_init_instance(ZPolicyEncryption *self, PyObject *args, PyObj
   self->ssl_client_context_timeout = 300;
   self->ssl_server_context_timeout = 300;
 
-  gchar *keywords[] = {
+  const gchar *keywords[] = {
                         "client_security", "server_security",
                         "client_timeout", "server_timeout",
-                        NULL
-                      };
+                              NULL
+                            };
 
   if (!PyArg_ParseTupleAndKeywords(args, kw_args,
-                                   "|iiii", keywords,
+                                   "|iiii", const_cast<char**>(keywords),
                                    &client_security, &server_security,
                                    &self->ssl_client_context_timeout, &self->ssl_server_context_timeout
                                   ))
@@ -431,7 +431,7 @@ z_policy_encryption_set_dh_params(SSL_CTX *ctx, const ZProxySsl &ssl_opts)
 }
 
 static void
-z_policy_encryption_info_callback(const SSL *ssl, int where, int rc G_GNUC_UNUSED)
+z_policy_encryption_info_callback(const SSL *ssl, int where, int  /* rc */)
 {
     ZProxySSLHandshake *handshake = (ZProxySSLHandshake *) SSL_get_app_data(ssl);
 
@@ -444,7 +444,7 @@ z_policy_encryption_info_callback(const SSL *ssl, int where, int rc G_GNUC_UNUSE
 }
 
 static PyObject *
-z_policy_encryption_setup_method(ZPolicyEncryption *self, PyObject *args G_GNUC_UNUSED)
+z_policy_encryption_setup_method(ZPolicyEncryption *self, PyObject * /* args */)
 {
   for (ZEndpoint side = EP_CLIENT; side < EP_MAX; ++side)
     {

@@ -872,8 +872,8 @@ ftp_command_parse_noarg(FtpProxy *self)
   z_proxy_return(self, FTP_RSP_ACCEPT);
 }
 
-guint
-ftp_command_parse_HELP(FtpProxy *self G_GNUC_UNUSED)
+guint __attribute__((const))
+ftp_command_parse_HELP(FtpProxy * /* self */)
 {
   return FTP_RSP_ACCEPT;
 }
@@ -2186,7 +2186,7 @@ ftp_process_feature_list(FtpProxy *self, GList *incoming)
 }
 
 static void
-ftp_feature_add_cb(gpointer _key, gpointer _value G_GNUC_UNUSED, gpointer user_data)
+ftp_feature_add_cb(gpointer _key, gpointer  /* _value */, gpointer user_data)
 {
   gchar *key = (gchar *) _key;
   GString *str = (GString *) user_data;

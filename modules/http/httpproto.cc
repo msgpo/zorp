@@ -31,6 +31,7 @@ static HttpElementInfo request_proto_table[] =
     { "HEAD", HTTP_REQ_FLG_HEAD, -1 },
     { "OPTIONS", HTTP_REQ_FLG_ASTERIX, -1 },
     { "CONNECT", HTTP_REQ_FLG_CONNECT, -1 },
+    { "POST", HTTP_REQ_FLG_POST, -1 },
     { NULL, 0, 0 },
   };
 

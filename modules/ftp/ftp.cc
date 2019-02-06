@@ -2254,8 +2254,8 @@ ftp_proto_server_to_client(FtpProxy *self)
 }
 
 static gboolean
-ftp_server_data(ZStream *stream G_GNUC_UNUSED,
-           GIOCondition  cond G_GNUC_UNUSED,
+ftp_server_data(ZStream * /* stream */,
+           GIOCondition   /* cond */,
                gpointer  user_data)
 {
   FtpProxy *self = (FtpProxy *) user_data;
@@ -2271,8 +2271,8 @@ ftp_server_data(ZStream *stream G_GNUC_UNUSED,
 }
 
 static gboolean
-ftp_client_data(ZStream *stream G_GNUC_UNUSED,
-           GIOCondition  cond G_GNUC_UNUSED,
+ftp_client_data(ZStream * /* stream */,
+           GIOCondition   /* cond */,
                gpointer  user_data)
 {
   FtpProxy *self = (FtpProxy *) user_data;

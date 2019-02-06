@@ -103,7 +103,7 @@ z_dgram_socket_recv(gint fd, ZPktBuf **pack, ZSockAddr **from, ZSockAddr **to, g
  * @return -1 on error, socket descriptor otherwise
  */
 gint
-z_nf_dgram_socket_open(guint flags, ZSockAddr *remote, ZSockAddr *local, guint32 sock_flags, gint tos, GError **error G_GNUC_UNUSED)
+z_nf_dgram_socket_open(guint flags, ZSockAddr *remote, ZSockAddr *local, guint32 sock_flags, gint tos, GError ** /* error */)
 {
   gint fd;
 
@@ -267,7 +267,7 @@ z_nf_dgram_socket_setup(gint fd, guint flags, gint tos, gint family)
  * @return The status of the operation
  */
 GIOStatus
-z_nf_dgram_socket_recv(gint fd, ZPktBuf **packet, ZSockAddr **from_addr, ZSockAddr **to_addr, gint *tos, gboolean peek, GError **error G_GNUC_UNUSED)
+z_nf_dgram_socket_recv(gint fd, ZPktBuf **packet, ZSockAddr **from_addr, ZSockAddr **to_addr, gint *tos, gboolean peek, GError ** /* error */)
 {
   struct sockaddr_storage from;
   gchar buf[65536], ctl_buf[64];
