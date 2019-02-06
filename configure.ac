@@ -21,9 +21,9 @@ dnl ***************************************************************************
 dnl Dependencies
 
 GLIB_MIN_VERSION="2.32.0"
-ZORPLL_MIN_VERSION="7.0.1.0~alpha0"
-ZORPLIC_MIN_VERSION="7.0.1.0~alpha0"
-ZORPMISC_MIN_VERSION="7.0.1.0~alpha0"
+ZORPLL_MIN_VERSION="7.0.1.0"
+ZORPLIC_MIN_VERSION="7.0.1.0"
+ZORPMISC_MIN_VERSION="7.0.1.0"
 OPENSSL_MIN_VERSION=1.1.0
 OPENSSL_MAX_VERSION=1.1.2
 PYTHON_MIN_VERSION="2.7"
