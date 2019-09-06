@@ -466,7 +466,7 @@ main(int argc, char *argv[])
   instance_name = "zorp";
   instance_policy_list[0] = "zorp";
   virtual_instance_name = NULL;
-  z_log_set_defaults(3, TRUE, TRUE, "");
+  z_log_set_defaults(3, TRUE, TRUE, "*.summary:4,*.accounting:4");
 
   z_thread_set_max_threads(1000);       /* set our own default value for max_threads in ZThread */
 

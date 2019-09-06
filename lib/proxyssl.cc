@@ -1316,7 +1316,24 @@ z_proxy_ssl_handshake_completed(ZProxySSLHandshake *handshake)
   z_enter();
 
   handshake->completed = true;
-  z_proxy_log(handshake->proxy, CORE_INFO, 6, "SSL handshake done; side='%s'", EP_STR(handshake->side));
+  if (z_proxy_ssl_handshake_get_error(handshake) == 0)
+    {
+      unsigned int tls_session_id_len = 0;
+      const unsigned char *tls_session_id = SSL_SESSION_get_id(SSL_get_session(handshake->session->ssl), &tls_session_id_len);
+      std::unique_ptr<BIGNUM, decltype(&BN_free)> tls_session_id_bn(
+        BN_bin2bn(tls_session_id, tls_session_id_len, nullptr),
+        BN_free);
+      std::unique_ptr<char, void(*)(void *)> tls_session_id_hexdump(
+        BN_bn2hex(tls_session_id_bn.get()),
+        [](void * ptr){ OPENSSL_free(ptr); });
+      const char *version = SSL_get_version(handshake->session->ssl);
+      const char *cipher = SSL_get_cipher_name(handshake->session->ssl);
+      const char *compression = SSL_COMP_get_name(SSL_get_current_compression(handshake->session->ssl));
+
+      z_proxy_log(handshake->proxy, TLS_ACCOUNTING, 4,
+                  "SSL handshake done; side='%s', version='%s', cipher='%s', compression='%s', tls_session_id='%s'",
+                  EP_STR(handshake->side), version, cipher, compression ? compression : "(NONE)", tls_session_id_hexdump.get());
+    }
 
   z_leave();
 }
@@ -1360,10 +1377,11 @@ z_proxy_ssl_do_handshake(ZProxySSLHandshake *handshake,
     }
   else
     {
-      /* non-blocking handshake, call the callback directly: the underlying
+      /* blocking handshake, call the callback directly: the underlying
        * stream (and thus the BIO) is in blocking mode, so SSL_accept()/SSL_connect()
        * is done
        */
+      z_proxy_ssl_handshake_set_callback(handshake, reinterpret_cast<ZProxySSLCallbackFunc>(z_proxy_ssl_handshake_completed), nullptr, nullptr);
       z_stream_set_timeout(handshake->stream, handshake->proxy->encryption->ssl_opts.handshake_timeout);
       z_proxy_ssl_handshake_cb(handshake->stream, static_cast<GIOCondition>(0), reinterpret_cast<gpointer>(handshake));
       z_stream_set_timeout(handshake->stream, -2);

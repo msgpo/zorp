@@ -31,6 +31,8 @@
 #define PROXY_SSL_HS_ACCEPT ZV_ACCEPT
 #define PROXY_SSL_HS_VERIFIED 10
 
+#define TLS_ACCOUNTING      "tls.accounting"
+
 typedef struct _ZProxyTls {
   gboolean handshake_pending[EP_MAX];
   ZSSLSession *ssl_sessions[EP_MAX];

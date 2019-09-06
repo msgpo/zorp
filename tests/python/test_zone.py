@@ -158,6 +158,18 @@ class TestZone(unittest.TestCase):
         self.assertEqual(self.doLookup('192.168.0.184'), t14)
         self.assertEqual(self.doLookup('dead:beef:baad:c0ff:ee00:1122:3344:5567'), t15)
 
+    def test_duplicates(self):
+      t1 = Zone("internet", "0.0.0.0/0")
+      t2 = Zone("test1", "192.168.22.0/24")
+      t3 = Zone("test2", "192.168.22.31/32")
+      t4 = Zone("test3", "192.168.0.0/16")
+      t5 = Zone("test4", "192.168.22.30/31")
+      self.assertRaises(ZoneException, Zone, "test5", "192.168.22.0/24")
+      self.assertRaises(ZoneException, Zone, "test6", "192.168.22.31")
+      self.assertRaises(ZoneException, Zone, "test7", "192.168.22.31/32")
+      self.assertRaises(ZoneException, Zone, "test8", "192.168.22.15/24")
+
+
 def init(name, virtual_name, is_master):
     unittest.main(argv=('/',))
 

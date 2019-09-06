@@ -1032,7 +1032,7 @@ http_transfer_setup(ZTransfer2 *s)
 gboolean
 http_transfer_has_content(HttpTransfer *self)
 {
-  return (self->content_length != HTTP_LENGTH_NONE || self->push_mime_headers) && self->content_length != 0;
+  return (self->content_length != HTTP_LENGTH_NONE && self->content_length != 0) || self->push_mime_headers;
 }
 
 static ZTransfer2Result

@@ -43,7 +43,6 @@ from SockAddr import SockAddrInet, SockAddrInetHostname, SockAddrInetRange, Sock
 from Router import TransparentRouter, DirectedRouter, InbandRouter
 from Chainer import ConnectChainer, MultiTargetChainer, StateBasedChainer, RoundRobinChainer, FailoverChainer, SideStackChainer
 from Subnet import InetSubnet, Inet6Subnet
-from Listener import Listener, ZoneListener, CSZoneListener
 from Dispatch import Dispatcher, ZoneDispatcher, CSZoneDispatcher, RuleDispatcher
 from Rule import PortRange, Rule
 from NAT import NATPolicy, ForgeClientSourceNAT, StaticNAT, OneToOneNAT, OneToOneMultiNAT, RandomNAT, HashNAT, GeneralNAT
@@ -58,9 +57,3 @@ from Encryption import EncryptionPolicy, TwoSidedEncryption, ServerOnlyEncryptio
                        SNIBasedCertificate, DynamicCertificate, StaticCertificate, CertificateCA, Certificate, \
                        PrivateKey, ServerCertificateVerifier, ClientCertificateVerifier, ClientSSLOptions, ServerSSLOptions
 from Detector import DetectorPolicy, AbstractDetector, HttpDetector, CertDetector, SshDetector
-
-# conntrack support
-try:
-    from Receiver import Receiver, ZoneReceiver, CSZoneReceiver
-except:
-    pass

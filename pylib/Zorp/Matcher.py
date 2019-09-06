@@ -844,7 +844,7 @@ class DNSMatcher(AbstractMatcher):
           </metainfo>
         </method>
         """
-        self.cache = ResolverCache(DNSResolver())
+        self.cache = ResolverCache(DNSResolver(server=server))
         if isinstance(hosts, str):
             self.cache.addHost(hosts)
         elif isinstance(hosts, collections.Iterable):
