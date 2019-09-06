@@ -1,5 +1,5 @@
-zorp (7.0.1~alpha2) zorp70gpl; urgency=low
+zorp (7.0.1) zorp70gpl; urgency=low
 
   * New upstream version.
 
- -- BalaSys Development Team <devel@balasys.hu>  Mon, 04 Feb 2019 20:19:30 +0100
+ -- BalaSys Development Team <devel@balasys.hu>  Wed, 06 Feb 2019 10:19:47 +0100

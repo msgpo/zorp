@@ -4,9 +4,9 @@ jobs:
     docker:
       - image: balasys/zorpgpl-circleci:7.0
     environment:
-      - PACKAGE: zorp
-      - OBS_PROJECT_URL: security:/Zorp:/7:/0:/1:/alpha2
-      - OBS_PROJECT_DIR: security:Zorp:7:0:1:alpha2/zorp
+      - PACKAGE: "zorp"
+      - OBS_PROJECT_URL: "security:/Zorp:/7:/0:/1"
+      - OBS_PROJECT_DIR: "security:Zorp:7:0:1/zorp"
     working_directory: ~/zorp
     steps:
       - checkout
@@ -16,7 +16,6 @@ jobs:
       - run: source ci/build.sh
       - run: source ci/obs_prepare.sh
       - run: source ci/obs_commit.sh
-
 workflows:
   version: 2
   build_and_test:

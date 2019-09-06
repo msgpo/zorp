@@ -1,6 +1,6 @@
 Name:			zorp
-Version:		7.0.1~alpha2
-Release:		0.1%{?dist}
+Version:		7.0.1
+Release:		1%{?dist}
 URL:			https://balasys.github.io/zorp/
 %if 0%{?fedora}
 %else
@@ -353,6 +353,8 @@ Standalone daemon that handles zones and updates dynamic zones.
 
 
 %changelog
+* Wed Dec 5 2018 Balasys Development Team <devel@balasys.hu> - 7.0.1-1
+  - New upstream release 7.0.1
 * Wed Nov 21 2018 Balasys Development Team <devel@balasys.hu> - 7.0.1-0.2
   - New upstream release 7.0.1~alpha2
 * Thu May 17 2018 Balasys Development Team <devel@balasys.hu> - 7.0.1-0.1
