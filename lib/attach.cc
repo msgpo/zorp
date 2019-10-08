@@ -61,7 +61,7 @@ struct _ZAttach
  * Called from: z_attach_tcp_callback (tcp) or z_attach_start (udp).
  */
 static void
-z_attach_callback(ZStream *fdstream, GError *err G_GNUC_UNUSED, gpointer user_data)
+z_attach_callback(ZStream *fdstream, GError * /* err */, gpointer user_data)
 {
   ZAttach *self = (ZAttach *) user_data;
   gchar buf[256];

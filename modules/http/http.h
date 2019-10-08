@@ -49,6 +49,7 @@
 
 /* error tags */
 #define HTTP_DEBUG     "http.debug"
+#define HTTP_INFO      "http.info"
 #define HTTP_ERROR     "http.error"
 #define HTTP_POLICY    "http.policy"
 #define HTTP_REQUEST   "http.request"
@@ -107,6 +108,7 @@ typedef enum _HttpResponseVerdict
 #define HTTP_REQ_FLG_HEAD       2
 #define HTTP_REQ_FLG_ASTERIX    4
 #define HTTP_REQ_FLG_CONNECT    8
+#define HTTP_REQ_FLG_POST      16
 
 /* response protocol flags */
 #define HTTP_RESP_FLG_CONTINUE     1
@@ -548,7 +550,7 @@ void
 http_destroy_headers(HttpHeaders *hdrs);
 
 HttpHeader *
-http_add_header(HttpHeaders *hdrs, const gchar *name, gint name_len, gchar *value, gint value_len);
+http_add_header(HttpHeaders *hdrs, const gchar *name, gint name_len, const gchar *value, gint value_len);
 
 void
 http_log_headers(HttpProxy *self, ZEndpoint side, const gchar *tag);
@@ -559,13 +561,16 @@ gint http_filter_hash_bucket(gconstpointer a);
 /* URL processing */
 
 gboolean http_parse_url(HttpURL *url, gboolean permit_unicode_url, gboolean permit_invalid_hex_escape,
-                        gboolean permit_relative_url, gchar *url_str, const gchar **reason);
+                        gboolean permit_relative_url, const gchar *url_str, const gchar **reason);
 gboolean http_format_url(HttpURL *url, GString *encode_buf, gboolean format_absolute, gboolean permit_unicode_url,
                          gboolean canonicalized, const gchar **reason);
 void http_init_url(HttpURL *url);
 void http_destroy_url(HttpURL *url);
 
-gboolean http_string_assign_url_decode(GString *part, gboolean permit_invalid_hex_escape, const gchar *src, gint len, const gchar **reason);
+gboolean http_string_assign_url_decode(GString *part, gboolean permit_invalid_hex_escape,
+                                       const gchar *src, gint len, const gchar **reason);
+gboolean http_string_assign_form_url_decode(GString *part, gboolean permit_invalid_hex_escape,
+                                            const gchar *src, gint len, const gchar **reason);
 
 /* request/response processing */
 
@@ -580,6 +585,9 @@ gboolean
 http_handle_ftp_request(HttpProxy *self);
 
 void http_proto_init(void);
+
+bool
+http_query_string_get_value(const std::string &stream_line, const std::string &key, std::string &value);
 
 /* inline functions */
 

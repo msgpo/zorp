@@ -52,6 +52,8 @@ class AbstractResolver(object):
 
 class DNSResolver(AbstractResolver):
     """<class internal="yes"/>"""
+    _MAX_RECURSION_DEPTH = 5
+
     def __init__(self, server=None, timeout=2):
         super(DNSResolver, self).__init__(timeout)
 
@@ -60,12 +62,20 @@ class DNSResolver(AbstractResolver):
         if server:
             self.resolver.nameservers = [server]
 
-    def resolve(self, host, resolved_cnames=None):
+    def resolve(self, host, resolved_cnames=None, recursion_depth=0):
         if type(host) is str:
             host = dns.name.from_text(host)
 
         if resolved_cnames == None:
             resolved_cnames = set([host])
+
+        if recursion_depth >= self._MAX_RECURSION_DEPTH:
+            log(None, CORE_ERROR, 3,
+                "Recursion limit reached of CNAME resolvation; max_recursion_depth='{}'".format(
+                    self._MAX_RECURSION_DEPTH
+                )
+            )
+            return AbstractHostnameCache.default_cache_timeout, [], []
 
         ipv4_addresses = set()
         ipv6_addresses = set()
@@ -93,12 +103,12 @@ class DNSResolver(AbstractResolver):
                             continue
                         resolved_cnames.add(record.target)
                         log(None, CORE_DEBUG, 6, "Resolving CNAME for host; host='%s', cname='%s'" % (host, record.target))
-                        cname_ttl, cname_ipv4_addresses, cname_ipv6_addresses = self.resolve(record.target, resolved_cnames)
+                        cname_ttl, cname_ipv4_addresses, cname_ipv6_addresses = self.resolve(record.target, resolved_cnames, recursion_depth + 1)
                         ipv4_addresses.update(cname_ipv4_addresses)
                         ipv6_addresses.update(cname_ipv6_addresses)
                         ttl = min(ttl, cname_ttl)
 
-        log(None, CORE_DEBUG, 6, "Host resolved; host='%s', ttl='%d', addresses='%s'" % (host, ttl, list(ipv4_addresses) + list(ipv6_addresses)))
+        log(None, CORE_DEBUG, 6, "Host resolved; host='{}', ttl='{}', addresses='{}'".format(host, ttl, list(ipv4_addresses) + list(ipv6_addresses)))
         return ttl or AbstractHostnameCache.default_cache_timeout, list(ipv4_addresses), list(ipv6_addresses)
 
 
@@ -129,6 +139,11 @@ class AbstractHostnameCache(object):
         raise NotImplementedError
 
     def lookupHostname(self, name):
+        """<method internal="yes"/>
+        """
+        raise NotImplementedError
+
+    def lookupCachedHostname(self, name):
         """<method internal="yes"/>
         """
         raise NotImplementedError
@@ -253,7 +268,7 @@ class ResolverCache(AbstractHostnameCache):
             self.__addHostToCache(host, ipv4_addresses, ipv6_addresses, ttl)
         except KeyError:
             self.__addHostToCache(host, [], [], AbstractHostnameCache.default_cache_timeout)
-            log(None, CORE_INFO, 3, "Could not resolve host name trying again after default timeout; host='%s', timeout='%d'" % (host, AbstractHostnameCache.default_cache_timeout))
+            log(None, CORE_INFO, 3, "Could not resolve host name trying again after default timeout; host='{}', timeout='{}'".format(host, AbstractHostnameCache.default_cache_timeout))
 
     def updateHost(self, host):
         """<method internal="yes">
@@ -261,21 +276,31 @@ class ResolverCache(AbstractHostnameCache):
         """
         self.__updateHost(host)
 
-    def update(self, now=None):
+    def updateHostIfNeeded(self, host, now=None):
+        """<method internal="yes">
+        </method>
+        """
+        if now is None:
+            now = time.time()
+
+        expiration_time = self.expires.get(host, 0)
+        if now < expiration_time:
+            log(None, CORE_DEBUG, 6,
+                "Host already in DNS cache and within TTL; host='%s', ttl='%f'" % (host, (expiration_time - now)))
+        else:
+            log(None, CORE_INFO, 5, "Host not in DNS cache or has expired, doing lookup; host='%s'" % host)
+            try:
+                self.__updateHost(host)
+            except ValueError:
+                raise KeyError
+
+    def update(self):
         """<method internal="yes">
         </method>
         """
         now = time.time()
         for host in self.hosts:
-            expiration_time = self.expires.get(host, 0)
-            if now < expiration_time:
-                log(None, CORE_DEBUG, 6, "Host already in DNS cache and within TTL; host='%s', ttl='%f'" % (host, (expiration_time - now)))
-            else:
-                log(None, CORE_INFO, 5, "Host not in DNS cache or has expired, doing lookup; host='%s'" % host)
-		try:
-                    self.__updateHost(host)
-                except ValueError:
-                    raise KeyError
+            self.updateHostIfNeeded(host, now)
 
     def getNextExpiration(self):
         """<method internal="yes">
@@ -296,7 +321,7 @@ class ResolverCache(AbstractHostnameCache):
         except ValueError:
             pass
 
-        log(None, CORE_DEBUG, 6, "Not found expired host n DNS cache")
+        log(None, CORE_DEBUG, 6, "Not found expired host in DNS cache")
         return False
 
     def addHost(self, name):
@@ -323,8 +348,13 @@ class ResolverCache(AbstractHostnameCache):
     def lookupHostname(self, name):
         """<method internal="yes"/>
         """
-        self.update()
+        self.updateHostIfNeeded(name)
 
+        return self.lookupCachedHostname(name)
+
+    def lookupCachedHostname(self, name):
+        """<method internal="yes"/>
+        """
         return self.cache_name_to_addresses[name]
 
     def lookupTTL(self, name):

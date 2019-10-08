@@ -32,7 +32,7 @@ gboolean
 z_auth_provider_check_passwd(ZAuthProvider *self,
                                       gchar *session_id,
                                       gchar *username,
-                                      gchar *passwd,
+                                      const gchar *passwd,
                                       gchar ***groups,
                                       ZProxy *proxy);
 #endif

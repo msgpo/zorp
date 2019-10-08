@@ -69,7 +69,7 @@ extern ZClass SmtpTransfer__class;
  *
  **/
 static GIOStatus
-smtp_transfer_src_read(ZTransfer2 *s G_GNUC_UNUSED, ZStream *stream, gchar *buf, gsize buf_len, gsize *bytes_read, GError **err)
+smtp_transfer_src_read(ZTransfer2 *s, ZStream *stream, gchar *buf, gsize buf_len, gsize *bytes_read, GError **err)
 {
   SmtpTransfer *self = Z_CAST(s, SmtpTransfer);
   SmtpProxy *owner = Z_CAST(self->super.owner, SmtpProxy);
@@ -249,7 +249,7 @@ smtp_transfer_dst_write(ZTransfer2 *s, ZStream *stream, const gchar *buf, gsize 
  * about ending the mail body with a '.', or
  **/
 static GIOStatus
-smtp_transfer_dst_shutdown(ZTransfer2 *s G_GNUC_UNUSED, ZStream *stream, GError **err)
+smtp_transfer_dst_shutdown(ZTransfer2 *s, ZStream *stream, GError **err)
 {
   gsize bytes_written;
   GError *local_error = NULL;

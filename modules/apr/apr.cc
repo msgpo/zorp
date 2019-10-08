@@ -53,7 +53,7 @@ get_stream(APRProxy *self, gint side)
 }
 
 extern ZClass APRProxy__class;
-static gboolean apr_read_callback(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gpointer user_data);
+static gboolean apr_read_callback(ZStream *stream, GIOCondition  /* cond */, gpointer user_data);
 
 static void
 apr_setup_stream(APRProxy *self, gint ep)
@@ -231,7 +231,7 @@ connect_server(APRProxy *self)
 }
 
 static gboolean
-apr_read_callback(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+apr_read_callback(ZStream *stream, GIOCondition  /* cond */, gpointer user_data)
 {
   APRProxy *self = static_cast<APRProxy *>(user_data);
   gint side = (stream == get_stream(self, EP_CLIENT)) ? EP_CLIENT : EP_SERVER;
@@ -247,7 +247,8 @@ apr_read_callback(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gpointer use
   if (self->copy_client_data && get_stream(self, EP_SERVER))
     {
       gsize written;
-      gsize length = self->copy_client_data > self->data_buffer[EP_CLIENT]->length ? self->data_buffer[EP_CLIENT]->length : self->copy_client_data;
+      gsize length = static_cast<guint>(self->copy_client_data) >
+                     self->data_buffer[EP_CLIENT]->length ?  self->data_buffer[EP_CLIENT]->length : self->copy_client_data;
       self->copy_client_data = 0;
       z_stream_write(get_stream(self, EP_SERVER), self->data_buffer[EP_CLIENT]->data, length, &written, NULL);
       self->buffer_written_to_client = written;

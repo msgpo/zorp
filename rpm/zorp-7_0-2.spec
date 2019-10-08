@@ -1,5 +1,5 @@
 Name:			zorp
-Version:		7.0.1
+Version:		7.0.2
 Release:		1%{?dist}
 URL:			https://balasys.github.io/zorp/
 %if 0%{?fedora}
@@ -24,7 +24,7 @@ BuildRequires:		docbook-xsl-stylesheets
 BuildRequires:		libtool
 BuildRequires:		gcc-c++
 BuildRequires:		libxslt
-BuildRequires:		libzorpll-7_0-1-devel
+BuildRequires:		libzorpll-7_0-2-devel
 BuildRequires:		boost-devel
 BuildRequires:		python-devel
 BuildRequires:		binutils-devel
@@ -68,7 +68,7 @@ is permitted.
 %package devel
 Summary:                Headers for zorp
 Group:                  System/Daemons
-Requires:               libzorpll-7_0-1-devel
+Requires:               libzorpll-7_0-2-devel
 
 %description devel
 This package provides header files for zorp
@@ -151,18 +151,18 @@ ldconfig
 %dir %attr(750,root,zorp) %{_sysconfdir}/zorp
 %config %attr(640,root,zorp) %{_sysconfdir}/zorp/*.sample
 
-%package -n libzorp-7_0-1
+%package -n libzorp-7_0-2
 Summary:                The runtime library of Zorp
 Group:                  System/Daemons
 
-%description -n libzorp-7_0-1
+%description -n libzorp-7_0-2
 Zorp is a new generation firewall. It is essentially a transparent proxy
 firewall, with strict protocol analyzing proxies, a modular architecture,
 and fine-grained control over the mediated traffic. Configuration decisions
 
 The library needed to run zorp.
 
-%files -n libzorp-7_0-1
+%files -n libzorp-7_0-2
 %defattr(-,root,root)
 
 %dir %{_libdir}/zorp
@@ -170,10 +170,10 @@ The library needed to run zorp.
 %{_libdir}/libzorp*.so.*
 %{_libdir}/libzorpproxy*.so.*
 
-%post -n libzorp-7_0-1
+%post -n libzorp-7_0-2
 ldconfig
 
-%postun -n libzorp-7_0-1
+%postun -n libzorp-7_0-2
 ldconfig
 
 %package -n libzorp-7_0-devel
@@ -353,6 +353,8 @@ Standalone daemon that handles zones and updates dynamic zones.
 
 
 %changelog
+* Thu Jan 31 2019 Balasys Development Team <devel@balasys.hu> - 7.0.2-1
+  - New upstream release 7.0.2
 * Wed Dec 5 2018 Balasys Development Team <devel@balasys.hu> - 7.0.1-1
   - New upstream release 7.0.1
 * Wed Nov 21 2018 Balasys Development Team <devel@balasys.hu> - 7.0.1-0.2

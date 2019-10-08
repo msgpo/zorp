@@ -315,7 +315,7 @@ z_proxy_stack_fds(ZProxy *self, gint client_fd, gint server_fd, gint control_fd,
  * of stacked programs.
  **/
 static gboolean
-z_proxy_control_stream_read(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_proxy_control_stream_read(ZStream *stream, GIOCondition  /* cond */, gpointer user_data)
 {
   ZStackedProxy *stacked = (ZStackedProxy *) user_data;
   ZProxy *proxy = stacked->proxy;
@@ -350,6 +350,7 @@ z_proxy_control_stream_read(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gp
       /* FIXME: hack, returning FALSE should be enough but it causes
          the poll loop to spin, see bug #7219 */
       z_stream_set_cond(stream, G_IO_IN, FALSE);
+      z_log(proxy->session_id, CORE_DEBUG, 6, "Error reading control channel request");
       result = FALSE;
       goto exit_unlock;
     }
@@ -361,7 +362,7 @@ z_proxy_control_stream_read(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gp
       goto error;
     }
 
-  z_log(NULL, CORE_DEBUG, 6, "Read request from stack-control channel; request='%s'", request->command->str);
+  z_log(proxy->session_id, CORE_DEBUG, 6, "Read request from stack-control channel; request='%s'", request->command->str);
   if (strcmp(request->command->str, "SETVERDICT") == 0
      )
     {
@@ -413,14 +414,17 @@ z_proxy_control_stream_read(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gp
   if (!success)
     {
       z_cp_command_add_header(response, g_string_new("Fail-Reason"), g_string_new(fail_reason), FALSE);
-      z_log(NULL, CORE_DEBUG, 6, "Error processing control channel request; request='%s', reason='%s'", request ? request->command->str : "None", fail_reason);
+      z_log(
+        proxy->session_id, CORE_DEBUG, 6, "Error processing control channel request; request='%s', reason='%s'",
+        request ? request->command->str : "None", fail_reason
+      );
     }
 
-  z_log(NULL, CORE_DEBUG, 6, "Responding on stack-control channel; response='%s'", response->command->str);
+  z_log(proxy->session_id, CORE_DEBUG, 6, "Responding on stack-control channel; response='%s'", response->command->str);
   if (z_cp_context_write(stacked->control_proto, 0, response) != G_IO_STATUS_NORMAL)
     {
       /* this should not have happened */
-      z_log(NULL, CORE_ERROR, 1, "Internal error writing response to stack-control channel;");
+      z_log(proxy->session_id, CORE_ERROR, 1, "Internal error writing response to stack-control channel;");
       success = FALSE;
     }
 
@@ -659,7 +663,7 @@ z_stacked_proxy_unref(ZStackedProxy *self)
  * references (@proxy and @child_proxy)
  **/
 ZStackedProxy *
-z_stacked_proxy_new(ZStream *client_stream, ZStream *server_stream, ZStream *control_stream G_GNUC_UNUSED, ZProxy *proxy, ZProxy *child_proxy, guint32 flags)
+z_stacked_proxy_new(ZStream *client_stream, ZStream *server_stream, ZStream *control_stream, ZProxy *proxy, ZProxy *child_proxy, guint32 flags)
 {
   ZStackedProxy *self = g_new0(ZStackedProxy, 1);
   gchar buf[Z_STREAM_MAX_NAME];

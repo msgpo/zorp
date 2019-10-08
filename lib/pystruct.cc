@@ -181,7 +181,7 @@ void
 z_policy_struct_module_init(void)
 {
   static struct {
-    gchar *name;
+    const gchar *name;
     gint parent_type;
   } types[] =
   {

@@ -23,6 +23,7 @@ ftp.session
 ftp.violation
 http.accounting
 http.debug
+http.info
 http.error
 http.policy
 http.request

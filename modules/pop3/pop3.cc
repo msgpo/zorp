@@ -76,7 +76,7 @@ pop3_write_server(Pop3Proxy *self, char *msg)
 }
 
 static gchar *
-pop3_get_from(const gchar *header G_GNUC_UNUSED, gpointer user_data)
+pop3_get_from(const gchar * /* header */, gpointer user_data)
 {
   Pop3Proxy *self = Z_CAST(user_data, Pop3Proxy);
   gchar *res;
@@ -87,7 +87,7 @@ pop3_get_from(const gchar *header G_GNUC_UNUSED, gpointer user_data)
 }
 
 static gchar *
-pop3_get_to(const gchar *header G_GNUC_UNUSED, gpointer user_data)
+pop3_get_to(const gchar * /* header */, gpointer user_data)
 {
   Pop3Proxy *self = Z_CAST(user_data, Pop3Proxy);
   gchar *res;
@@ -98,7 +98,7 @@ pop3_get_to(const gchar *header G_GNUC_UNUSED, gpointer user_data)
 }
 
 static gchar *
-pop3_get_subject(const gchar *header G_GNUC_UNUSED, gpointer user_data)
+pop3_get_subject(const gchar * /* header */, gpointer user_data)
 {
   Pop3Proxy *self = Z_CAST(user_data, Pop3Proxy);
   gchar *res;
@@ -253,7 +253,7 @@ pop3_response_write(Pop3Proxy *self)
 }
 
 void
-pop3_response_reject(Pop3Proxy *self, gchar *error_msg)
+pop3_response_reject(Pop3Proxy *self, const gchar *error_msg)
 {
   gchar msg_buf[1024];
 
@@ -285,8 +285,8 @@ pop3_response_multiline(Pop3Proxy *self)
 }
 
 gboolean
-pop3_server_to_client(ZStream *stream G_GNUC_UNUSED,
-                      GIOCondition  cond G_GNUC_UNUSED,
+pop3_server_to_client(ZStream * /* stream */,
+                      GIOCondition   /* cond */,
                       gpointer  user_data)
 {
   Pop3Proxy *self = (Pop3Proxy *)user_data;
@@ -485,8 +485,8 @@ pop3_command_reject(Pop3Proxy *self)
 }
 
 gboolean
-pop3_client_to_server(ZStream *stream G_GNUC_UNUSED,
-                 GIOCondition  cond G_GNUC_UNUSED,
+pop3_client_to_server(ZStream * /* stream */,
+                 GIOCondition   /* cond */,
                      gpointer user_data)
 {
   Pop3Proxy *self = (Pop3Proxy *)user_data;

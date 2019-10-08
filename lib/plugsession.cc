@@ -135,7 +135,7 @@ z_plug_read_input(ZPlugSession *self, ZStream *input, ZPlugIOBuffer *buf)
 }
 
 static GIOStatus
-z_plug_write_output(ZPlugSession *self G_GNUC_UNUSED, ZPlugIOBuffer *buf, ZStream *output)
+z_plug_write_output(ZPlugSession * /* self */, ZPlugIOBuffer *buf, ZStream *output)
 {
   GIOStatus rc;
   gsize bytes_written;
@@ -224,7 +224,7 @@ z_plug_copy_data(ZPlugSession *self, ZStream *from, ZStream *to, ZPlugIOBuffer *
 
 /* callbacks when no stacking is made */
 static gboolean
-z_plug_copy_client_to_server(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_plug_copy_client_to_server(ZStream * /* stream */, GIOCondition  /* cond */, gpointer user_data)
 {
   ZPlugSession *self = (ZPlugSession *) user_data;
   gboolean ret;
@@ -268,7 +268,7 @@ z_plug_copy_client_to_server(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_
 }
 
 static gboolean
-z_plug_copy_server_to_client(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_plug_copy_server_to_client(ZStream * /* stream */, GIOCondition  /* cond */, gpointer user_data)
 {
   ZPlugSession *self = (ZPlugSession *) user_data;
   GIOStatus ret;
@@ -313,7 +313,7 @@ z_plug_copy_server_to_client(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_
 
 /* callbacks when a stacked module exists */
 static gboolean
-z_plug_copy_client_to_down(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_plug_copy_client_to_down(ZStream * /* stream */, GIOCondition  /* cond */, gpointer user_data)
 {
   ZPlugSession *self = (ZPlugSession *) user_data;
   GIOStatus ret;
@@ -357,7 +357,7 @@ z_plug_copy_client_to_down(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GN
 }
 
 static gboolean
-z_plug_copy_down_to_client(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_plug_copy_down_to_client(ZStream * /* stream */, GIOCondition  /* cond */, gpointer user_data)
 {
   ZPlugSession *self = (ZPlugSession *) user_data;
   GIOStatus ret;
@@ -394,7 +394,7 @@ z_plug_copy_down_to_client(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GN
 }
 
 static gboolean
-z_plug_copy_server_to_down(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_plug_copy_server_to_down(ZStream * /* stream */, GIOCondition  /* cond */, gpointer user_data)
 {
   ZPlugSession *self = (ZPlugSession *) user_data;
   GIOStatus ret;
@@ -437,7 +437,7 @@ z_plug_copy_server_to_down(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GN
 }
 
 static gboolean
-z_plug_copy_down_to_server(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+z_plug_copy_down_to_server(ZStream * /* stream */, GIOCondition  /* cond */, gpointer user_data)
 {
   ZPlugSession *self = (ZPlugSession *) user_data;
   GIOStatus ret;
@@ -567,7 +567,7 @@ z_plug_session_stats_timeout(gpointer user_data)
 }
 
 static ZPolicyObj *
-z_plug_session_query_bandwidth(ZPlugSession *self, gchar *name, gpointer value G_GNUC_UNUSED)
+z_plug_session_query_bandwidth(ZPlugSession *self, gchar *name, gpointer  /* value */)
 {
   GTimeVal now, spent;
   double bandwidth = 0.0;

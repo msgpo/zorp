@@ -8,7 +8,7 @@ Build-Depends: libpython2.7-dev, libzorpll7.0-dev (>=7.0.1.0), gperf, debhelper 
 Package: zorp
 Section: net
 Architecture: any
-Depends: ${shlibs:Depends}, python-openssl, python-dnspython, libzorp7.0-1 (= ${binary:Version}), python-zorp-base (>= ${source:Version})
+Depends: ${shlibs:Depends}, python-openssl, python-dnspython, libzorp7.0-2 (= ${binary:Version}), python-zorp-base (>= ${source:Version})
 Suggests: zorp-doc, zorp-modules (= ${source:Version}), zorp-munin-plugins, zorp-nagios-plugins, iptables-kzorp-addon, iptables-zorp-addons, kzorp-dkms (>= ${source:Version}), python-kzorp (>= ${source:Version}), kzorpd, kzorp-utils
 Pre-Depends: openssl, zorp-base (= ${source:Version})
 Description: An advanced protocol analyzing firewall
@@ -24,7 +24,7 @@ Description: An advanced protocol analyzing firewall
  of the attacks do not cross a Zorp based firewall even if the given service
  is permitted.
 
-Package: libzorp7.0-1
+Package: libzorp7.0-2
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -39,7 +39,7 @@ Description: The runtime library of Zorp
 Package: libzorp7.0-dev
 Section: libdevel
 Architecture: any
-Depends: libpython2.7-dev, libzorpll7.0-dev, libzorp7.0-1 (= ${binary:Version}), ${misc:Depends}
+Depends: libpython2.7-dev, libzorpll7.0-dev, libzorp7.0-2 (= ${binary:Version}), ${misc:Depends}
 Conflicts: zorp-dev, libzorp0-dev
 Description: Development files needed to compile Zorp modules
  Zorp is a new generation firewall. It is essentially a transparent proxy

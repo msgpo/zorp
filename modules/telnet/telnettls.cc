@@ -461,7 +461,7 @@ telnet_tls_handle_option_or_suboption(TelnetProxy *self, ZEndpoint ep, guint8 co
  * @return Verdict about the suboption.
  */
 ZVerdict
-telnet_tls_handle_suboption(TelnetProxy *self, ZEndpoint ep, guint8 option G_GNUC_UNUSED, ZPktBuf *suboption_buffer G_GNUC_UNUSED)
+telnet_tls_handle_suboption(TelnetProxy *self, ZEndpoint ep, guint8  /* option */, ZPktBuf * /* suboption_buffer */)
 {
   return telnet_tls_handle_option_or_suboption(self, ep, 0, SM_ENTRY_FROM_SUBOPTION_NEG);
 }
@@ -474,7 +474,7 @@ telnet_tls_handle_suboption(TelnetProxy *self, ZEndpoint ep, guint8 option G_GNU
  * @return Verdict about the option.
  */
 ZVerdict
-telnet_tls_handle_option(TelnetProxy *self, ZEndpoint ep, guint8 command, guint8 option G_GNUC_UNUSED)
+telnet_tls_handle_option(TelnetProxy *self, ZEndpoint ep, guint8 command, guint8 option)
 {
   z_proxy_log(self, TELNET_DEBUG, 7, "TLS: Handle option; side='%s', command='%hhu', option='%hhu'", EP_STR(ep), command, option);
   return telnet_tls_handle_option_or_suboption(self, ep, command, SM_ENTRY_FROM_OPTION_NEG);

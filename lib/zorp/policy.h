@@ -80,7 +80,7 @@ gboolean z_policy_cleanup(ZPolicy *self,
 #define z_policy_exc_attribute_error PyExc_AttributeError
 #define z_policy_exc_runtime_error PyExc_RuntimeError
 
-void z_policy_raise_exception(gchar *exception_name, const gchar *desc);
+void z_policy_raise_exception(const gchar *exception_name, const gchar *desc);
 void z_policy_raise_exception_obj(ZPolicyObj *exc, const gchar *desc);
 
 #define z_policy_lock z_policy_thread_acquire
@@ -182,7 +182,7 @@ int z_policy_event(ZPolicyObj *handler, const char *name, ZPolicyObj *args, gcha
 PyObject *z_policy_call_object(PyObject *func, PyObject *args, const gchar *session_id);
 gint z_policy_setattr(ZPolicyObj *handler, char *name, ZPolicyObj *value);
 gint z_policy_setattr_expr(PyObject *container, const char *name, PyObject *new_value);
-ZPolicyObj *z_policy_getattr(ZPolicyObj *handler, char *name);
+ZPolicyObj *z_policy_getattr(ZPolicyObj *handler, const char *name);
 PyObject *z_policy_getattr_expr(PyObject *container, const char *name);
 PyObject *z_session_getattr(PyObject *handler, const char *name);
 PyObject *z_global_getattr(const gchar *name);

@@ -37,7 +37,7 @@
  * The new instance
  */
 static PyObject *
-z_policy_sockaddr_inet_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args)
+z_policy_sockaddr_inet_new_instance(PyObject * /* s */, PyObject *args)
 {
   ZSockAddr *sa;
   PyObject *res;
@@ -98,7 +98,7 @@ z_policy_sockaddr_inet_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args)
  * The new instance
  */
 static PyObject *
-z_policy_sockaddr_inet_new_hostname(PyObject *s G_GNUC_UNUSED, PyObject *args)
+z_policy_sockaddr_inet_new_hostname(PyObject * /* s */, PyObject *args)
 {
   ZSockAddr *sa;
   PyObject *res;
@@ -138,7 +138,7 @@ z_policy_sockaddr_inet_new_hostname(PyObject *s G_GNUC_UNUSED, PyObject *args)
  * The new instance
  */
 static PyObject *
-z_policy_sockaddr_inet_range_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args)
+z_policy_sockaddr_inet_range_new_instance(PyObject * /* s */, PyObject *args)
 {
   PyObject *res;
   ZSockAddr *sa;
@@ -171,7 +171,7 @@ z_policy_sockaddr_inet_range_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *a
  * The new instance
  */
 static PyObject *
-z_policy_sockaddr_inet6_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args)
+z_policy_sockaddr_inet6_new_instance(PyObject * /* s */, PyObject *args)
 {
   PyObject *res;
   ZSockAddr *sa;
@@ -204,7 +204,7 @@ z_policy_sockaddr_inet6_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args)
  * The new instance
  */
 static PyObject *
-z_policy_sockaddr_unix_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args)
+z_policy_sockaddr_unix_new_instance(PyObject * /* s */, PyObject *args)
 {
   ZSockAddr *sa;
   PyObject *res;
@@ -239,7 +239,7 @@ PyMethodDef z_policy_sockaddr_funcs[] =
  * Python string containing the dump
  */
 static ZPolicyObj *
-z_policy_sockaddr_format(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_GNUC_UNUSED)
+z_policy_sockaddr_format(gpointer user_data, ZPolicyObj *args, ZPolicyObj * /* kw */)
 {
   ZSockAddr *sa = (ZSockAddr *) user_data;
   char buf[MAX_SOCKADDR_STRING];
@@ -261,7 +261,7 @@ z_policy_sockaddr_format(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_
  * New instance
  */
 static ZPolicyObj *
-z_policy_sockaddr_clone(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_GNUC_UNUSED)
+z_policy_sockaddr_clone(gpointer user_data, ZPolicyObj *args, ZPolicyObj * /* kw */)
 {
   PyObject *res;
   gint wild;
@@ -287,7 +287,7 @@ z_policy_sockaddr_clone(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_G
  * New instance
  */
 static ZPolicyObj *
-z_policy_sockaddr_equal(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_GNUC_UNUSED)
+z_policy_sockaddr_equal(gpointer user_data, ZPolicyObj *args, ZPolicyObj * /* kw */)
 {
   PyObject *other_obj, *res;
   ZSockAddr *this_sa = (ZSockAddr *) user_data, *other_sa;
@@ -341,7 +341,7 @@ z_policy_sockaddr_str(ZPolicyObj *s)
  * Returns None if the address family is not INET or INET6.
  */
 static ZPolicyObj *
-z_policy_sockaddr_pack(gpointer user_data, ZPolicyObj *args G_GNUC_UNUSED, ZPolicyObj *kw G_GNUC_UNUSED)
+z_policy_sockaddr_pack(gpointer user_data, ZPolicyObj * /* args */, ZPolicyObj * /* kw */)
 {
   ZSockAddr *sa = (ZSockAddr *) user_data;
 

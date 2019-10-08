@@ -5,8 +5,8 @@ jobs:
       - image: balasys/zorpgpl-circleci:7.0
     environment:
       - PACKAGE: "zorp"
-      - OBS_PROJECT_URL: "security:/Zorp:/7:/0:/1"
-      - OBS_PROJECT_DIR: "security:Zorp:7:0:1/zorp"
+      - OBS_PROJECT_URL: "security:/Zorp:/7:/0:/2"
+      - OBS_PROJECT_DIR: "security:Zorp:7:0:2/zorp"
     working_directory: ~/zorp
     steps:
       - checkout

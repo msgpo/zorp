@@ -78,7 +78,7 @@ z_policy_dispatch_format(ZPolicyObj *s)
 }
 
 static ZPolicyObj *
-z_policy_dispatch_bind_format(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_GNUC_UNUSED)
+z_policy_dispatch_bind_format(gpointer user_data, ZPolicyObj *args, ZPolicyObj * /* kw */)
 {
   ZDispatchBind *bind = (ZDispatchBind *) user_data;
   char buf[MAX_SOCKADDR_STRING];
@@ -133,15 +133,15 @@ z_policy_dispatch_bind_new(ZDispatchBind *bind)
 }
 
 static ZPolicyObj *
-z_policy_dispatch_bind_new_instance_sa(ZPolicyObj *self G_GNUC_UNUSED, ZPolicyObj *args, ZPolicyObj *kw_args)
+z_policy_dispatch_bind_new_instance_sa(ZPolicyObj * /* self */, ZPolicyObj *args, ZPolicyObj *kw_args)
 {
-  gchar *keywords[] = { "sa", "protocol", NULL };
+  const gchar *keywords[] = { "sa", "protocol", NULL };
   ZDispatchBind *bind;
   ZPolicyObj *policy_sa, *res;
   ZSockAddr *sa;
   guint protocol = ZD_PROTO_AUTO;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kw_args, "O|i", keywords, &policy_sa, &protocol))
+  if (!PyArg_ParseTupleAndKeywords(args, kw_args, "O|i", const_cast<char**>(keywords), &policy_sa, &protocol))
     {
       return NULL;
     }
@@ -160,15 +160,16 @@ z_policy_dispatch_bind_new_instance_sa(ZPolicyObj *self G_GNUC_UNUSED, ZPolicyOb
 }
 
 static ZPolicyObj *
-z_policy_dispatch_bind_new_instance_iface(ZPolicyObj *self G_GNUC_UNUSED, ZPolicyObj *args, ZPolicyObj *kw_args)
+z_policy_dispatch_bind_new_instance_iface(ZPolicyObj * /* self */, ZPolicyObj *args, ZPolicyObj *kw_args)
 {
-  gchar *keywords[] = { "iface", "port", "family", "protocol", "ip", NULL };
+  const gchar *keywords[] = { "iface", "port", "family", "protocol", "ip", NULL };
   ZDispatchBind *bind;
   ZPolicyObj *res;
   const gchar *iface = NULL, *ip = "0.0.0.0";
   guint protocol = ZD_PROTO_AUTO, port = 0, family = AF_INET;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kw_args, "si|iis", keywords, &iface, &port, &family, &protocol, &ip))
+  if (!PyArg_ParseTupleAndKeywords(args, kw_args, "si|iis", const_cast<char**>(keywords),
+                                   &iface, &port, &family, &protocol, &ip))
     {
       return NULL;
     }
@@ -184,15 +185,16 @@ z_policy_dispatch_bind_new_instance_iface(ZPolicyObj *self G_GNUC_UNUSED, ZPolic
 }
 
 static ZPolicyObj *
-z_policy_dispatch_bind_new_instance_iface_group(ZPolicyObj *self G_GNUC_UNUSED, ZPolicyObj *args, ZPolicyObj *kw_args)
+z_policy_dispatch_bind_new_instance_iface_group(ZPolicyObj * /* self */, ZPolicyObj *args, ZPolicyObj *kw_args)
 {
-  gchar *keywords[] = { "group", "port", "family", "protocol", NULL };
+  const gchar *keywords[] = { "group", "port", "family", "protocol", NULL };
   ZDispatchBind *bind;
   ZPolicyObj *res, *group_obj;
   guint group = 0;
   guint protocol = ZD_PROTO_AUTO, port = 0, family = AF_INET;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kw_args, "Oi|ii", keywords, &group_obj, &port, &family, &protocol))
+  if (!PyArg_ParseTupleAndKeywords(args, kw_args, "Oi|ii", const_cast<char**>(keywords),
+                                   &group_obj, &port, &family, &protocol))
     {
       return NULL;
     }
@@ -296,7 +298,7 @@ static PyTypeObject z_policy_dispatch_type =
   Z_PYTYPE_TRAILER
 };
 
-static PyObject *z_policy_dispatch_destroy_method(ZPolicyDispatch *self, PyObject *args G_GNUC_UNUSED);
+static PyObject *z_policy_dispatch_destroy_method(ZPolicyDispatch *self, PyObject * /* args */);
 static PyMethodDef z_policy_dispatch_methods[] =
 {
   { "destroy",     (PyCFunction) z_policy_dispatch_destroy_method, 0, NULL },
@@ -425,7 +427,7 @@ z_policy_dispatch_destroy_notify(gpointer p)
  * Returns: Py_None
  */
 static PyObject *
-z_policy_dispatch_destroy_method(ZPolicyDispatch *self, PyObject *args G_GNUC_UNUSED)
+z_policy_dispatch_destroy_method(ZPolicyDispatch *self, PyObject * /* args */)
 {
   if (self->dispatch)
     {
@@ -477,7 +479,7 @@ z_policy_dispatch_getattr(PyObject *o, char *name)
  * The new instance
  */
 static PyObject *
-z_policy_dispatch_new_instance(PyObject *o G_GNUC_UNUSED, PyObject *args)
+z_policy_dispatch_new_instance(PyObject * /* o */, PyObject *args)
 {
   ZPolicyDispatch *self = NULL;
   PyObject *addr;
@@ -488,8 +490,8 @@ z_policy_dispatch_new_instance(PyObject *o G_GNUC_UNUSED, PyObject *args)
   gchar buf[MAX_SOCKADDR_STRING], *session_id;
   ZDispatchParams params;
   gint session_limit_dummy; /* session_limit is a noop */
-  gchar *tcp_keywords[] = { "accept_one", "backlog", "threaded", "mark_tproxy", "transparent", NULL };
-  gchar *udp_keywords[] = { "session_limit", "rcvbuf", "threaded", "mark_tproxy", "transparent", NULL };
+  const gchar *tcp_keywords[] = { "accept_one", "backlog", "threaded", "mark_tproxy", "transparent", NULL };
+  const gchar *udp_keywords[] = {"session_limit", "rcvbuf", "threaded", "mark_tproxy", "transparent", NULL };
 
   /* called by python, so interpreter is locked */
 
@@ -527,7 +529,7 @@ z_policy_dispatch_new_instance(PyObject *o G_GNUC_UNUSED, PyObject *args)
     case ZD_PROTO_TCP:
       params.tcp.accept_one = FALSE;
       params.tcp.backlog = 255;
-      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", tcp_keywords,
+      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", const_cast<char**>(tcp_keywords),
                                        &params.tcp.accept_one,
                                        &params.tcp.backlog,
                                        &params.common.threaded,
@@ -545,7 +547,7 @@ z_policy_dispatch_new_instance(PyObject *o G_GNUC_UNUSED, PyObject *args)
        * z_conntrack_new, and never referenced again */
 
       params.udp.rcvbuf = 65536;
-      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", udp_keywords,
+      if (!PyArg_ParseTupleAndKeywords(fake_args, keywords, "|iiiii", const_cast<char**>(udp_keywords),
                                        &session_limit_dummy,
                                        &params.udp.rcvbuf,
                                        &params.common.threaded,
@@ -668,7 +670,7 @@ z_policy_dispatch_free(ZPolicyDispatch *self)
  * lookup was not successful.
  */
 static PyObject *
-z_policy_dispatch_get_kzorp_result(PyObject *o G_GNUC_UNUSED, PyObject *args)
+z_policy_dispatch_get_kzorp_result(PyObject * /* o */, PyObject *args)
 {
   gint fd;
   gint family;

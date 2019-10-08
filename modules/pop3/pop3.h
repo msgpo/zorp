@@ -151,7 +151,7 @@ typedef struct _Pop3Proxy
 extern ZClass Pop3Proxy__class;
 
 /* pop3.c */
-void pop3_response_reject(Pop3Proxy *self, gchar *error_msg);
+void pop3_response_reject(Pop3Proxy *self, const gchar *error_msg);
 void pop3_response_write(Pop3Proxy *self);
 GIOStatus pop3_write_client(Pop3Proxy *self, const char *msg);
 

@@ -27,7 +27,7 @@
 
 BOOST_AUTO_TEST_CASE(test_smtp_parse_atom)
 {
-  gchar *end, *str;
+  const gchar *end, *str;
 
 #define OFFSET_TO_PTR(str, offset) (&str[offset])
 
@@ -71,10 +71,10 @@ BOOST_AUTO_TEST_CASE(test_smtp_parse_atom)
 
 BOOST_AUTO_TEST_CASE(test_smtp_parse_domain)
 {
-  gchar *end;
+  const gchar *end;
 
 #define TEST_DOMAIN(str, expected) do {                  \
-    gchar *_end;                                         \
+    const gchar *_end;                                    \
     BOOST_CHECK(smtp_parse_domain(NULL, str, &_end));       \
     BOOST_CHECK_EQUAL(_end - str, strlen(expected));   \
   } while (0)

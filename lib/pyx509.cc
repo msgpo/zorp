@@ -189,7 +189,7 @@ zorp_certificate_fix_key_usage(X509 *certificate)
 }
 
 static ZPolicyObj *
-z_py_zorp_certificate_handle_extensions(gpointer user_data, ZPolicyObj *args, ZPolicyObj *kw G_GNUC_UNUSED)
+z_py_zorp_certificate_handle_extensions(gpointer user_data, ZPolicyObj *args, ZPolicyObj * /* kw */)
 {
   X509 *certificate = (X509 *) user_data;
   ZPolicyObj *white_list;
@@ -236,7 +236,7 @@ z_py_zorp_certificate_handle_extensions(gpointer user_data, ZPolicyObj *args, ZP
 }
 
 static PyObject *
-z_policy_zorp_certificate_new_instance(PyObject *s G_GNUC_UNUSED, PyObject *args)
+z_policy_zorp_certificate_new_instance(PyObject * /* s */, PyObject *args)
 {
   gchar *cert;
   if (!PyArg_Parse(args, "(s)", &cert))
@@ -790,7 +790,7 @@ z_py_zorp_crl_list_ass_subscript(ZorpCRLList *self, PyObject *ndx, PyObject *new
 }
 
 ZPolicyObj *
-z_py_ssl_certificate_get(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value)
+z_py_ssl_certificate_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
 {
   X509 **cert = (X509 **) value;
 
@@ -798,7 +798,7 @@ z_py_ssl_certificate_get(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, 
 }
 
 int
-z_py_ssl_certificate_set(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value, ZPolicyObj *new_)
+z_py_ssl_certificate_set(ZProxy * /* self */, gchar * /* name */, gpointer value, ZPolicyObj *new_)
 {
   X509 **cert = (X509 **) value;
 
@@ -828,13 +828,13 @@ z_py_ssl_certificate_free(gpointer value)
 }
 
 ZPolicyObj *
-z_py_ssl_privkey_get(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value G_GNUC_UNUSED)
+z_py_ssl_privkey_get(ZProxy * /* self */, gchar * /* name */, gpointer  /* value */)
 {
   return PyString_FromString("Private key retrieval is not supported.");
 }
 
 int
-z_py_ssl_privkey_set(ZProxy *self, gchar *name G_GNUC_UNUSED, gpointer value, ZPolicyObj *new_)
+z_py_ssl_privkey_set(ZProxy *self, gchar * /* name */, gpointer value, ZPolicyObj *new_)
 {
   EVP_PKEY **pkey = (EVP_PKEY **) value;
   GString       *passphrase;
@@ -878,7 +878,7 @@ z_py_ssl_privkey_free(gpointer value)
 }
 
 ZPolicyObj *
-z_py_ssl_cert_list_get(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value)
+z_py_ssl_cert_list_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
 {
   STACK_OF(X509) **certlist = (STACK_OF(X509) **) value;
 
@@ -894,7 +894,7 @@ z_py_ssl_cert_list_free(gpointer value)
 }
 
 ZPolicyObj *
-z_py_ssl_cert_name_list_get(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value)
+z_py_ssl_cert_name_list_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
 {
   STACK_OF(X509_NAME) **certnamelist = (STACK_OF(X509_NAME) **) value;
 
@@ -910,7 +910,7 @@ z_py_ssl_cert_name_list_free(gpointer value)
 }
 
 ZPolicyObj *
-z_py_ssl_crl_list_get(ZProxy *self G_GNUC_UNUSED, gchar *name G_GNUC_UNUSED, gpointer value)
+z_py_ssl_crl_list_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
 {
   STACK_OF(X509_CRL) **crllist = (STACK_OF(X509_CRL) **) value;
 

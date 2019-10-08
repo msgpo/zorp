@@ -347,7 +347,7 @@ http_ftp_initiate_passive_data(HttpProxy *self)
  * yet implemented.
  **/
 static gboolean
-http_ftp_initiate_active_data(HttpProxy *self G_GNUC_UNUSED)
+http_ftp_initiate_active_data(HttpProxy * /* self */)
 {
   return FALSE;
 }

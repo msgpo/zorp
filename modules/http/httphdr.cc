@@ -106,7 +106,7 @@ http_log_headers(HttpProxy *self, ZEndpoint side, const gchar *tag)
    added header */
 
 HttpHeader *
-http_add_header(HttpHeaders *hdrs, const gchar *name, gint name_len, gchar *value, gint value_len)
+http_add_header(HttpHeaders *hdrs, const gchar *name, gint name_len, const gchar *value, gint value_len)
 {
   HttpHeader *h;
   HttpHeader *orig;

@@ -116,7 +116,7 @@ z_dim_hash_nextstep(gchar *key, guint flags)
  * @return TRUE on success, FALSE if the destination buffer is too short
  */
 static gboolean
-z_dim_hash_table_makekey(gchar *new_key, guint key_len, ZDimHashTable *self G_GNUC_UNUSED, guint num, gchar **key_parts)
+z_dim_hash_table_makekey(gchar *new_key, guint key_len, ZDimHashTable * /* self */, guint num, gchar **key_parts)
 {
   guint keylen;
   guint i;

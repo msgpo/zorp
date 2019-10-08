@@ -129,7 +129,7 @@ z_policy_stream_new(ZStream *str)
  * Returns: the newly allocated Python object
  **/
 static PyObject *
-z_policy_stream_new_instance(PyObject *o G_GNUC_UNUSED, PyObject *args)
+z_policy_stream_new_instance(PyObject * /* o */, PyObject *args)
 {
   ZPolicyStream *self;
   char *name;
@@ -328,7 +328,7 @@ z_policy_stream_repr(PyObject *o)
  */
 
 static PyObject *
-z_policy_stream_readline(PyObject *o, PyObject *args G_GNUC_UNUSED)
+z_policy_stream_readline(PyObject *o, PyObject * /* args */)
 {
   ZPolicyStream *self = (ZPolicyStream *) o;
   gchar *buf;
@@ -430,7 +430,7 @@ z_policy_stream_write(PyObject *o, PyObject *args)
  * Close method exported to Python.
  **/
 static PyObject *
-z_policy_stream_close(PyObject *o, PyObject *args G_GNUC_UNUSED)
+z_policy_stream_close(PyObject *o, PyObject * /* args */)
 {
   ZPolicyStream *self = (ZPolicyStream *) o;
 
@@ -453,7 +453,7 @@ z_policy_stream_module_init(void)
   PyImport_AddModule("Zorp.Stream");
   module = Py_InitModule("Zorp.Stream", z_policy_stream_funcs);
 
-  z_policy_stream_exception = PyErr_NewException("Zorp.Stream.StreamException", NULL, NULL);
+  z_policy_stream_exception = PyErr_NewException(const_cast<char*>("Zorp.Stream.StreamException"), NULL, NULL);
   Py_INCREF(z_policy_stream_exception);
   PyModule_AddObject(module, "StreamException", z_policy_stream_exception);
 }

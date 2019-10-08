@@ -206,13 +206,15 @@ class StartAlgorithm(ProcessAlgorithm):
 
         return command
 
-    def waitTilTimoutToStart(self):
+    def waitTilTimoutToStart(self, start_process):
         t = 1
         try:
             delay = self.ZORPCTLCONF['STOP_CHECK_DELAY']
         except KeyError:
             delay = 1
-        while t <= self.start_timeout and not self.isRunning(self.instance.process_name):
+        while (t <= self.start_timeout and
+               not self.isRunning(self.instance.process_name) and
+               not start_process.poll()):
             time.sleep(delay)
             t += 1
 
@@ -241,10 +243,10 @@ class StartAlgorithm(ProcessAlgorithm):
         environment = None
 
         try:
-            subprocess.Popen(args, env=environment)
+            start_process = subprocess.Popen(args, env=environment)
         except OSError:
             pass
-        self.waitTilTimoutToStart()
+        self.waitTilTimoutToStart(start_process)
 
         running = self.isRunning(self.instance.process_name)
         if running:

@@ -343,7 +343,7 @@ telnet_read(TelnetProxy *self, ZStream *stream, ZEndpoint ep)
 }
 
 static gboolean
-telnet_client_read(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+telnet_client_read(ZStream *stream, GIOCondition  /* cond */, gpointer user_data)
 {
   TelnetProxy   *self = Z_CAST(user_data, TelnetProxy);
   gboolean      res;
@@ -356,7 +356,7 @@ telnet_client_read(ZStream *stream, GIOCondition cond G_GNUC_UNUSED, gpointer us
 }
 
 static gboolean
-telnet_server_read(ZStream *stream G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer user_data)
+telnet_server_read(ZStream *stream, GIOCondition  /* cond */, gpointer user_data)
 {
   TelnetProxy   *self = Z_CAST(user_data, TelnetProxy);
   gboolean      res;

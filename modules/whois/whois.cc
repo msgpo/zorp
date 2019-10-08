@@ -98,7 +98,7 @@ whois_register_vars(WhoisProxy *self)
 
   +*/
 static void
-whois_config_init(WhoisProxy *self G_GNUC_UNUSED)
+whois_config_init(WhoisProxy * /* self */)
 {
   /* should initialize self based on settings previously set by the config event handler */
 }
@@ -374,8 +374,6 @@ whois_proxy_new(ZProxyParams *params)
 static void
 whois_proxy_free(ZObject *s)
 {
-  WhoisProxy *self G_GNUC_UNUSED = Z_CAST(s, WhoisProxy);
-
   z_enter();
   z_proxy_free_method(s);
   z_return();
