@@ -4,6 +4,7 @@
 #include <zorp/pyx509.h>
 #include <zorp/pyx509chain.h>
 #include <zorp/proxyssl.h>
+#include <zorp/x509lookup_crl_reloader.h>
 #include <openssl/rand.h>
 #include <cstring>
 
@@ -30,6 +31,12 @@ z_policy_encryption_free(ZPolicyEncryption *self)
       self->ssl_server_context = nullptr;
     }
 
+
+  if (self->x509_lookup_crl_reloader)
+    {
+      delete self->x509_lookup_crl_reloader;
+      self->x509_lookup_crl_reloader = nullptr;
+    }
 
   z_policy_var_unref(self->ssl_opts.ssl_struct);
   self->ssl_opts.ssl_struct = nullptr;
@@ -69,6 +76,14 @@ z_policy_encryption_tlsext_servername_cb(SSL *ssl, int * /* _ad */, void * /* _a
   z_proxy_return(self, SSL_TLSEXT_ERR_OK);
 }
 
+static void
+z_policy_encryption_log_set_version_error(const char *side, const char *bound)
+{
+  char buf[128];
+  z_log(nullptr, CORE_ERROR, 4, "Error setting %s SSL_CTX %s protocol version; error='%s'",
+                                side, bound, z_ssl_get_error_str(buf, sizeof(buf)));
+}
+
 static bool
 z_policy_encryption_set_methods_and_security(ZPolicyEncryption *self,
                                              const encryption_security_type &client_security, const encryption_security_type &server_security
@@ -81,9 +96,14 @@ z_policy_encryption_set_methods_and_security(ZPolicyEncryption *self,
   if (client_security != ENCRYPTION_SEC_NONE)
     {
       self->ssl_client_context = SSL_CTX_new(TLS_server_method());
-      SSL_CTX_set_min_proto_version(self->ssl_client_context, TLS1_VERSION);
 
       SSL_CTX_set_options(self->ssl_client_context, SSL_OP_SINGLE_ECDH_USE);
+
+      if (!SSL_CTX_set_min_proto_version(self->ssl_client_context, TLS1_VERSION))
+        z_policy_encryption_log_set_version_error("client", "min");
+
+      if (!SSL_CTX_set_max_proto_version(self->ssl_client_context, TLS1_2_VERSION))
+        z_policy_encryption_log_set_version_error("client", "max");
 
       SSL_CTX_set_app_data(self->ssl_client_context, self);
 
@@ -96,11 +116,16 @@ z_policy_encryption_set_methods_and_security(ZPolicyEncryption *self,
   if (server_security != ENCRYPTION_SEC_NONE)
     {
       self->ssl_server_context = SSL_CTX_new(TLS_client_method());
-      SSL_CTX_set_min_proto_version(self->ssl_server_context, TLS1_VERSION);
 
       SSL_CTX_set_app_data(self->ssl_server_context, self);
 
       SSL_CTX_set_options(self->ssl_server_context, SSL_OP_SINGLE_ECDH_USE);
+
+      if (!SSL_CTX_set_min_proto_version(self->ssl_server_context, TLS1_VERSION))
+        z_policy_encryption_log_set_version_error("server", "min");
+
+      if (!SSL_CTX_set_max_proto_version(self->ssl_server_context, TLS1_2_VERSION))
+        z_policy_encryption_log_set_version_error("server", "max");
 
 
       SSL_CTX_set_timeout(self->ssl_server_context, self->ssl_server_context_timeout);
@@ -142,18 +167,6 @@ z_policy_encryption_register_vars(ZPolicyEncryption *self)
                          &self->ssl_opts.verify_depth[EP_CLIENT]);
   z_policy_dict_register(dict, Z_VT_ALIAS, "client_verify_depth", Z_VF_RW,
                          "client_max_verify_depth");
-  z_policy_dict_register(dict, Z_VT_CUSTOM, "client_local_ca_list", Z_VF_RW,
-                         &self->ssl_opts.local_ca_list[EP_CLIENT],
-                         z_py_ssl_cert_list_get, NULL, z_py_ssl_cert_list_free,
-                         self, NULL,              /* user_data, user_data_free */
-                         NULL,                    /* end of CUSTOM args */
-                         NULL);
-  z_policy_dict_register(dict, Z_VT_CUSTOM, "client_local_crl_list", Z_VF_RW,
-                         &self->ssl_opts.local_crl_list[EP_CLIENT],
-                         z_py_ssl_crl_list_get, NULL, z_py_ssl_crl_list_free,
-                         self, NULL,              /* user_data, user_data_free */
-                         NULL,                    /* end of CUSTOM args */
-                         NULL);
   z_policy_dict_register(dict, Z_VT_STRING, "client_verify_ca_directory",
                          Z_VF_RW | Z_VF_CONSUME,
                          self->ssl_opts.verify_ca_directory[EP_CLIENT]);
@@ -185,6 +198,9 @@ z_policy_encryption_register_vars(ZPolicyEncryption *self)
   z_policy_dict_register(dict, Z_VT_STRING, "dh_params",
                          Z_VF_RW | Z_VF_CONSUME,
                          self->ssl_opts.dh_params);
+  z_policy_dict_register(dict, Z_VT_STRING, "client_ca_hint_directory",
+                         Z_VF_RW | Z_VF_CONSUME,
+                         self->ssl_opts.ca_hint_directory);
 
   /* server side */
   z_policy_dict_register(dict, Z_VT_HASH, "server_handshake", Z_VF_READ | Z_VF_CONSUME,
@@ -195,18 +211,6 @@ z_policy_encryption_register_vars(ZPolicyEncryption *self)
                          &self->ssl_opts.verify_depth[EP_SERVER]);
   z_policy_dict_register(dict, Z_VT_ALIAS, "server_verify_depth", Z_VF_RW,
                          "server_max_verify_depth");
-  z_policy_dict_register(dict, Z_VT_CUSTOM, "server_local_ca_list", Z_VF_RW,
-                         &self->ssl_opts.local_ca_list[EP_SERVER],
-                         z_py_ssl_cert_list_get, NULL, z_py_ssl_cert_list_free,
-                         self, NULL,              /* user_data, user_data_free */
-                         NULL,                    /* end of CUSTOM args */
-                         NULL);
-  z_policy_dict_register(dict, Z_VT_CUSTOM, "server_local_crl_list", Z_VF_RW,
-                         &self->ssl_opts.local_crl_list[EP_SERVER],
-                         z_py_ssl_crl_list_get, NULL, z_py_ssl_crl_list_free,
-                         self, NULL,              /* user_data, user_data_free */
-                         NULL,                    /* end of CUSTOM args */
-                         NULL);
   z_policy_dict_register(dict, Z_VT_STRING, "server_verify_ca_directory",
                          Z_VF_RW | Z_VF_CONSUME,
                          self->ssl_opts.verify_ca_directory[EP_SERVER]);
@@ -263,8 +267,6 @@ z_policy_encryption_set_config_defaults(ZPolicyEncryption *self)
       self->ssl_opts.verify_depth[side] = 4;
       self->ssl_opts.verify_ca_directory[side] = g_string_new("");
       self->ssl_opts.verify_crl_directory[side] = g_string_new("");
-      self->ssl_opts.local_ca_list[side] = sk_X509_new_null();
-      self->ssl_opts.local_crl_list[side] = sk_X509_CRL_new_null();
       self->ssl_opts.permit_invalid_certificates[side] = FALSE;
       self->ssl_opts.permit_missing_crl[side] = TRUE;
       self->ssl_opts.handshake_hash[side] = g_hash_table_new(g_str_hash, g_str_equal);
@@ -281,17 +283,14 @@ z_policy_encryption_set_config_defaults(ZPolicyEncryption *self)
   self->ssl_opts.dh_params = g_string_new("");
 
   self->ssl_opts.server_setup_key_cb = NULL;
-  self->ssl_opts.server_setup_ca_list_cb = NULL;
-  self->ssl_opts.server_setup_crl_list_cb = NULL;
   self->ssl_opts.server_verify_cert_cb = NULL;
 
   self->ssl_opts.client_setup_key_cb = NULL;
-  self->ssl_opts.client_setup_ca_list_cb = NULL;
-  self->ssl_opts.client_setup_crl_list_cb = NULL;
   self->ssl_opts.client_verify_cert_cb = NULL;
 
   self->ssl_opts.server_check_subject = TRUE;
   self->ssl_opts.disable_renegotiation = TRUE;
+  self->ssl_opts.ca_hint_directory = g_string_new("");
 
   self->ssl_opts.ssl_dict = z_policy_dict_new();
 
@@ -336,6 +335,7 @@ z_policy_encryption_init_instance(ZPolicyEncryption *self, PyObject *args, PyObj
   z_log(NULL, CORE_DEBUG, 6, "ZPolicyEncryption created; ");
 
 
+  self->x509_lookup_crl_reloader = new X509LookupCrlReloader;
   return 0;
 }
 
@@ -346,11 +346,11 @@ z_policy_encryption_setup_verify_directories(ZPolicyEncryption *self, SSL_CTX *c
   if (self->ssl_opts.verify_ca_directory[side]->len > 0 ||
       self->ssl_opts.verify_crl_directory[side]->len > 0)
     {
-      X509_LOOKUP *lookup = X509_STORE_add_lookup(SSL_CTX_get_cert_store(ctx), X509_LOOKUP_hash_dir());
-
+      X509_LOOKUP *lookup = X509_STORE_add_lookup(SSL_CTX_get_cert_store(ctx), self->x509_lookup_crl_reloader->get_lookup_method());
       if (self->ssl_opts.verify_ca_directory[side]->len > 0)
-        X509_LOOKUP_add_dir(lookup, self->ssl_opts.verify_ca_directory[side]->str, X509_FILETYPE_PEM);
-
+        {
+          X509_LOOKUP_add_dir(lookup, self->ssl_opts.verify_ca_directory[side]->str, X509_FILETYPE_PEM);
+        }
       if (self->ssl_opts.verify_crl_directory[side]->len > 0)
         {
           X509_LOOKUP_add_dir(lookup, self->ssl_opts.verify_crl_directory[side]->str, X509_FILETYPE_PEM);
@@ -388,7 +388,9 @@ z_policy_encryption_setup_set_verify(ZPolicyEncryption *self, SSL_CTX *ctx, ZEnd
     verify_mode = SSL_VERIFY_PEER;
 
   if (verify_mode)
-    SSL_CTX_set_verify(ctx, verify_mode, z_proxy_ssl_verify_peer_cert_cb);
+    {
+      SSL_CTX_set_verify(ctx, verify_mode, z_proxy_ssl_verify_peer_cert_cb);
+    }
 }
 
 #include <zorp/pyencryption_private.h>
@@ -458,6 +460,13 @@ z_policy_encryption_setup_method(ZPolicyEncryption *self, PyObject * /* args */)
         continue;
 
       z_policy_encryption_setup_verify_directories(self, ctx, side);
+
+      if (side == EP_CLIENT && self->ssl_opts.ca_hint_directory->len != 0 &&
+          !z_ssl_set_trusted_ca_list(ctx, self->ssl_opts.ca_hint_directory->str))
+        {
+          z_log(NULL, CORE_ERROR, 1, "Error loading subject names of trusted CA certificates; cadir='%s'",
+                self->ssl_opts.ca_hint_directory->str);
+        }
 
       if (!SSL_CTX_set_cipher_list(ctx, self->ssl_opts.ssl_cipher[side]->str))
         {

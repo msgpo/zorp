@@ -20,7 +20,8 @@
 ##
 ############################################################################
 
-from Zorp import log, getInstanceId, CORE_SESSION, CORE_POLICY, Globals, TRUE, ZD_PROTO_AUTO, CORE_DEBUG
+from Common import log
+from Zorp import getInstanceId, CORE_SESSION, CORE_POLICY, Globals, TRUE, ZD_PROTO_AUTO, CORE_DEBUG
 from Dispatch import BaseDispatch
 from Session import MasterSession
 from Proxy import Proxy

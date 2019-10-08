@@ -506,7 +506,11 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
         index += 3
         index += length
 
-        if fragments[index] != self._handshake_type:
+        # When the server reply contains a Server Hello message followed by a Change Cipher Spec message -- which is
+        # the case if protocol version is 1.3 or version < 1.3 and session reuse is happened -- than the Change Cipher
+        # Spec is not copied into fragments variable as it is not handshake message, therefore the length of fragments
+        # is less than index which causes IndexError.
+        if index >= len(fragments) or fragments[index] != self._handshake_type:
             log(None, CORE_DEBUG, 6, "SERVER_SIDE - Certificate not found")
             return DetectResult(DetectResultType.NOMATCH)
         index += 1
@@ -671,7 +675,7 @@ class TlsDetector(AbstractDetector):
         session_id_length, offset = self._parse_numeric(data, offset, self._TLS_HANDSHAKE_HELLO_SESSION_ID_LENGTH_SIZE)
         self._raise_if_not_enough_data(data, offset, session_id_length)
 
-        return offset
+        return offset + session_id_length
 
     def _parse_tls_handshake_client_hello(self, data, offset):
         cipher_suites_length, offset = self._parse_numeric(
@@ -757,7 +761,7 @@ class SniDetector(TlsDetector):
             <description>Matcher class (e.g.: RegexpMatcher) used to
             check and filter hostnames in Server Name Indication TLS
             extension, for example,
-            <parameter>DetectorPolicy(name="MySniDetector", detector=SniDetector(RegexpMatcher(match_list=("www.example.com",))))
+            <parameter>DetectorPolicy(name="MySniDetector", detector=SniDetector(RegexpMatcher(match_list=("www.example.com",))))</parameter>
             </description>
           </attribute>
        </attributes>

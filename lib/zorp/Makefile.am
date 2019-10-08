@@ -38,6 +38,7 @@ ZORP_H = \
 	sessionid.h \
 	tpsocket.h \
 	szig.h \
+	x509lookup_crl_reloader.h \
 	zorp.h \
 	zorpconfig.h \
 	zpython.h

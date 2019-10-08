@@ -24,6 +24,7 @@
 
 #include <zorp/zpython.h>
 
+void z_py_zorp_common_init(void);
 void z_py_zorp_core_init(void);
 
 #endif

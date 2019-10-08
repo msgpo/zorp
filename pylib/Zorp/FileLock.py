@@ -22,7 +22,8 @@
 
 import fcntl
 
-from Zorp import log, CORE_ERROR
+from Common import log
+from Zorp import CORE_ERROR
 
 class FileLock(object):
     '''

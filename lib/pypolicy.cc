@@ -1055,14 +1055,13 @@ z_policy_zorp_builtin_init(void)
  * Modules that are exist in Python and extended from C should be imported.
  */
 static bool
-z_policy_import_extendable_python_modules(void)
+z_policy_import_extendable_python_module(const char *module_name)
 {
-  for (const char *module_name : { "Zorp.Zorp", "Zorp.SockAddr", "Zorp.Stream" } )
-    if (!PyImport_ImportModule(module_name))
-      {
-        z_log(NULL, CORE_ERROR, 0, "Error importing python module; modulename='%s'", module_name);
-        return false;
-      }
+  if (!PyImport_ImportModule(module_name))
+    {
+      z_log(NULL, CORE_ERROR, 0, "Error importing python module; modulename='%s'", module_name);
+      return false;
+    }
   return true;
 }
 
@@ -1093,11 +1092,20 @@ z_policy_boot(ZPolicy *self)
 
   z_policy_forbid_writting_bytecode();
 
-  if (!z_policy_import_extendable_python_modules())
+  if (z_policy_import_extendable_python_module("Zorp.Common"))
+    z_py_zorp_common_init();
+  else
     {
       z_policy_thread_release(self->main_thread);
       return FALSE;
     }
+
+  for (const char *module_name : { "Zorp.Zorp", "Zorp.SockAddr", "Zorp.Stream" } )
+    if (!z_policy_import_extendable_python_module(module_name))
+      {
+        z_policy_thread_release(self->main_thread);
+        return FALSE;
+      }
 
   z_py_zorp_core_init();
   z_policy_zorp_builtin_init();

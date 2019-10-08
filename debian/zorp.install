@@ -1,3 +1,4 @@
 etc/zorp/*.sample
+etc/zorp/dh.pem
 usr/sbin/zorpctl
 usr/sbin/zorp

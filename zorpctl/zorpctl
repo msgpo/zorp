@@ -9,7 +9,7 @@ import json
 from Zorp.Instance import Instance
 
 from zorpctl.ZorpctlConf import ZorpctlConfig
-from zorpctl.CommandResults import CommandResultFailure
+from zorpctl.CommandResults import CommandResultSuccess, CommandResultFailure
 import zorpctl.utils as utils
 from zorpctl.UInterface import UInterface
 from zorpctl.Instances import ZorpHandler, InstanceHandler
@@ -64,32 +64,43 @@ class Zorpctl(object):
         return results
 
     @staticmethod
-    def sendSighupToKZorpd():
-        import os
-        import signal
-        try:
-            with open('/var/run/zorp/kzorpd.pid', 'r') as f:
-                kzorpd_pid = int(f.readline().strip())
-        except IOError as e:
-            UInterface.warnUser("Error getting kzorpd PID; error='%s'" % e.strerror)
-            return
-
-        try:
-            os.kill(kzorpd_pid, signal.SIGHUP)
-        except OSError as e:
-            Interface.warnUser("Error sending SIGHUP to kzorpd; error='%s'" % e.strerror)
+    def reloadkzorpd():
+        kzorpd_unit_name = 'kzorpd.service'
+        if subprocess.call(['/bin/systemctl', 'reload', kzorpd_unit_name]):
+            UInterface.warnUser("Error during invoking 'systemctl reload {}'".format(kzorpd_unit_name))
 
     @staticmethod
     def commandExit(results):
         """
         Return True if there was no CommandResultFailure in results otherwise False
         """
-        UInterface.informUser(results)
-        return not any(map((lambda x: isinstance(x, CommandResultFailure)), results))
+        all_success = True
+        for result in results:
+            if isinstance(result, CommandResultFailure):
+                UInterface.warnUser(result)
+                all_success = False
+            else:
+                UInterface.informUser(result)
+
+        return all_success
 
     @staticmethod
     def isStartedBySystemd():
         return os.getenv('ZORPCTL_STARTED_BY_SYSTEMD') == 'true'
+
+    @staticmethod
+    def hasProcessInInstanceList(list_of_instances):
+        if not list_of_instances:
+            return False
+
+        for instance_name in list_of_instances:
+            try:
+                name, number = Instance.splitInstanceName(instance_name)
+            except ValueError:
+                pass
+
+            if number is not None:
+                return True
 
     @staticmethod
     def start(listofinstances):
@@ -97,8 +108,11 @@ class Zorpctl(object):
         Starts Zorp instance(s) by instance name
         expects sequence of name(s)
         """
+        if Zorpctl.hasProcessInInstanceList(listofinstances):
+            return Zorpctl.commandExit([CommandResultFailure('Processes can not be started individualy')])
+
         UInterface.informUser("Starting %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
-        Zorpctl.sendSighupToKZorpd()
+        Zorpctl.reloadkzorpd()
 
         use_systemd = not Zorpctl.isStartedBySystemd()
 
@@ -115,6 +129,9 @@ class Zorpctl(object):
         Stops Zorp instance(s) by instance name
         expects sequence of name(s)
         """
+        if Zorpctl.hasProcessInInstanceList(listofinstances):
+            return Zorpctl.commandExit([CommandResultFailure('Processes can not be stopped individualy')])
+
         UInterface.informUser("Stopping %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
 
         results = []
@@ -132,7 +149,7 @@ class Zorpctl(object):
         expects sequence of name(s)
         """
         UInterface.informUser("Restarting %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
-        Zorpctl.sendSighupToKZorpd()
+        Zorpctl.reloadkzorpd()
 
         ret_stop = Zorpctl.stop(listofinstances)
         ret_start = Zorpctl.start(listofinstances)
@@ -145,7 +162,7 @@ class Zorpctl(object):
         expects sequence of name(s)
         """
         UInterface.informUser("Reloading %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
-        Zorpctl.sendSighupToKZorpd()
+        Zorpctl.reloadkzorpd()
 
         results = []
         if not listofinstances:
@@ -162,8 +179,11 @@ class Zorpctl(object):
         even if no-auto-start is set
         expects sequence of name(s)
         """
+        if Zorpctl.hasProcessInInstanceList(listofinstances):
+            return Zorpctl.commandExit([CommandResultFailure('Processes can not be started individualy')])
+
         UInterface.informUser("Starting %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
-        Zorpctl.sendSighupToKZorpd()
+        Zorpctl.reloadkzorpd()
 
         use_systemd = not Zorpctl.isStartedBySystemd()
 
@@ -183,6 +203,9 @@ class Zorpctl(object):
         with SIGKILL
         expects sequence of name(s)
         """
+        if Zorpctl.hasProcessInInstanceList(listofinstances):
+            return Zorpctl.commandExit([CommandResultFailure('Processes can not be stopped individualy')])
+
         UInterface.informUser("Stopping %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
 
         results = []
@@ -203,7 +226,7 @@ class Zorpctl(object):
         expects sequence of name(s)
         """
         UInterface.informUser("Restarting %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
-        Zorpctl.sendSighupToKZorpd()
+        Zorpctl.reloadkzorpd()
 
         ret_stop = Zorpctl.force_stop(listofinstances)
         ret_start = Zorpctl.force_start(listofinstances)
@@ -227,7 +250,7 @@ class Zorpctl(object):
         """
 
         UInterface.informUser("Reloading or Restarting %s:" % Zorpctl.zorpctlconf["ZORP_PRODUCT_NAME"])
-        Zorpctl.sendSighupToKZorpd()
+        Zorpctl.reloadkzorpd()
 
         if not listofinstances:
             reload_result = ZorpHandler.reload()

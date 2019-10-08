@@ -198,11 +198,13 @@ class TestTlsDetector(unittest.TestCase):
         self.assertEqual(
             self.detector.detect(
                 ZEndpoint.EP_CLIENT,
-                b'\x16\x03\x01\x00\x2f' +
+                b'\x16\x03\x01\x00\x4f' +
                 b'\x01\x00\x00\x0b\x03\x01' +
                 b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' +  # random
                 b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' +
-                b'\x00' +  # session id length
+                b'\x20' +  # session id length
+                b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' +  # session id
+                b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' +
                 b'\x00\x04' +  # cipher suites length
                 b'\x01\x02\x03\x04' +  # cipher suites
                 b'\x01' +  # compression methods length

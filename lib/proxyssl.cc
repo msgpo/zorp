@@ -561,109 +561,6 @@ z_proxy_ssl_load_local_key(ZProxySSLHandshake *handshake)
   z_proxy_return(self, TRUE);
 }
 
-static gboolean
-z_proxy_ssl_load_local_ca_list(ZProxySSLHandshake *handshake)
-{
-  ZProxy *self = handshake->proxy;
-  ZEndpoint ndx = handshake->side;
-  ZSSLSession *session = handshake->session;
-  int i, n;
-  X509_STORE *ctx;
-  guint policy_type;
-
-  z_proxy_enter(self);
-
-  z_policy_lock(self->thread);
-  if (z_proxy_ssl_callback_exists(self, ndx, "setup_ca_list"))
-    {
-      z_proxy_log(self, CORE_DEBUG, 3, "Use of setup_ca_list SSL callback is deprecated.");
-
-      if (!z_proxy_ssl_callback(self, ndx, "setup_ca_list", z_policy_var_build("(i)", ndx), &policy_type) ||
-          policy_type != PROXY_SSL_HS_ACCEPT)
-        {
-          z_policy_unlock(self->thread);
-          z_proxy_log(self, CORE_POLICY, 1, "Error fetching local trusted CA list; side='%s'", EP_STR(ndx));
-          z_proxy_return(self, FALSE);
-        }
-    }
-  z_policy_unlock(self->thread);
-
-  if (ndx == EP_CLIENT)
-    {
-      STACK_OF(X509_NAME) *sk;
-
-      sk = sk_X509_NAME_new_null();
-      if (!sk)
-        z_proxy_return(self, FALSE);
-
-      n = sk_X509_num(self->encryption->ssl_opts.local_ca_list[ndx]);
-      for (i = 0; i < n; i++)
-        sk_X509_NAME_push(sk, X509_NAME_dup(X509_get_subject_name(sk_X509_value(self->encryption->ssl_opts.local_ca_list[ndx],
-                                                                                i))));
-      SSL_set_client_CA_list(session->ssl, sk);
-    }
-
-  ctx = SSL_CTX_get_cert_store(SSL_get_SSL_CTX(session->ssl));
-  n = sk_X509_num(self->encryption->ssl_opts.local_ca_list[ndx]);
-  for (i = 0; i < n; i++)
-    X509_STORE_add_cert(ctx, sk_X509_value(self->encryption->ssl_opts.local_ca_list[ndx], i));
-  z_proxy_return(self, TRUE);
-}
-
-static gboolean
-z_proxy_ssl_load_local_crl_list(ZProxySSLHandshake *handshake, gchar *name)
-{
-  ZEndpoint ndx = handshake->side;
-  ZSSLSession *session = handshake->session;
-  ZProxy *self = handshake->proxy;
-  X509_STORE *ctx = SSL_CTX_get_cert_store(SSL_get_SSL_CTX(session->ssl));
-  guint policy_type;
-  int i;
-
-  z_proxy_enter(self);
-
-  z_policy_lock(self->thread);
-  if (z_proxy_ssl_callback_exists(self, ndx, "setup_crl_list"))
-    {
-      z_proxy_log(self, CORE_DEBUG, 3, "Use of setup_crl_list SSL callback is deprecated.");
-
-      if (!z_proxy_ssl_callback(self, ndx, "setup_crl_list", z_policy_var_build("(si)", name, ndx), &policy_type) ||
-          policy_type != PROXY_SSL_HS_ACCEPT)
-        {
-          z_policy_unlock(self->thread);
-          z_proxy_log(self, CORE_POLICY, 1, "Error fetching CRL list for CA; side='%s', ca='%s'", EP_STR(ndx), name);
-          z_proxy_return(self, FALSE);
-        }
-    }
-  z_policy_unlock(self->thread);
-
-  for (i = 0; i < sk_X509_CRL_num(self->encryption->ssl_opts.local_crl_list[ndx]); i++)
-    {
-      X509_CRL *crl;
-      char buf[512];
-
-      crl = sk_X509_CRL_value(self->encryption->ssl_opts.local_crl_list[ndx], i);
-      X509_NAME_oneline(X509_CRL_get_issuer(crl), buf, sizeof(buf));
-      if (strcmp(buf, name) == 0)
-        X509_STORE_add_crl(ctx, crl);
-    }
-  z_proxy_return(self, TRUE);
-}
-
-int
-z_proxy_ssl_verify_cb_allow_missing_crl(int ok, X509_STORE_CTX *ctx)
-{
-  bool *found_missing_crl =
-    reinterpret_cast<bool *>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
-  if (!ok && X509_STORE_CTX_get_error(ctx) == X509_V_ERR_UNABLE_TO_GET_CRL)
-    {
-     *found_missing_crl = true;
-      return 1;
-    }
-
-  return ok;
-}
-
 /*
  * These are the verify_errors we use as untrusted errors.
  */
@@ -689,10 +586,8 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void * /* user_data */)
   ZProxy *self = handshake->proxy;
   ZEndpoint side = handshake->side;
 
-  gboolean new_verify_callback, success;
+  gboolean verify_cert_ext, success;
   guint verdict;
-  gboolean ok, verify_valid;
-  gint verify_error;
   proxy_ssl_verify_type verify_type;
 
   z_proxy_enter(self);
@@ -703,7 +598,7 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void * /* user_data */)
     X509_free(self->tls_opts.peer_cert[side]);
 
   self->tls_opts.peer_cert[side] = X509_STORE_CTX_get0_cert(ctx);
-  self->tls_opts.certificate_trusted[side] = false;
+  self->tls_opts.certificate_trusted[side] = true;
 
   if (!X509_up_ref(X509_STORE_CTX_get0_cert(ctx)))
     {
@@ -712,45 +607,27 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void * /* user_data */)
     }
 
   verify_type = self->encryption->ssl_opts.verify_type[side];
-  new_verify_callback = z_proxy_ssl_callback_exists(self, side, "verify_cert_ext");
-  if (side == EP_SERVER)
-    z_proxy_ssl_load_local_ca_list(handshake);
+  verify_cert_ext = z_proxy_ssl_callback_exists(self, side, "verify_cert_ext");
 
-  bool found_missing_crl = false;
-  if (self->encryption->ssl_opts.verify_crl_directory[side]->len > 0)
-    {
-      X509_STORE_CTX_set_flags(ctx, X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
-
-      if (self->encryption->ssl_opts.permit_missing_crl[side])
-        {
-          X509_STORE_CTX_set_verify_cb(ctx, z_proxy_ssl_verify_cb_allow_missing_crl);
-          X509_STORE_CTX_set_ex_data(ctx, 0, &found_missing_crl);
-        }
-    }
-
-  verify_valid = X509_verify_cert(ctx);
-  verify_error = X509_STORE_CTX_get_error(ctx);
-
-  if (self->encryption->ssl_opts.permit_missing_crl[side] && found_missing_crl)
-    {
-      /* no CRL was found, but the configuration explicitly permits
-       * missing CRLs */
-
-      /*LOG This message indicates that the CRL of a CA in the certificate
-        chain was not found during verification but the proxy configuration
-        explicitly allows missing CRLs.
-       */
-      z_proxy_log(self, CORE_POLICY, 5, "Trying verification without CRL check as directed by the policy");
-    }
+  bool verify_failed = !X509_verify_cert(ctx);
+  gint verify_error = X509_STORE_CTX_get_error(ctx);
 
   z_policy_lock(self->thread);
-  if (new_verify_callback)
+  if (verify_cert_ext)
     {
       ZPolicyObj *peer_cert = z_py_ssl_certificate_get(nullptr, nullptr, &self->tls_opts.peer_cert[side]);
 
       z_policy_var_ref(self->handler);
-      success = z_proxy_ssl_callback(self, side, "verify_cert_ext",
-                                     z_policy_var_build("(i(ii)OO)", side, verify_valid, verify_error, peer_cert, self->handler), &verdict);
+      success = z_proxy_ssl_callback(self,
+                                     side,
+                                     "verify_cert_ext",
+                                     z_policy_var_build("(i(ii)OO)",
+                                                        side,
+                                                        !verify_failed && self->tls_opts.certificate_trusted[side],
+                                                        verify_error,
+                                                        peer_cert,
+                                                        self->handler),
+                                     &verdict);
 
       z_policy_var_unref(self->handler);
       z_policy_var_unref(peer_cert);
@@ -758,68 +635,31 @@ z_proxy_ssl_app_verify_cb(X509_STORE_CTX *ctx, void * /* user_data */)
   else
     success = z_proxy_ssl_callback(self, side, "verify_cert", z_policy_var_build("(i)", side), &verdict);
 
-  ok = 0;
   z_policy_unlock(self->thread);
+
+  bool ok = false;
   if (!success)
     goto exit;
 
-  if (!verify_valid)
+  if (verify_failed)
     z_proxy_log(self, CORE_INFO, 3, "Certificate verification failed, making policy decision; error='%s'",
                                     X509_verify_cert_error_string(verify_error));
 
   if (verdict == PROXY_SSL_HS_ACCEPT)
     {
-      switch (verify_type)
-        {
-        case ENCRYPTION_VERIFY_REQUIRED_TRUSTED:
-        case ENCRYPTION_VERIFY_OPTIONAL_TRUSTED:
-          ok = verify_valid;
-        break;
-
-        case ENCRYPTION_VERIFY_REQUIRED_UNTRUSTED:
-        case ENCRYPTION_VERIFY_OPTIONAL_UNTRUSTED:
-          if (!verify_valid)
-            {
-              if (self->encryption->ssl_opts.permit_invalid_certificates[side])
-                {
-                  z_proxy_log(self, CORE_POLICY, 3,
-                              "Accepting invalid certificate as directed by the policy; verify_error='%s'",
-                              X509_verify_cert_error_string(verify_error));
-                  ok = 1;
-                }
-              else if (z_proxy_ssl_verify_error_is_untrusted(verify_error))
-                {
-                  z_proxy_log(self, CORE_POLICY, 3,
-                              "Accepting untrusted certificate as directed by the policy; verify_error='%s'",
-                              X509_verify_cert_error_string(verify_error));
-                  ok = 1;
-                }
-            }
-          else
-            {
-              ok = verify_valid;
-            }
-        break;
-
-        case ENCRYPTION_VERIFY_NONE:
-          z_proxy_log(self, CORE_POLICY, 3,
-                      "Accepting untrusted certificate as directed by the policy; verify_error='%s'",
-                      X509_verify_cert_error_string(verify_error));
-          ok = 1;
-        break;
-        }
+      ok = !verify_failed;
     }
   else if (verdict == PROXY_SSL_HS_VERIFIED)
     {
-      if (!verify_valid)
+      if (verify_failed)
         z_proxy_log(self, CORE_POLICY, 3,
                     "Accepting untrusted certificate as directed by the policy; verify_error='%s'",
                     X509_verify_cert_error_string(verify_error));
-      ok = 1;
+      ok = true;
     }
   else
     {
-      ok = 0;
+      ok = false;
     }
 
 exit:
@@ -827,17 +667,15 @@ exit:
 }
 
 /* verify callback of the X509_STORE we set up when verifying
-   the peer's certificate. We are checking the CRLs here */
+   the peer's certificate. */
 int
-z_proxy_ssl_verify_peer_cert_cb(int ok, X509_STORE_CTX *ctx)
+z_proxy_ssl_verify_peer_cert_cb(int preverify_ok, X509_STORE_CTX *ctx)
 {
   SSL *ssl = (SSL *) X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
   ZProxySSLHandshake *handshake = (ZProxySSLHandshake *) SSL_get_app_data(ssl);
   ZProxy *self = handshake->proxy;
   ZEndpoint side = handshake->side;
-  X509_CRL *crl;
   X509_NAME *subject, *issuer;
-  int rc;
   char subject_name[512], issuer_name[512];
   int depth, verify_error;
 
@@ -847,15 +685,6 @@ z_proxy_ssl_verify_peer_cert_cb(int ok, X509_STORE_CTX *ctx)
   );
 
   z_proxy_enter(self);
-  /* if self->current_cert is a CA certificate, it should have
-     a CRL list referenced by its "subject". We check the validity of
-     the CRL when the CA certificate is verified.
-
-     if self->current_cert is either a subordinate CA or a simple X509
-     certificate, we must check whether the issuer's CRL has revoked
-     our cert. As openssl calls us in the chain order, verification
-     of the CRL had already been performed at this time.
-  */
   depth = X509_STORE_CTX_get_error_depth(ctx);
   verify_error = X509_STORE_CTX_get_error(ctx);
   subject = X509_get_subject_name(X509_STORE_CTX_get_current_cert(ctx));
@@ -863,150 +692,63 @@ z_proxy_ssl_verify_peer_cert_cb(int ok, X509_STORE_CTX *ctx)
   issuer = X509_get_issuer_name(X509_STORE_CTX_get_current_cert(ctx));
   X509_NAME_oneline(issuer, issuer_name, sizeof(issuer_name));
 
-  if (!ok &&
-      !(self->encryption->ssl_opts.permit_missing_crl[side] && verify_error == X509_V_ERR_UNABLE_TO_GET_CRL))
-    {
-      /* Do not log an error if the issue was a missing CRL and the policy explicitly
-       * permits missing CRLs.
-       */
-
-      int loglevel = 1;
-      int err = X509_STORE_CTX_get_error(ctx);
-      if (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY &&
-          (self->encryption->ssl_opts.verify_type[side] == ENCRYPTION_VERIFY_REQUIRED_UNTRUSTED ||
-           self->encryption->ssl_opts.verify_type[side] == ENCRYPTION_VERIFY_OPTIONAL_UNTRUSTED))
-        {
-          loglevel = 6;
-        }
-
-      z_proxy_log(self, CORE_POLICY, loglevel, "Certificate verification failed; error='%s', issuer='%s', subject='%s'",
-                  X509_verify_cert_error_string(verify_error), issuer_name, subject_name);
-    }
-
-  z_proxy_log(self, CORE_DEBUG, 6, "Verifying certificate; issuer='%s', subject='%s'", issuer_name, subject_name);
-
   if (self->encryption->ssl_opts.verify_depth[side] < depth)
     {
-      ok = 0;
       z_proxy_log(self, CORE_POLICY, 1, "Certificate verification failed; error='%s', "
                   "side='%s', max_depth='%d', depth='%d'",
                   X509_verify_cert_error_string(X509_V_ERR_CERT_CHAIN_TOO_LONG),
                   EP_STR(side), self->encryption->ssl_opts.verify_depth[side], depth);
+      X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_CHAIN_TOO_LONG);
+      return 0;
     }
 
-  z_proxy_ssl_load_local_crl_list(handshake, subject_name);
-  rc = X509_STORE_get_by_subject(ctx, X509_LU_CRL, subject, obj.get());
-  if (rc == 1 && X509_OBJECT_get_type(obj.get()) == X509_LU_CRL)
+  if (preverify_ok)
     {
-      EVP_PKEY *pkey;
+      return preverify_ok;
+    }
 
-      /* we are checking a CA certificate, and it has an associated CRL */
-      crl = X509_OBJECT_get0_X509_CRL(obj.get());
-      z_proxy_log(self, CORE_DEBUG, 6, "Verifying CRL integrity; issuer='%s'", subject_name);
-      pkey = X509_get_pubkey(X509_STORE_CTX_get_current_cert(ctx));
-      if (X509_CRL_verify(crl, pkey) <= 0)
+  if (verify_error ==  X509_V_ERR_UNABLE_TO_GET_CRL)
+    {
+      if (self->encryption->ssl_opts.permit_missing_crl[side])
         {
-          EVP_PKEY_free(pkey);
-          X509_STORE_CTX_set_error(ctx, X509_V_ERR_CRL_SIGNATURE_FAILURE);
-          z_proxy_log(self, CORE_ERROR, 1, "Invalid signature on CRL; issuer='%s'", issuer_name);
-          z_proxy_return(self, 0);
-        }
-      EVP_PKEY_free(pkey);
-      rc = X509_cmp_current_time(X509_CRL_get0_nextUpdate(crl));
-      if (rc == 0)
-        {
-          /*LOG
-            This message indicates an invalid Certificate Revocation List (CRL),
-            because it has an invalid nextUpdate field.
-           */
-          z_proxy_log(self, CORE_ERROR, 1, "CRL has invalid nextUpdate field; issuer='%s'", subject_name);
-          X509_STORE_CTX_set_error(ctx, X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD);
-          z_proxy_return(self, 0);
-        }
-
-      if (rc <= 0)
-        {
-          /*LOG
-            This message indicates an invalid Certificate Revocation List (CRL),
-            because it is expired.
-           */
-          z_proxy_log(self, CORE_ERROR, 1, "CRL is expired; issuer='%s'", subject_name);
-          X509_STORE_CTX_set_error(ctx, X509_V_ERR_CRL_HAS_EXPIRED);
-          z_proxy_return(self, 0);
+          z_proxy_log(self, CORE_POLICY, 5, "Trying verification without CRL check as directed by the policy");
+          self->tls_opts.certificate_trusted[side] = false;
+          return 1;
         }
     }
-  else if (depth > 0 && !self->encryption->ssl_opts.permit_missing_crl[side])
+  else if ((self->encryption->ssl_opts.verify_type[side] == ENCRYPTION_VERIFY_REQUIRED_UNTRUSTED ||
+            self->encryption->ssl_opts.verify_type[side] == ENCRYPTION_VERIFY_OPTIONAL_UNTRUSTED))
     {
-      /*LOG
-        This message indicates that no certificate revocation list was found for a CA
-        certificate, and Zorp configuration requires that a CRL must be present.
-       */
-      z_proxy_log(self, CORE_ERROR, 1, "CRL not found for certificate; subject='%s'", subject_name);
-      ok = 0;
-    }
-
-  obj.reset(X509_OBJECT_new());
-
-  /* verify whether the issuer has revoked this certificate */
-  rc = X509_STORE_get_by_subject(ctx, X509_LU_CRL, issuer, obj.get());
-
-  if (rc == 1 && X509_OBJECT_get_type(obj.get()) == X509_LU_CRL)
-    {
-      STACK_OF(X509_REVOKED) *revoked_list;
-      X509_REVOKED *revoked;
-      ASN1_INTEGER *cert_serial;
-      int n, i;
-
-      cert_serial = X509_get_serialNumber(X509_STORE_CTX_get_current_cert(ctx));
-      z_proxy_log(self, CORE_DEBUG, 6,
-                  "Verifying certificate against CRL; cert='%s', serial='%ld', issuer='%s'",
-                  subject_name, ASN1_INTEGER_get(cert_serial), issuer_name);
-
-      crl = X509_OBJECT_get0_X509_CRL(obj.get());
-      revoked_list = X509_CRL_get_REVOKED(crl);
-      n = sk_X509_REVOKED_num(revoked_list);
-      for (i = 0; i < n; i++)
+      if (self->encryption->ssl_opts.permit_invalid_certificates[side])
         {
-          revoked = sk_X509_REVOKED_value(revoked_list, i);
-          if (ASN1_INTEGER_cmp(X509_REVOKED_get0_serialNumber(revoked), cert_serial) == 0)
-            {
-              BIO *bio;
-              char serial_str[128];
-              char *ptr;
-
-              X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_REVOKED);
-              bio = BIO_new(BIO_s_mem());
-              if (bio)
-                {
-                  unsigned long len;
-                  i2a_ASN1_INTEGER(bio, X509_REVOKED_get0_serialNumber(revoked));
-
-                  len = BIO_get_mem_data(bio, &ptr);
-                  len = MIN(len, sizeof(serial_str) - 1);
-
-                  memcpy(serial_str, ptr, len);
-                  serial_str[len] = 0;
-
-                  z_proxy_log(self, CORE_ERROR, 1, "Certificate revoked by CRL; issuer='%s', serial='%s'",
-                              issuer_name, serial_str);
-
-                  BIO_free_all(bio);
-                }
-              z_proxy_return(self, 0);
-            }
+          z_proxy_log(self, CORE_POLICY, 3,
+                      "Accepting invalid certificate as directed by the policy; verify_error='%s'",
+                      X509_verify_cert_error_string(verify_error));
+          self->tls_opts.certificate_trusted[side] = false;
+          return 1;
+        }
+      else if (z_proxy_ssl_verify_error_is_untrusted(verify_error))
+        {
+          z_proxy_log(self, CORE_POLICY, 3,
+                      "Accepting untrusted certificate as directed by the policy; verify_error='%s'",
+                      X509_verify_cert_error_string(verify_error));
+          self->tls_opts.certificate_trusted[side] = false;
+          return 1;
         }
     }
-  else if (!self->encryption->ssl_opts.permit_missing_crl[side])
+  else if (self->encryption->ssl_opts.verify_type[side] == ENCRYPTION_VERIFY_NONE)
     {
-      /*LOG
-        This message indicates that no certificate revocation list was found for a CA
-        certificate, and Zorp configuration requires that a CRL must be present.
-       */
-      z_proxy_log(self, CORE_ERROR, 1, "CRL not found for certificate; issuer='%s'", issuer_name);
-      ok = 0;
+      z_proxy_log(self, CORE_POLICY, 3,
+                  "Accepting untrusted certificate as directed by the policy; verify_error='%s'",
+                  X509_verify_cert_error_string(verify_error));
+      self->tls_opts.certificate_trusted[side] = false;
+      return 1;
     }
 
-  z_proxy_return(self, ok);
+  z_proxy_log(self, CORE_POLICY, 1, "Certificate verification failed; error='%s', issuer='%s', subject='%s'",
+                  X509_verify_cert_error_string(verify_error), issuer_name, subject_name);
+
+  z_proxy_return(self, 0);
 }
 
 int
@@ -1471,12 +1213,13 @@ z_proxy_ssl_setup_handshake(ZProxySSLHandshake *handshake)
     }
   if (side == EP_CLIENT)
     {
-      if (!z_proxy_ssl_load_local_key(handshake) ||
-          !z_proxy_ssl_load_local_ca_list(handshake))
+      if (!z_proxy_ssl_load_local_key(handshake))
         z_proxy_return(self, FALSE);
     }
 
   z_stream_ssl_set_session(handshake->stream, ssl);
+
+  X509_STORE_set_ex_data(SSL_CTX_get_cert_store(ctx), 0, self);
 
   z_proxy_return(self, TRUE);
 }
@@ -1641,6 +1384,7 @@ z_proxy_ssl_init_completed(ZProxySSLHandshake *handshake, gpointer user_data)
   /* if the handshake was successful, set the session and call nonblocking init */
   if (success)
     {
+      z_proxy_ssl_handshake_completed(handshake);
       if (self->tls_opts.ssl_sessions[handshake->side])
         z_proxy_ssl_clear_session(self, handshake->side);
 
@@ -1650,11 +1394,7 @@ z_proxy_ssl_init_completed(ZProxySSLHandshake *handshake, gpointer user_data)
       success = z_proxy_nonblocking_init(self, z_proxy_group_get_poll(z_proxy_get_group(self)));
     }
 
-  if (success)
-    {
-      z_proxy_ssl_handshake_completed(handshake);
-    }
-  else
+  if (!success)
     {
       /* initializing the client stream or the proxy failed, stop the proxy instance */
       z_proxy_nonblocking_stop(self);

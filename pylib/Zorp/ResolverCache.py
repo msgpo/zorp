@@ -33,6 +33,7 @@
 </module>
 """
 
+from Common import *
 from Zorp import *
 import dns.resolver
 import dns.rdatatype

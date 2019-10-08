@@ -335,8 +335,7 @@ class ReloadAlgorithm(ProcessAlgorithm):
     def errorHandling(self):
         running = self.isRunning(self.instance.process_name)
         if not running:
-            # Ignore not running process
-            return CommandResultSuccess(running.msg)
+            return running
 
         try:
             self.szig = SZIG(self.instance.process_name)
