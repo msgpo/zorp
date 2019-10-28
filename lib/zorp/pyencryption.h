@@ -32,6 +32,7 @@
 #include <array>
 #include <map>
 #include <string>
+#include <zorp/x509lookup_crl_reloader.h>
 
 typedef enum
 {
@@ -102,11 +103,8 @@ typedef struct _ZProxySsl {
 
   GString *ssl_cipher[EP_MAX];
 
-  ZPolicyObj *server_setup_key_cb, *server_setup_ca_list_cb, *server_setup_crl_list_cb, *server_verify_cert_cb;
-  ZPolicyObj *client_setup_key_cb, *client_setup_ca_list_cb, *client_setup_crl_list_cb, *client_verify_cert_cb;
-
-  STACK_OF(X509) *local_ca_list[EP_MAX];
-  STACK_OF(X509_CRL) *local_crl_list[EP_MAX];
+  ZPolicyObj *server_setup_key_cb, *server_verify_cert_cb;
+  ZPolicyObj *client_setup_key_cb, *client_verify_cert_cb;
 
   GString *verify_ca_directory[EP_MAX];
   GString *verify_crl_directory[EP_MAX];
@@ -130,6 +128,7 @@ typedef struct _ZProxySsl {
   gboolean disable_renegotiation;
 
   GString *dh_params;
+  GString *ca_hint_directory;
 
 } ZProxySsl;
 
@@ -142,6 +141,7 @@ typedef struct _ZPolicyEncryption
   long ssl_server_context_timeout;
 
   ZProxySsl ssl_opts;
+  X509LookupCrlReloader *x509_lookup_crl_reloader;
 } ZPolicyEncryption;
 
 std::string z_policy_encryption_get_server_cache_key(ZProxy *self);

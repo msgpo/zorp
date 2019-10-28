@@ -6,6 +6,7 @@ dnl
 dnl RELEASE_TAG        - Debian release tag which is put to debian/changelog
 dnl
 
+
 AC_CONFIG_SRCDIR([zorp/main.cc])
 AC_INIT([zorp], m4_esyscmd([tr -d '\n' < VERSION]))
 AM_INIT_AUTOMAKE([foreign])
@@ -112,6 +113,7 @@ AC_PROG_CXXCPP
 AC_PROG_MKDIR_P
 
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
+AX_CXX_MIN_VERSION_CHECK
 AC_DISABLE_STATIC
 
 AC_LANG(C++)

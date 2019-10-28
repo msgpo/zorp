@@ -218,6 +218,7 @@ CORE_AUTH = Common.CORE_AUTH
 CORE_INFO = Common.CORE_INFO
 CORE_SUMMARY = Common.CORE_SUMMARY
 
+log = Common.log
 
 @enum.unique
 class ZEndpoint(enum.IntEnum):
@@ -553,52 +554,6 @@ def notify(event, params):
         return Globals.notification_policy.notify(event, params)
 
 
-
-## NOLOG ##
-
-def log(sessionid, logclass, verbosity, msg, args=None):
-    """
-    <function maturity="stable">
-      <summary>
-        Function to send a message to the system log.
-      </summary>
-      <description>
-        <para>
-          This function can be used to send a message to the system log.
-        </para>
-      </description>
-      <metainfo>
-        <arguments>
-          <argument>
-           <name>sessionid</name>
-           <type><string/></type>
-           <description>The ID of the session the message belongs to.</description>
-          </argument>
-          <argument>
-            <name>logclass</name>
-            <type><string/></type>
-            <description>Hierarchical log class as described in the <emphasis>zorp(8)</emphasis> manual page</description>
-          </argument>
-          <argument>
-            <name>verbosity</name>
-            <type><integer/></type>
-            <description>Verbosity level of the message.</description>
-          </argument>
-          <argument>
-            <name>msg</name>
-            <type><string/></type>
-            <description>The message text.</description>
-          </argument>
-          <argument>
-            <name>args</name>
-            <type><string/></type>
-            <description>Optional printf-style argument tuple added to the message.</description>
-          </argument>
-        </arguments>
-      </metainfo>
-    </function>
-    """
-    Common.log(sessionid, logclass, verbosity, msg, args=None)
 
 class ConnectionVerdict(object):
     """<class internal="yes"/>"""

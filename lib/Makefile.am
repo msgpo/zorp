@@ -7,7 +7,8 @@ lib_LTLIBRARIES = libzorp.la
 libzorp_la_LDFLAGS = \
 	@LIBZORP_LIBS@ \
 	-version-info $(LIBZORP_LT_COMPAT_PL) \
-	-export-dynamic
+	-export-dynamic \
+	-lstdc++fs
 
 libzorp_la_SOURCES = \
 	proxy.cc proxystack.cc modules.cc  \
@@ -27,7 +28,7 @@ libzorp_la_SOURCES = \
 	proxyssl.cc pyx509.cc proxysslhostiface.cc \
 	certchain.cc pyx509chain.cc \
 	session.cc \
-	pyencryption.cc
+	pyencryption.cc x509lookup_crl_reloader.cc
 
 if ENABLE_KZORP
 libzorp_la_SOURCES += kzorp.cc

@@ -358,9 +358,13 @@ z_py_is_initial_policy_load(PyObject * /* self */, PyObject * /* args */)
   return PyInt_FromLong(z_main_loop_is_initial_policy_load() ? TRUE : FALSE);
 }
 
-static PyMethodDef zorp_funcs[] =
+static PyMethodDef common_funcs[] =
 {
   { "log", z_py_log, METH_VARARGS, NULL },
+};
+
+static PyMethodDef zorp_funcs[] =
+{
   { "quit", z_py_quit, METH_VARARGS, NULL },
   { "streamPair", z_py_stream_pair, METH_VARARGS, NULL },
   { "getInstanceId", z_py_get_instance_id, METH_VARARGS, NULL },
@@ -369,6 +373,12 @@ static PyMethodDef zorp_funcs[] =
   { "notifyEvent", z_policy_notify_event, METH_VARARGS, NULL },
   { NULL, NULL, 0, NULL }
 };
+
+void
+z_py_zorp_common_init(void)
+{
+  Py_InitModule("Zorp.Common", common_funcs);
+}
 
 void
 z_py_zorp_core_init(void)

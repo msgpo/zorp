@@ -23,7 +23,7 @@
 ############################################################################
 
 from Zorp.Core import *
-from Zorp.Zorp import log
+from Zorp.Common import log
 from traceback import *
 import unittest
 

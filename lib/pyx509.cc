@@ -878,22 +878,6 @@ z_py_ssl_privkey_free(gpointer value)
 }
 
 ZPolicyObj *
-z_py_ssl_cert_list_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
-{
-  STACK_OF(X509) **certlist = (STACK_OF(X509) **) value;
-
-  return z_py_zorp_cert_list_new(*certlist);
-}
-
-void
-z_py_ssl_cert_list_free(gpointer value)
-{
-  STACK_OF(X509) **certlist = (STACK_OF(X509) **) value;
-
-  sk_X509_pop_free(*certlist, X509_free);
-}
-
-ZPolicyObj *
 z_py_ssl_cert_name_list_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
 {
   STACK_OF(X509_NAME) **certnamelist = (STACK_OF(X509_NAME) **) value;
@@ -907,20 +891,4 @@ z_py_ssl_cert_name_list_free(gpointer value)
   STACK_OF(X509_NAME) **certnamelist = (STACK_OF(X509_NAME) **) value;
 
   sk_X509_NAME_pop_free(*certnamelist, X509_NAME_free);
-}
-
-ZPolicyObj *
-z_py_ssl_crl_list_get(ZProxy * /* self */, gchar * /* name */, gpointer value)
-{
-  STACK_OF(X509_CRL) **crllist = (STACK_OF(X509_CRL) **) value;
-
-  return z_py_zorp_crl_list_new(*crllist);
-}
-
-void
-z_py_ssl_crl_list_free(gpointer value)
-{
-  STACK_OF(X509_CRL) **crllist = (STACK_OF(X509_CRL) **) value;
-
-  sk_X509_CRL_pop_free(*crllist, X509_CRL_free);
 }

@@ -254,7 +254,8 @@
 
 import Globals
 from Keybridge import X509KeyBridge
-from Zorp import log, CORE_POLICY, CORE_DEBUG, CORE_ERROR, FALSE, TRUE
+from Common import log
+from Zorp import CORE_POLICY, CORE_DEBUG, CORE_ERROR, FALSE, TRUE
 from Encryption_ import Encryption
 
 import re, os
@@ -943,56 +944,6 @@ class AbstractVerifier(object):
       </description>
       <metainfo>
         <attributes>
-            <attribute maturity="stable">
-                <name>ca_directory</name>
-                <type>
-                  <string/>
-                </type>
-                <default>""</default>
-                <conftime>
-                  <read/>
-                  <write/>
-                </conftime>
-                <runtime>
-                  <read/>
-                </runtime>
-                <description>
-                  Directory where the trusted CA certificates are stored.
-                  Note that when handling an SSL or TLS connection and the <parameter>ca_directory</parameter>
-                  parameter is set, Zorp loads every certificate available in this directory, and this might
-                  require a huge amount of memory.
-                  If the <parameter>verify_type</parameter> parameter is set to verify
-                  peer certificates, Zorp sends the subject names of CA certificates
-                  stored in this directory to the peer to request a certificate
-                  from these CAs.
-                  Unless you are authenticating the peers based on their certificates,
-                  use the <parameter>verify_ca_directory</parameter> option instead.
-                  Use of <parameter>ca_directory</parameter> option is deprecated.
-                </description>
-            </attribute>
-            <attribute maturity="stable">
-                <name>crl_directory</name>
-                <type>
-                  <string/>
-                </type>
-                <default>""</default>
-                <conftime>
-                  <read/>
-                  <write/>
-                </conftime>
-                <runtime>
-                  <read/>
-                </runtime>
-                <description>
-                  Directory where the CRLs associated with the trusted CAs are stored.
-                  Note that when handling an SSL or TLS connection and the <parameter>crl_directory</parameter>
-                  parameter is set, Zorp loads every CRL available in this directory, and this might
-                  require a huge amount of memory.
-                  Unless you are authenticating the peers based on their certificates,
-                  use the <parameter>verify_crl_directory</parameter> option instead.
-                  Use of <parameter>crl_directory</parameter> option is deprecated.
-                </description>
-            </attribute>
             <attribute state="stable">
                 <name>trusted_certs_directory</name>
                 <type>
@@ -1150,7 +1101,7 @@ class AbstractVerifier(object):
     </class>
     """
 
-    def __init__(self, ca_directory=None, crl_directory=None, trusted_certs_directory=None, required=True, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False):
+    def __init__(self, trusted_certs_directory=None, required=True, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False):
         """
         <method maturity="stable">
           <summary>
@@ -1163,42 +1114,6 @@ class AbstractVerifier(object):
           </description>
           <metainfo>
             <arguments>
-                <argument maturity="stable">
-                    <name>ca_directory</name>
-                    <type>
-                      <string/>
-                    </type>
-                    <default>""</default>
-                    <description>
-                      Directory where the trusted CA certificates are stored.
-                      Note that when handling an SSL or TLS connection and the <parameter>ca_directory</parameter>
-                      parameter is set, Zorp loads every certificate available in this directory, and this might
-                      require a huge amount of memory.
-                      If the <parameter>verify_type</parameter> parameter is set to verify
-                      peer certificates, Zorp sends the subject names of CA certificates
-                      stored in this directory to the peer to request a certificate
-                      from these CAs.
-                      Unless you are authenticating the peers based on their certificates,
-                      use the <parameter>verify_ca_directory</parameter> option instead.
-                      Use of <parameter>ca_directory</parameter> option is deprecated.
-                    </description>
-                </argument>
-                <argument maturity="stable">
-                    <name>crl_directory</name>
-                    <type>
-                      <string/>
-                    </type>
-                    <default>""</default>
-                    <description>
-                      Directory where the CRLs associated with the trusted CAs are stored.
-                      Note that when handling an SSL or TLS connection and the <parameter>crl_directory</parameter>
-                      parameter is set, Zorp loads every CRL available in this directory, and this might
-                      require a huge amount of memory.
-                      Unless you are authenticating the peers based on their certificates,
-                      use the <parameter>verify_crl_directory</parameter> option instead.
-                      Use of <parameter>crl_directory</parameter> option is deprecated.
-                    </description>
-                </argument>
                 <argument state="stable">
                     <name>trusted_certs_directory</name>
                     <type>
@@ -1294,8 +1209,6 @@ class AbstractVerifier(object):
           </metainfo>
         </method>
         """
-        self.ca_directory=ca_directory
-        self.crl_directory=crl_directory
         self.trusted_certs_directory=trusted_certs_directory
         self.required=required
         self.trusted=trusted
@@ -1311,8 +1224,6 @@ class AbstractVerifier(object):
         """
         pass
 
-    hash_pattern = re.compile("[0-9a-fA-F]*\.(r){0,1}[0-9]")
-
     def setup_verify_type(self):
         """
         <method internal="yes"/>
@@ -1327,23 +1238,6 @@ class AbstractVerifier(object):
             return SSL_VERIFY_REQUIRED_TRUSTED
         else:
             raise ValueError, "Required and trusted parameters must be True or False"
-
-    def readHashDir(self, hash, directory):
-        """<method internal="yes">
-        </method>
-        """
-        try:
-            files = os.listdir(directory)
-            i = 0
-            for file in files:
-                if self.hash_pattern.match(file):
-                    try:
-                        hash[i] = readPEM(directory + '/' + file)
-                    except (TypeError, ValueError), s:
-                        log(None, CORE_ERROR, 3, "Error adding CA certificate; reason='%s'" % (s,))
-                    i = i+1
-        except OSError, e:
-            log(None, CORE_ERROR, 3, "Error reading CA or CRL directory; dir='%s', error='%s'", (directory, e.strerror))
 
     def verify(self):
         """
@@ -1362,56 +1256,6 @@ class ClientCertificateVerifier(AbstractVerifier):
       </description>
       <metainfo>
         <attributes>
-            <attribute maturity="stable">
-                <name>ca_directory</name>
-                <type>
-                  <string/>
-                </type>
-                <default>""</default>
-                <conftime>
-                  <read/>
-                  <write/>
-                </conftime>
-                <runtime>
-                  <read/>
-                </runtime>
-                <description>
-                  Directory where the trusted CA certificates are stored.
-                  Note that when handling an SSL or TLS connection and the <parameter>ca_directory</parameter>
-                  parameter is set, Zorp loads every certificate available in this directory, and this might
-                  require a huge amount of memory.
-                  If the <parameter>verify_type</parameter> parameter is set to verify
-                  peer certificates, Zorp sends the subject names of CA certificates
-                  stored in this directory to the peer to request a certificate
-                  from these CAs.
-                  Unless you are authenticating the peers based on their certificates,
-                  use the <parameter>verify_ca_directory</parameter> option instead.
-                  Use of <parameter>ca_directory</parameter> option is deprecated.
-                </description>
-            </attribute>
-            <attribute maturity="stable">
-                <name>crl_directory</name>
-                <type>
-                  <string/>
-                </type>
-                <default>""</default>
-                <conftime>
-                  <read/>
-                  <write/>
-                </conftime>
-                <runtime>
-                  <read/>
-                </runtime>
-                <description>
-                  Directory where the CRLs associated with the trusted CAs are stored.
-                  Note that when handling an SSL or TLS connection and the <parameter>crl_directory</parameter>
-                  parameter is set, Zorp loads every CRL available in this directory, and this might
-                  require a huge amount of memory.
-                  Unless you are authenticating the peers based on their certificates,
-                  use the <parameter>verify_crl_directory</parameter> option instead.
-                  Use of <parameter>crl_directory</parameter> option is deprecated.
-                </description>
-            </attribute>
             <attribute state="stable">
                 <name>trusted_certs_directory</name>
                 <type>
@@ -1562,14 +1406,21 @@ class ClientCertificateVerifier(AbstractVerifier):
                   <para>Available only in Zorp version 3.4.3 and later.</para>
                 </description>
             </attribute>
+            <attribute maturity="stable">
+                <name>ca_hint_directory</name>
+                <type>
+                  <string/>
+                </type>
+                <default>""</default>
+                <description>
+                  Set directory containing certificates to provide the client the list of CA certificates (subject names) that are used for verifying the client certificate.
+                </description>
+            </attribute>
         </attributes>
       </metainfo>
     </class>
     """
-
-    ca_directory_deprecation_warning = True
-    crl_directory_deprecation_warning = True
-    def __init__(self, ca_directory=None, crl_directory=None, trusted_certs_directory=None, required=True, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False):
+    def __init__(self, trusted_certs_directory=None, required=True, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False, ca_hint_directory=None):
         """
         <method maturity="stable">
           <summary>
@@ -1582,42 +1433,6 @@ class ClientCertificateVerifier(AbstractVerifier):
           </description>
           <metainfo>
             <arguments>
-                <argument maturity="stable">
-                    <name>ca_directory</name>
-                    <type>
-                      <string/>
-                    </type>
-                    <default>""</default>
-                    <description>
-                      Directory where the trusted CA certificates are stored.
-                      Note that when handling an SSL or TLS connection and the <parameter>ca_directory</parameter>
-                      parameter is set, Zorp loads every certificate available in this directory, and this might
-                      require a huge amount of memory.
-                      If the <parameter>verify_type</parameter> parameter is set to verify
-                      peer certificates, Zorp sends the subject names of CA certificates
-                      stored in this directory to the peer to request a certificate
-                      from these CAs.
-                      Unless you are authenticating the peers based on their certificates,
-                      use the <parameter>verify_ca_directory</parameter> option instead.
-                      Use of <parameter>ca_directory</parameter> option is deprecated.
-                    </description>
-                </argument>
-                <argument maturity="stable">
-                    <name>crl_directory</name>
-                    <type>
-                      <string/>
-                    </type>
-                    <default>""</default>
-                    <description>
-                      Directory where the CRLs associated with the trusted CAs are stored.
-                      Note that when handling an SSL or TLS connection and the <parameter>crl_directory</parameter>
-                      parameter is set, Zorp loads every CRL available in this directory, and this might
-                      require a huge amount of memory.
-                      Unless you are authenticating the peers based on their certificates,
-                      use the <parameter>verify_crl_directory</parameter> option instead.
-                      Use of <parameter>crl_directory</parameter> option is deprecated.
-                    </description>
-                </argument>
                 <argument state="stable">
                     <name>trusted_certs_directory</name>
                     <type>
@@ -1708,12 +1523,24 @@ class ClientCertificateVerifier(AbstractVerifier):
                       <para>Available only in Zorp version 3.4.3 and later.</para>
                     </description>
                 </argument>
+                <argument maturity="stable">
+                    <name>ca_hint_directory</name>
+                    <type>
+                      <string/>
+                    </type>
+                    <default>""</default>
+                    <description>
+                      Set directory containing certificates to provide the client the list of CA certificates (subject names) that are used for verifying the client certificate.
+                    </description>
+                </argument>
             </arguments>
           </metainfo>
         </method>
         """
 
-        super(ClientCertificateVerifier, self).__init__(ca_directory, crl_directory, trusted_certs_directory, required, trusted, verify_depth, verify_ca_directory, verify_crl_directory, permit_invalid_certificates, permit_missing_crl)
+        super(ClientCertificateVerifier, self).__init__(trusted_certs_directory, required, trusted, verify_depth, verify_ca_directory, verify_crl_directory, permit_invalid_certificates, permit_missing_crl)
+
+        self.ca_hint_directory = ca_hint_directory
 
     def setup(self, encryption):
         """
@@ -1727,17 +1554,6 @@ class ClientCertificateVerifier(AbstractVerifier):
         encryption.settings.client_permit_invalid_certificates = self.permit_invalid_certificates
         encryption.settings.client_permit_missing_crl = self.permit_missing_crl
 
-        if self.ca_directory:
-            if ClientCertificateVerifier.ca_directory_deprecation_warning:
-                ClientCertificateVerifier.ca_directory_deprecation_warning = False
-                log(None, CORE_DEBUG, 3, "Use of ca_directory option is deprecated, verify_ca_directory should be used instead.")
-            self.readHashDir(encryption.settings.client_local_ca_list, self.ca_directory)
-        if self.crl_directory:
-            if ClientCertificateVerifier.crl_directory_deprecation_warning:
-                ClientCertificateVerifier.crl_directory_deprecation_warning = False
-                log(None, CORE_DEBUG, 3, "Use of crl_directory option is deprecated, verify_crl_directory should be used instead.")
-            self.readHashDir(encryption.settings.client_local_crl_list, self.crl_directory)
-
         if self.verify_ca_directory:
             encryption.settings.client_verify_ca_directory = self.verify_ca_directory
         if self.verify_crl_directory:
@@ -1748,6 +1564,10 @@ class ClientCertificateVerifier(AbstractVerifier):
         else:
             encryption.settings.client_trusted_certs_directory = ''
 
+        if self.ca_hint_directory:
+            encryption.settings.client_ca_hint_directory = self.ca_hint_directory
+        else:
+            encryption.settings.client_ca_hint_directory = ''
 
 class ServerCertificateVerifier(AbstractVerifier):
     """
@@ -1761,54 +1581,6 @@ class ServerCertificateVerifier(AbstractVerifier):
       </description>
       <metainfo>
         <attributes>
-            <attribute maturity="stable">
-                <name>ca_directory</name>
-                <type>
-                  <string/>
-                </type>
-                <default>""</default>
-                <conftime>
-                  <read/>
-                  <write/>
-                </conftime>
-                <runtime>
-                  <read/>
-                </runtime>
-                <description>
-                  Directory where the trusted CA certificates are stored.
-                  Note that when handling an SSL or TLS connection and the <parameter>ca_directory</parameter>
-                  parameter is set, Zorp loads every certificate available in this directory, and this might
-                  require a huge amount of memory.
-                  If the <parameter>verify_type</parameter> parameter is set to verify
-                  peer certificates, Zorp sends the subject names of CA certificates
-                  stored in this directory to the peer to request a certificate
-                  from these CAs.
-                  Unless you are authenticating the peers based on their certificates,
-                  use the <parameter>verify_ca_directory</parameter> option instead.
-                </description>
-            </attribute>
-            <attribute maturity="stable">
-                <name>crl_directory</name>
-                <type>
-                  <string/>
-                </type>
-                <default>""</default>
-                <conftime>
-                  <read/>
-                  <write/>
-                </conftime>
-                <runtime>
-                  <read/>
-                </runtime>
-                <description>
-                  Directory where the CRLs associated with the trusted CAs are stored.
-                  Note that when handling an SSL or TLS connection and the <parameter>crl_directory</parameter>
-                  parameter is set, Zorp loads every CRL available in this directory, and this might
-                  require a huge amount of memory.
-                  Unless you are authenticating the peers based on their certificates,
-                  use the <parameter>verify_crl_directory</parameter> option instead.
-                </description>
-            </attribute>
             <attribute state="stable">
                 <name>trusted_certs_directory</name>
                 <type>
@@ -1966,10 +1738,7 @@ class ServerCertificateVerifier(AbstractVerifier):
       </metainfo>
     </class>
     """
-
-    ca_directory_deprecation_warning = True
-    crl_directory_deprecation_warning = True
-    def __init__(self, ca_directory=None, crl_directory=None, trusted_certs_directory=None, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False, check_subject=True):
+    def __init__(self, trusted_certs_directory=None, trusted=True, verify_depth=4, verify_ca_directory=None, verify_crl_directory=None, permit_invalid_certificates=False, permit_missing_crl=False, check_subject=True):
         """
         <method maturity="stable">
           <summary>
@@ -1982,42 +1751,6 @@ class ServerCertificateVerifier(AbstractVerifier):
           </description>
           <metainfo>
             <arguments>
-                <argument maturity="stable">
-                    <name>ca_directory</name>
-                    <type>
-                      <string/>
-                    </type>
-                    <default>""</default>
-                    <description>
-                      Directory where the trusted CA certificates are stored.
-                      Note that when handling an SSL or TLS connection and the <parameter>ca_directory</parameter>
-                      parameter is set, Zorp loads every certificate available in this directory, and this might
-                      require a huge amount of memory.
-                      If the <parameter>verify_type</parameter> parameter is set to verify
-                      peer certificates, Zorp sends the subject names of CA certificates
-                      stored in this directory to the peer to request a certificate
-                      from these CAs.
-                      Unless you are authenticating the peers based on their certificates,
-                      use the <parameter>verify_ca_directory</parameter> option instead.
-                      Use of <parameter>ca_directory</parameter> option is deprecated.
-                    </description>
-                </argument>
-                <argument maturity="stable">
-                    <name>crl_directory</name>
-                    <type>
-                      <string/>
-                    </type>
-                    <default>""</default>
-                    <description>
-                      Directory where the CRLs associated with the trusted CAs are stored.
-                      Note that when handling an SSL or TLS connection and the <parameter>crl_directory</parameter>
-                      parameter is set, Zorp loads every CRL available in this directory, and this might
-                      require a huge amount of memory.
-                      Unless you are authenticating the peers based on their certificates,
-                      use the <parameter>verify_crl_directory</parameter> option instead.
-                      Use of <parameter>crl_directory</parameter> option is deprecated.
-                    </description>
-                </argument>
                 <argument state="stable">
                     <name>trusted_certs_directory</name>
                     <type>
@@ -2124,7 +1857,7 @@ class ServerCertificateVerifier(AbstractVerifier):
         </method>
         """
 
-        super(ServerCertificateVerifier, self).__init__(ca_directory, crl_directory, trusted_certs_directory, True, trusted, verify_depth, verify_ca_directory, verify_crl_directory, permit_invalid_certificates, permit_missing_crl)
+        super(ServerCertificateVerifier, self).__init__(trusted_certs_directory, True, trusted, verify_depth, verify_ca_directory, verify_crl_directory, permit_invalid_certificates, permit_missing_crl)
         self.check_subject=check_subject
 
     def setup(self, encryption):
@@ -2138,17 +1871,6 @@ class ServerCertificateVerifier(AbstractVerifier):
         encryption.settings.server_max_verify_depth = self.verify_depth
         encryption.settings.server_permit_invalid_certificates = self.permit_invalid_certificates
         encryption.settings.server_permit_missing_crl = self.permit_missing_crl
-
-        if self.ca_directory:
-            if ServerCertificateVerifier.ca_directory_deprecation_warning:
-                ServerCertificateVerifier.ca_directory_deprecation_warning = False
-                log(None, CORE_DEBUG, 3, "Use of ca_directory option is deprecated, verify_ca_directory should be used instead.")
-            self.readHashDir(encryption.settings.server_local_ca_list, self.ca_directory)
-        if self.crl_directory:
-            if ServerCertificateVerifier.crl_directory_deprecation_warning:
-                ServerCertificateVerifier.crl_directory_deprecation_warning = False
-                log(None, CORE_DEBUG, 3, "Use of crl_directory option is deprecated, verify_crl_directory should be used instead.")
-            self.readHashDir(encryption.settings.server_local_crl_list, self.crl_directory)
 
         if self.verify_ca_directory:
             encryption.settings.server_verify_ca_directory = self.verify_ca_directory
