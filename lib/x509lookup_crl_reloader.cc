@@ -265,7 +265,7 @@ X509LookupCrlReloader::create_file_name(const std::filesystem::path &directory, 
 bool
 X509LookupCrlReloader::load_crl_file(X509LookupCrlReloader *lookup_reloader, const std::filesystem::path &path, ZProxy *proxy, X509_LOOKUP *ctx)
 {
-  std::chrono::system_clock::time_point file_modification_time = std::filesystem::last_write_time(path);
+  std::filesystem::file_time_type file_modification_time = std::filesystem::last_write_time(path);
 
   auto emplaced_value = lookup_reloader->last_modification_cache.emplace(path, file_modification_time);
   if (!emplaced_value.second)
