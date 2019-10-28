@@ -123,6 +123,8 @@ class TestCombineMatcher(unittest.TestCase):
 class TestDNSMatcher(unittest.TestCase):
 
     class FakeDNSResolver(DNSResolver):
+        def __init__(self, server):
+          pass
         def resolve(self, host, resolved_cnames=None):
             return (180, ['1.2.3.4'], ['1:2:3:4:5:6:7:8']) if host == 'matching' else (180, ['5.6.7.8'], ['9:a:b:c:d:e:f:0'])
 

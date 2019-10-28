@@ -24,7 +24,7 @@ from Zorp import log, getInstanceId, CORE_SESSION, CORE_POLICY, Globals, TRUE, Z
 from Dispatch import BaseDispatch
 from Session import MasterSession
 from Proxy import Proxy
-from Detector import DetectResult
+from Detector import DetectResultType
 from collections import OrderedDict
 
 class DetectorProxy(Proxy):
@@ -46,7 +46,7 @@ class DetectorProxy(Proxy):
     def config(self):
         self.timeout = 5000
         for detector_name in self._detector_config.iterkeys():
-            self.results[detector_name] = DetectResult.UNDECIDED
+            self.results[detector_name] = DetectResultType.UNDECIDED
         detector_policy = Globals.detectors.get(detector_name, None)
         if not detector_policy:
             raise ValueError, "No such detector defined; detector='%s'" % (detector_name,)
@@ -69,7 +69,7 @@ class DetectorProxy(Proxy):
 
         count_nomatch_detectors = 0
         for detector_name, service_name in self._detector_config.iteritems():
-            if (self.results[detector_name] == DetectResult.NOMATCH):
+            if (self.results[detector_name] == DetectResultType.NOMATCH):
                 count_nomatch_detectors += 1
                 continue
 
@@ -79,15 +79,15 @@ class DetectorProxy(Proxy):
 
             res = detector.detect(side, data)
             self.results[detector_name] = res.result
-            if res.result == DetectResult.MATCH:
+            if res.result == DetectResultType.MATCH:
                 service = Globals.services.get(service_name, None)
                 if not service:
                     raise ValueError, "No such service defined; service='%s'" % (service_name,)
                 log(self.session.session_id, CORE_SESSION, 3, "Detector starting service; service='%s'" % service)
                 return service
-            elif res.result == DetectResult.NOMATCH:
+            elif res.result == DetectResultType.NOMATCH:
                 count_nomatch_detectors += 1
-            elif res.result == DetectResult.COPY_CLIENT:
+            elif res.result == DetectResultType.COPY_CLIENT:
                 self.need_server_connect = TRUE
                 self.copy_client_data = res.bytes_to_copy
 

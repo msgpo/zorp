@@ -93,31 +93,24 @@ z_proxy_ssl_host_iface_check_name_method(ZProxyHostIface *s,
       alt_names = (STACK_OF(GENERAL_NAME) *)X509V3_EXT_d2i(ext);
       if (alt_names)
         {
-          gint num, i;
+          int num = sk_GENERAL_NAME_num(alt_names);
 
-          num = sk_GENERAL_NAME_num(alt_names);
-
-          for (i = 0; i < num; i++)
+          for (int i = 0; i < num && !result; i++)
             {
               gen_name = sk_GENERAL_NAME_value(alt_names, i);
               if (gen_name->type == GEN_DNS)
                 {
+                  found = TRUE;
                   const unsigned char *dnsname = ASN1_STRING_get0_data(gen_name->d.dNSName);
                   guint dnsname_len = ASN1_STRING_length(gen_name->d.dNSName);
 
-                  if (dnsname_len > sizeof(pattern_buf) - 1)
+                  if (dnsname_len <= sizeof(pattern_buf) - 1)
                     {
-                      found = TRUE;
-                      result = FALSE;
-                      break;
+                      memcpy(pattern_buf, dnsname, dnsname_len);
+                      pattern_buf[dnsname_len] = 0;
+                      /* we have found a DNS name as alternative subject name */
+                      result = z_proxy_ssl_host_iface_check_wildcard(s->owner, host_name, pattern_buf);
                     }
-
-                  memcpy(pattern_buf, dnsname, dnsname_len);
-                  pattern_buf[dnsname_len] = 0;
-                  /* we have found a DNS name as alternative subject name */
-                  found = TRUE;
-                  result = z_proxy_ssl_host_iface_check_wildcard(s->owner, host_name, pattern_buf);
-                  break;
                 }
               else if (gen_name->type == GEN_IPADD)
                 {
@@ -125,7 +118,6 @@ z_proxy_ssl_host_iface_check_name_method(ZProxyHostIface *s,
 
                   found = TRUE;
                   result = strcmp(host_name, pattern_buf) == 0;
-                  break;
                 }
             }
             sk_GENERAL_NAME_pop_free(alt_names, GENERAL_NAME_free);

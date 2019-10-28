@@ -23,6 +23,7 @@
 """<module internal="yes" />
 """
 import argparse
+import shlex
 
 
 class ZorpInstanceArgumentParser(argparse.ArgumentParser):
@@ -73,7 +74,7 @@ class Instance(object):
         self.number_of_processes = kwargs.pop('number_of_processes', 1)
         self.enable_core = kwargs.pop('enable_core', False)
 
-        self.zorp_argument_list = kwargs.pop('zorp_argv', "").split()
+        self.zorp_argument_list = shlex.split(kwargs.pop('zorp_argv', ""))
         self.zorp_process = ZorpProcess(zorp_argv=self.zorp_argument_list)
 
     @staticmethod

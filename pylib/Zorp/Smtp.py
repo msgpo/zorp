@@ -371,6 +371,8 @@ from Matcher import AbstractMatcher, getMatcher
 # for compatibility
 from Matcher import SmtpInvalidRecipientMatcher
 
+from Exceptions import MatcherException
+
 from string import split, find, lower, replace
 
 from time import strftime
@@ -1361,7 +1363,7 @@ class SmtpProxy(AbstractSmtpProxy):
                 return SMTP_REQ_REJECT
         except MatcherException:
             self.error_code = "450"
-            self.error_info = "Cannot verify sender at this time, come back later"
+            self.error_info = "Cannot verify sender at this time, come back later."
             return SMTP_REQ_REJECT
         ## LOG ##
         # This message reports that the sender address check was successful and

@@ -32,12 +32,12 @@
 #line 4 "logtags.gperf"
 struct tagid { char *name; int id; };
 
-#define TOTAL_KEYWORDS 142
+#define TOTAL_KEYWORDS 143
 #define MIN_WORD_LENGTH 8
 #define MAX_WORD_LENGTH 17
 #define MIN_HASH_VALUE 9
-#define MAX_HASH_VALUE 363
-/* maximum key range = 355, duplicates = 0 */
+#define MAX_HASH_VALUE 368
+/* maximum key range = 360, duplicates = 0 */
 
 class LogTagHash
 {
@@ -52,32 +52,32 @@ LogTagHash::hash (const char *str, size_t len)
 {
   static const unsigned short asso_values[] =
     {
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364,  65, 364, 364, 364,
-       80, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 125, 190,  80,
-      100,   5,  90,   5,  40,  60,  45, 364, 110, 115,
-       15,  35,  10,  50,   0,  25,   0, 115,  15,  15,
-       75,   0, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364, 364, 364, 364,
-      364, 364, 364, 364, 364, 364, 364
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369,  65, 369, 369, 369,
+       80, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 135, 195,  80,
+      100,   5,  90,   5,  35,  60,  45, 369, 110, 115,
+       15,  35,  10,  50,   0,  25,   0, 120,  15,  15,
+       75,   0, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369, 369, 369, 369,
+      369, 369, 369, 369, 369, 369, 369
     };
   return len + asso_values[static_cast<unsigned char>(str[5])] + asso_values[static_cast<unsigned char>(str[1]+1)] + asso_values[static_cast<unsigned char>(str[0])] + asso_values[static_cast<unsigned char>(str[len - 1])];
 }
@@ -152,8 +152,8 @@ LogTagHash::lookup (const char *str, size_t len)
       {"",0},
 #line 113 "logtags.gperf"
       {"smtp.response", 107},
-#line 135 "logtags.gperf"
-      {"vnc.error", 129},
+#line 136 "logtags.gperf"
+      {"vnc.error", 130},
 #line 66 "logtags.gperf"
       {"nntp.reply", 60},
 #line 111 "logtags.gperf"
@@ -167,8 +167,8 @@ LogTagHash::lookup (const char *str, size_t len)
 #line 68 "logtags.gperf"
       {"nntp.trace", 62},
       {"",0}, {"",0}, {"",0},
-#line 134 "logtags.gperf"
-      {"vnc.debug", 128},
+#line 135 "logtags.gperf"
+      {"vnc.debug", 129},
 #line 120 "logtags.gperf"
       {"ssh.policy", 114},
 #line 65 "logtags.gperf"
@@ -177,8 +177,8 @@ LogTagHash::lookup (const char *str, size_t len)
 #line 105 "logtags.gperf"
       {"sip.error", 99},
       {"",0},
-#line 138 "logtags.gperf"
-      {"vnc.session", 132},
+#line 139 "logtags.gperf"
+      {"vnc.session", 133},
       {"",0},
 #line 123 "logtags.gperf"
       {"ssh.info", 117},
@@ -202,8 +202,8 @@ LogTagHash::lookup (const char *str, size_t len)
 #line 93 "logtags.gperf"
       {"rdp.violation", 87},
       {"",0},
-#line 137 "logtags.gperf"
-      {"vnc.policy", 131},
+#line 138 "logtags.gperf"
+      {"vnc.policy", 132},
 #line 41 "logtags.gperf"
       {"imap.policy", 35},
       {"",0}, {"",0},
@@ -220,8 +220,8 @@ LogTagHash::lookup (const char *str, size_t len)
       {"",0},
 #line 124 "logtags.gperf"
       {"telnet.debug", 118},
-#line 136 "logtags.gperf"
-      {"vnc.info", 130},
+#line 137 "logtags.gperf"
+      {"vnc.info", 131},
       {"",0}, {"",0},
 #line 15 "logtags.gperf"
       {"core.policy", 9},
@@ -261,8 +261,8 @@ LogTagHash::lookup (const char *str, size_t len)
 #line 47 "logtags.gperf"
       {"ldap.policy", 41},
       {"",0},
-#line 139 "logtags.gperf"
-      {"vnc.violation", 133},
+#line 140 "logtags.gperf"
+      {"vnc.violation", 134},
       {"",0},
 #line 70 "logtags.gperf"
       {"plug.error", 64},
@@ -282,25 +282,25 @@ LogTagHash::lookup (const char *str, size_t len)
 #line 21 "logtags.gperf"
       {"finger.request", 15},
       {"",0},
-#line 141 "logtags.gperf"
-      {"whois.error", 135},
+#line 142 "logtags.gperf"
+      {"whois.error", 136},
 #line 18 "logtags.gperf"
       {"finger.debug", 12},
-#line 142 "logtags.gperf"
-      {"whois.request", 136},
+#line 143 "logtags.gperf"
+      {"whois.request", 137},
       {"",0},
 #line 108 "logtags.gperf"
       {"smtp.debug", 102},
-#line 140 "logtags.gperf"
-      {"whois.debug", 134},
+#line 141 "logtags.gperf"
+      {"whois.debug", 135},
       {"",0},
 #line 100 "logtags.gperf"
       {"sip.violation", 94},
 #line 50 "logtags.gperf"
       {"ldap.violation", 44},
       {"",0}, {"",0}, {"",0}, {"",0},
-#line 144 "logtags.gperf"
-      {"x11.error", 138},
+#line 145 "logtags.gperf"
+      {"x11.error", 139},
 #line 64 "logtags.gperf"
       {"nntp.debug", 58},
 #line 22 "logtags.gperf"
@@ -316,8 +316,8 @@ LogTagHash::lookup (const char *str, size_t len)
       {"",0}, {"",0},
 #line 36 "logtags.gperf"
       {"http.response", 30},
-#line 143 "logtags.gperf"
-      {"x11.debug", 137},
+#line 144 "logtags.gperf"
+      {"x11.debug", 138},
 #line 55 "logtags.gperf"
       {"mime.error", 49},
 #line 34 "logtags.gperf"
@@ -330,11 +330,9 @@ LogTagHash::lookup (const char *str, size_t len)
       {"",0},
 #line 56 "logtags.gperf"
       {"mime.policy", 50},
-      {"",0}, {"",0}, {"",0},
-#line 107 "logtags.gperf"
-      {"smtp.accounting", 101},
-#line 147 "logtags.gperf"
-      {"x11.session", 141},
+      {"",0}, {"",0}, {"",0}, {"",0},
+#line 148 "logtags.gperf"
+      {"x11.session", 142},
       {"",0}, {"",0}, {"",0},
 #line 38 "logtags.gperf"
       {"imap.debug", 32},
@@ -345,14 +343,15 @@ LogTagHash::lookup (const char *str, size_t len)
       {"",0},
 #line 12 "logtags.gperf"
       {"core.info", 6},
-      {"",0},
+#line 107 "logtags.gperf"
+      {"smtp.accounting", 101},
 #line 58 "logtags.gperf"
       {"msrpc.debug", 52},
       {"",0}, {"",0},
 #line 37 "logtags.gperf"
       {"http.violation", 31},
-#line 146 "logtags.gperf"
-      {"x11.policy", 140},
+#line 147 "logtags.gperf"
+      {"x11.policy", 141},
       {"",0}, {"",0}, {"",0},
 #line 57 "logtags.gperf"
       {"mime.violation", 51},
@@ -366,27 +365,33 @@ LogTagHash::lookup (const char *str, size_t len)
 #line 63 "logtags.gperf"
       {"msrpc.violation", 57},
       {"",0}, {"",0},
-#line 145 "logtags.gperf"
-      {"x11.info", 139},
-#line 24 "logtags.gperf"
-      {"ftp.error", 18},
+#line 146 "logtags.gperf"
+      {"x11.info", 140},
+#line 134 "logtags.gperf"
+      {"tls.accounting", 128},
       {"",0}, {"",0},
 #line 13 "logtags.gperf"
       {"core.license", 7},
       {"",0},
-#line 26 "logtags.gperf"
-      {"ftp.reply", 20},
+#line 24 "logtags.gperf"
+      {"ftp.error", 18},
 #line 54 "logtags.gperf"
       {"lp.request", 48},
-#line 27 "logtags.gperf"
-      {"ftp.request", 21},
+      {"",0},
 #line 14 "logtags.gperf"
       {"core.message", 8},
       {"",0},
-#line 23 "logtags.gperf"
-      {"ftp.debug", 17},
+#line 26 "logtags.gperf"
+      {"ftp.reply", 20},
 #line 60 "logtags.gperf"
       {"msrpc.info", 54},
+#line 27 "logtags.gperf"
+      {"ftp.request", 21},
+      {"",0}, {"",0},
+#line 23 "logtags.gperf"
+      {"ftp.debug", 17},
+#line 45 "logtags.gperf"
+      {"ldap.debug", 39},
       {"",0},
 #line 83 "logtags.gperf"
       {"radius.error", 77},
@@ -394,22 +399,21 @@ LogTagHash::lookup (const char *str, size_t len)
       {"radius.policy", 78},
 #line 85 "logtags.gperf"
       {"radius.request", 79},
-#line 45 "logtags.gperf"
-      {"ldap.debug", 39},
-      {"",0},
+      {"",0}, {"",0},
 #line 82 "logtags.gperf"
       {"radius.debug", 76},
       {"",0}, {"",0},
-#line 7 "logtags.gperf"
-      {"core.accounting", 1},
-#line 28 "logtags.gperf"
-      {"ftp.session", 22},
-      {"",0}, {"",0}, {"",0},
 #line 69 "logtags.gperf"
       {"plug.debug", 63},
-      {"",0}, {"",0},
-#line 148 "logtags.gperf"
-      {"x11.violation", 142},
+#line 28 "logtags.gperf"
+      {"ftp.session", 22},
+      {"",0},
+#line 149 "logtags.gperf"
+      {"x11.violation", 143},
+      {"",0},
+#line 7 "logtags.gperf"
+      {"core.accounting", 1},
+      {"",0}, {"",0}, {"",0},
 #line 86 "logtags.gperf"
       {"radius.session", 80},
       {"",0},
@@ -418,14 +422,13 @@ LogTagHash::lookup (const char *str, size_t len)
       {"",0}, {"",0}, {"",0},
 #line 25 "logtags.gperf"
       {"ftp.policy", 19},
-      {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
-      {"",0},
+      {"",0}, {"",0}, {"",0},
 #line 32 "logtags.gperf"
       {"http.info", 26},
-      {"",0}, {"",0}, {"",0}, {"",0},
+      {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
+      {"",0}, {"",0},
 #line 8 "logtags.gperf"
       {"core.auth", 2},
-      {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
 #line 31 "logtags.gperf"
       {"http.debug", 25},
       {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
@@ -433,13 +436,15 @@ LogTagHash::lookup (const char *str, size_t len)
 #line 53 "logtags.gperf"
       {"lp.policy", 47},
       {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
-      {"",0}, {"",0}, {"",0}, {"",0},
+      {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
+      {"",0}, {"",0},
 #line 99 "logtags.gperf"
       {"satyr.error", 93},
       {"",0},
 #line 29 "logtags.gperf"
       {"ftp.violation", 23},
-      {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
+      {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
+      {"",0}, {"",0}, {"",0}, {"",0},
 #line 30 "logtags.gperf"
       {"http.accounting", 24},
       {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
@@ -450,7 +455,7 @@ LogTagHash::lookup (const char *str, size_t len)
       {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
       {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
       {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
-      {"",0}, {"",0}, {"",0}, {"",0}, {"",0}, {"",0},
+      {"",0},
 #line 51 "logtags.gperf"
       {"lp.debug", 45}
     };

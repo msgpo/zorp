@@ -29,7 +29,7 @@
       the connection.
         </para>
         <note><para>Earlier Zorp versions used different classes to handle TCP and
-        UDP connections (Listeners and Receivers, respectively).
+        UDP connections (Dispatchers, respectively).
          These classes have been merged into the Dispatcher module.</para></note>
          <para>For each accepted connection, the Dispatcher creates a new service
          instance to handle the traffic arriving in the connection. The service
@@ -764,10 +764,9 @@ class ZoneDispatcher(Dispatcher):
         if cached == 0:
             ## LOG ##
             # This message indicates that no applicable service was found for this client zone in the services cache.
-            # It is likely that there is no applicable service configured in this ZoneListener/Receiver at all.
-            # Check your ZoneListener/Receiver service configuration.
-            # @see: Listener.ZoneListener
-            # @see: Receiver.ZoneReceiver
+            # It is likely that there is no applicable service configured in this ZoneDispatcher at all.
+            # Check your ZoneDispatcher service configuration.
+            # @see: Dispatcher.ZoneDispatcher
             ##
             log(None, CORE_POLICY, 2, "No applicable service found for this client zone (cached); bindto='%s', client_zone='%s'", (self.bindto, client_zone))
         elif cached:
@@ -810,9 +809,8 @@ class ZoneDispatcher(Dispatcher):
         else:
             ## LOG ##
             # This message indicates that no applicable service was found for this client zone.
-            # Check your ZoneListener/Receiver service configuration.
-            # @see: Listener.ZoneListener
-            # @see: Receiver.ZoneReceiver
+            # Check your ZoneDispatcher service configuration.
+            # @see: Dispatcher.ZoneDispatcher
             ##
             log(None, CORE_POLICY, 2, "No applicable service found for this client zone; bindto='%s', client_zone='%s'", (self.bindto, client_zone))
 
@@ -963,10 +961,9 @@ class CSZoneDispatcher(Dispatcher):
         if cached == 0:
             ## LOG ##
             # This message indicates that no applicable service was found for this client zone in the services cache.
-            # It is likely that there is no applicable service configured in this CSZoneListener/Receiver at all.
-            # Check your CSZoneListener/Receiver service configuration.
-            # @see: Listener.CSZoneListener
-            # @see: Receiver.CSZoneReceiver
+            # It is likely that there is no applicable service configured in this CSZoneDispatcher at all.
+            # Check your CSZoneDispatcher service configuration.
+            # @see: Dispatcher.CSZoneDispatcher
             ##
             log(None, CORE_POLICY, 2, "No applicable service found for this client & server zone (cached); bindto='%s', client_zone='%s', server_zone='%s'", (self.bindto, client_zone, dest_zone))
         elif cached:
@@ -1023,9 +1020,8 @@ class CSZoneDispatcher(Dispatcher):
         else:
             ## LOG ##
             # This message indicates that no applicable service was found for this client zone.
-            # Check your CSZoneListener/Receiver service configuration.
-            # @see: Listener.CSZoneListener
-            # @see: Receiver.CSZoneReceiver
+            # Check your CSZoneDispatcher service configuration.
+            # @see: Dispatcher.CSZoneDispatcher
             ##
             log(None, CORE_POLICY, 2, "No applicable service found for this client & server zone; bindto='%s', client_zone='%s', server_zone='%s'", (self.bindto, client_zone, dest_zone))
 

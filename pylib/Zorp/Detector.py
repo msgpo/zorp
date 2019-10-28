@@ -38,9 +38,13 @@
 </module>
 """
 
+import enum
 import re
 from OpenSSL.crypto import FILETYPE_PEM, FILETYPE_ASN1, load_certificate, dump_certificate
 from Zorp import *
+from Common import TLS_ACCOUNTING
+from Exceptions import MatcherException
+from Matcher import getMatcher
 import struct
 import os
 
@@ -170,15 +174,21 @@ class AbstractDetector(object):
         """
         raise NotImplementedError
 
-class DetectResult(object):
+
+class DetectResultType(enum.IntEnum):
     """<class internal="yes"/>"""
     NOMATCH = 0
     MATCH = 1
     UNDECIDED = 2
     COPY_CLIENT = 3
+
+
+class DetectResult(object):
+    """<class internal="yes"/>"""
     def __init__(self, result, bytes_to_copy = 0):
         self.result = result
         self.bytes_to_copy = bytes_to_copy
+
 
 class HttpDetector(AbstractDetector):
     """
@@ -270,11 +280,11 @@ class HttpDetector(AbstractDetector):
         </method>
         """
 
-        if side == 0 and self._p.match(data):
+        if side == ZEndpoint.EP_CLIENT and self._p.match(data):
             log(None, CORE_DEBUG, 6, "HTTP protocol found;")
-            return DetectResult(DetectResult.MATCH)
+            return DetectResult(DetectResultType.MATCH)
 
-        return DetectResult(DetectResult.NOMATCH)
+        return DetectResult(DetectResultType.NOMATCH)
 
 class CertDetector(AbstractDetector):
     """
@@ -391,14 +401,14 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
     def detect(self, side, data):
         """<method internal="yes"/>"""
 
-        if side == 0:
+        if side == ZEndpoint.EP_CLIENT:
             log(None, CORE_DEBUG, 6, "CLIENT_SIDE - Starting search for Client Hello")
             return self._detect_client(data)
 
-        elif side == 1:
+        elif side == ZEndpoint.EP_SERVER:
             if not self._client_hello_sent:
                 log(None, CORE_DEBUG, 6, "SERVER_SIDE - Client Hello is not sent yet by the client")
-                return DetectResult(DetectResult.NOMATCH)
+                return DetectResult(DetectResultType.NOMATCH)
 
             log(None, CORE_DEBUG, 6, "SERVER_SIDE - Starting search for Certificate")
             return self._detect_server(data)
@@ -410,7 +420,7 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
         # NOTE: Implement fragmantation parsing
         if len(data) < self._client_detect_length:
             log(None, CORE_DEBUG, 6, "CLIENT_SIDE - data length is less than %s; len(data)='%d'" % (self._client_detect_length, len(data)))
-            return DetectResult(DetectResult.UNDECIDED)
+            return DetectResult(DetectResultType.UNDECIDED)
 
         index = data.find("".join([self._handshake, self._version_major]))
         if index != -1:
@@ -422,7 +432,7 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
             version_minor = data[index]
             if version_minor not in self._version_minor:
                 log(None, CORE_DEBUG, 6, "CLIENT_SIDE - version_minor not found")
-                return DetectResult(DetectResult.NOMATCH)
+                return DetectResult(DetectResultType.NOMATCH)
             index += 1
 
             record_length = struct.unpack("!i", chr(0) + chr(0) + data[index:index+2])[0]
@@ -430,7 +440,7 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
 
             if data[index] != self._client_hello_type:
                 log(None, CORE_DEBUG, 6, "CLIENT_SIDE - hello_type not found at %d: %x" % (index, ord(data[index])))
-                return DetectResult(DetectResult.NOMATCH)
+                return DetectResult(DetectResultType.NOMATCH)
             index += 1
 
             handshake_length = data[index:index+3]
@@ -438,27 +448,27 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
 
             if data[index] != self._version_major:
                 log(None, CORE_DEBUG, 6, "CLIENT_SIDE - version_major not found")
-                return DetectResult(DetectResult.NOMATCH)
+                return DetectResult(DetectResultType.NOMATCH)
             index += 1
 
             if data[index] not in self._version_minor:
                 log(None, CORE_DEBUG, 6, "CLIENT_SIDE - version_minor not found")
-                return DetectResult(DetectResult.NOMATCH)
+                return DetectResult(DetectResultType.NOMATCH)
 
             log(None, CORE_DEBUG, 6, "CLIENT_SIDE - Client Hello found. Requesting connection to the server")
             #Found Client Hello, request connection to the server
             self._client_hello_sent = True
             # record_length + handshake(1 byte) + version_major(1 byte) + version_minor(1 byte) + record_length(2 bytes)
-            return DetectResult(DetectResult.COPY_CLIENT, record_length + 5)
+            return DetectResult(DetectResultType.COPY_CLIENT, record_length + 5)
 
-        return DetectResult(DetectResult.NOMATCH)
+        return DetectResult(DetectResultType.NOMATCH)
 
     def _detect_server(self, data):
         """<method internal="yes"/>"""
         _certificate_list = []
         if len(data) < self._server_detect_length:
             log(None, CORE_DEBUG, 6, "SERVER_SIDE - data length is less than %s; len(data)='%d'", self._server_detect_length, len(data))
-            return DetectResult(DetectResult.UNDECIDED)
+            return DetectResult(DetectResultType.UNDECIDED)
 
         index = 0
         handshake_found = False
@@ -478,7 +488,7 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
             index += 2
             if (not fragments) and (len(data) < record_length + index):
                 log(None, CORE_DEBUG, 6, "SERVER_SIDE - data length is less than fragment length; len(data)='%d', fragment_lenth='%d'" % (len(data), record_length))
-                return DetectResult(DetectResult.UNDECIDED)
+                return DetectResult(DetectResultType.UNDECIDED)
             if (not fragments):
                 fragments = data[fragment_begin:fragment_begin+(index-fragment_begin)+record_length]
             else:
@@ -490,7 +500,7 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
         index = 5
         if fragments[index] != self._server_hello_type:
             log(None, CORE_DEBUG, 6, "SERVER_SIDE - Server Hello not found")
-            return DetectResult(DetectResult.NOMATCH)
+            return DetectResult(DetectResultType.NOMATCH)
         index += 1
         length = struct.unpack("!i", chr(0) + fragments[index:index+3])[0]
         index += 3
@@ -498,7 +508,7 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
 
         if fragments[index] != self._handshake_type:
             log(None, CORE_DEBUG, 6, "SERVER_SIDE - Certificate not found")
-            return DetectResult(DetectResult.NOMATCH)
+            return DetectResult(DetectResultType.NOMATCH)
         index += 1
 
         handshake_found = True
@@ -511,7 +521,7 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
 
             if len(fragments) < certificates_length + self._server_detect_length:
                 log(None, CORE_DEBUG, 6, "SERVER_SIDE - data length is less than certificate_length; certificates_length='%d', len(data)='%d'" % (certificates_length, len(fragments)))
-                return DetectResult(DetectResult.UNDECIDED)
+                return DetectResult(DetectResultType.UNDECIDED)
 
             while index < certificates_length:
                 #certificate_length = data[index:index+3]
@@ -531,10 +541,319 @@ HmbKzes13N/BN18XUlvTnjEaifQXvJj9ypqcMHUFPjkqwI1HSyb1iRth
             for cert in _certificate_list:
                 if cert.strip() == self._cert.strip():
                     log(None, CORE_DEBUG, 6, "SERVER_SIDE - Certificate match!")
-                    return DetectResult(DetectResult.MATCH)
+                    return DetectResult(DetectResultType.MATCH)
 
             log(None, CORE_DEBUG, 6, "SERVER_SIDE - Certificate did not match!")
-            return DetectResult(DetectResult.NOMATCH)
+            return DetectResult(DetectResultType.NOMATCH)
+
+
+class TlsContentType(enum.IntEnum):
+    """<class internal="yes"/>"""
+    HANDSHAKE = 0x16
+
+
+class TlsHandshakeType(enum.IntEnum):
+    """<class internal="yes"/>"""
+    CLIENT_HELLO = 0x01
+    SERVER_HELLO = 0x02
+
+
+class TlsVersion(enum.IntEnum):
+    """<class internal="yes"/>"""
+    TLS1_0 = 0x0301
+    TLS1_1 = 0x0302
+    TLS1_2 = 0x0303
+    TLS1_3 = 0x0304
+
+
+class TlsExtensionType(enum.IntEnum):
+    """<class internal="yes"/>"""
+    SERVER_NAME = 0x00
+
+
+class TlsExtensionServerNameType(enum.IntEnum):
+    """<class internal="yes"/>"""
+    SERVER_NAME = 0x00
+
+
+class TlsDetector(AbstractDetector):
+    """<class internal="yes" abstract="no">
+      <summary>
+        Class for TLS detection.
+      </summary>
+    </class>
+    """
+
+    _TLS_VERSION_SIZE = 2
+
+    _TLS_RECORD_LEN = 5
+    _TLS_RECORD_CONTENT_TYPE_SIZE = 1
+    _TLS_RECORD_LENGTH_SIZE = 2
+
+    _TLS_HANDSHAKE_TYPE_SIZE = 1
+    _TLS_HANDSHAKE_LENGTH_SIZE = 3
+    _TLS_HANDSHAKE_HELLO_SESSION_ID_LENGTH_SIZE = 1
+    _TLS_HANDSHAKE_HELLO_RANDOM_SIZE = 32
+    _TLS_HANDSHAKE_EXTENSIONS_LENGTH_SIZE = 2
+
+    _TLS_HANDSHAKE_CLIENT_HELLO_CIPHER_SUITES_LENGTH_SIZE = 2
+    _TLS_HANDSHAKE_CLIENT_HELLO_COMPRSESSION_METHODS_LENGTH_SIZE = 1
+
+    _TLS_EXTENSION_TYPE_SIZE = 2
+    _TLS_EXTENSION_LENGTH_SIZE = 2
+
+    _TLS_EXTENSION_SERVER_NAME_LIST_LENGTH_SIZE = 2
+    _TLS_EXTENSION_SERVER_NAME_TYPE_SIZE = 1
+    _TLS_EXTENSION_SERVER_NAME_LENGTH_SIZE = 2
+
+    @staticmethod
+    def _raise_if_not_enough_data(data, offset, size, exception=ValueError):
+        if len(data) < size + offset:
+            raise exception({'error':'not enough data', 'expected_bytes': size + offset, 'available_bytes': len(data)})
+
+    @staticmethod
+    def _parse_numeric(data, offset, size, exception=ValueError):
+        prefix = b''
+
+        if size == 1:
+            fmt = '!B'
+        elif size == 2:
+            fmt = '!H'
+        elif size == 3:
+            fmt = '!I'
+            prefix = b'\x00'
+        else:
+            raise NotImplementedError()  # pragma: no cover
+
+        TlsDetector._raise_if_not_enough_data(data, offset, size, exception)
+
+        return struct.unpack(fmt, prefix + data[offset:offset + size])[0], offset + size
+
+    @staticmethod
+    def _parse_tls_version(data, offset):
+        tls_version, offset = TlsDetector._parse_numeric(data, offset, TlsDetector._TLS_VERSION_SIZE)
+        if tls_version not in list(TlsVersion):
+            raise ValueError({'error': 'TLS version cannot be parsed', 'value': tls_version})
+
+        return tls_version, offset
+
+    def _parse_tls_record(self, data):
+        offset = 0
+
+        tls_content_type, offset = self._parse_numeric(data, offset, self._TLS_RECORD_CONTENT_TYPE_SIZE, IndexError)
+        if tls_content_type != TlsContentType.HANDSHAKE:
+            raise ValueError({'error': 'TLS content type is not HANDSHAKE', 'value': tls_content_type})
+
+        _, offset = self._parse_tls_version(data, offset)
+
+        record_length, offset = self._parse_numeric(data, offset, self._TLS_RECORD_LENGTH_SIZE, IndexError)
+        self._raise_if_not_enough_data(data, offset, record_length, IndexError)
+
+        return data[offset:offset + record_length]
+
+    def _parse_tls_handshake_header(self, data, offset, handshake_type):
+        tls_handshake_type, offset = self._parse_numeric(data, offset, self._TLS_HANDSHAKE_TYPE_SIZE)
+        if tls_handshake_type != handshake_type:
+            raise ValueError({
+                'error': 'TLS handshake type is not {}'.format(handshake_type.name),
+                'value': tls_handshake_type,
+            })
+
+        message_length, offset = self._parse_numeric(data, offset, self._TLS_HANDSHAKE_LENGTH_SIZE)
+        self._raise_if_not_enough_data(data, offset, message_length)
+
+        return offset
+
+    def _parse_tls_handshake_hello_header(self, data, offset):
+        _, offset = self._parse_tls_version(data, offset)
+        offset += self._TLS_HANDSHAKE_HELLO_RANDOM_SIZE
+
+        session_id_length, offset = self._parse_numeric(data, offset, self._TLS_HANDSHAKE_HELLO_SESSION_ID_LENGTH_SIZE)
+        self._raise_if_not_enough_data(data, offset, session_id_length)
+
+        return offset
+
+    def _parse_tls_handshake_client_hello(self, data, offset):
+        cipher_suites_length, offset = self._parse_numeric(
+            data, offset,
+            self._TLS_HANDSHAKE_CLIENT_HELLO_CIPHER_SUITES_LENGTH_SIZE
+        )
+        self._raise_if_not_enough_data(data, offset, cipher_suites_length)
+        offset += cipher_suites_length
+
+        compression_methods_length, offset = self._parse_numeric(
+            data, offset,
+            self._TLS_HANDSHAKE_CLIENT_HELLO_COMPRSESSION_METHODS_LENGTH_SIZE
+        )
+        self._raise_if_not_enough_data(data, offset, compression_methods_length)
+        offset += compression_methods_length
+
+        return offset
+
+    def _parse_tls_handshake_extension(self, data, offset):
+        extension_type, offset = self._parse_numeric(data, offset, self._TLS_EXTENSION_TYPE_SIZE)
+
+        extension_length, offset = self._parse_numeric(
+            data, offset,
+            self._TLS_EXTENSION_LENGTH_SIZE
+        )
+        self._raise_if_not_enough_data(data, offset, extension_length)
+
+        extension_data = data[offset:offset + extension_length]
+        offset += extension_length
+
+        return extension_type, extension_data, offset
+
+    def _parse_tls_handshake_extensions(self, data, offset):
+        extensions_length, offset = self._parse_numeric(
+            data, offset,
+            self._TLS_HANDSHAKE_EXTENSIONS_LENGTH_SIZE
+        )
+        self._raise_if_not_enough_data(data, offset, extensions_length)
+
+        extensions = {}
+        while offset < len(data):
+            extension_type, extension_data, offset = self._parse_tls_handshake_extension(data, offset)
+            extensions[extension_type] = extension_data
+
+        return extensions, offset
+
+    @staticmethod
+    def _log_exception(message, e):
+        description = ', '.join(["{}='{}'".format(key, value) for key, value in e.args[0].iteritems()])
+        log(None, CORE_DEBUG, 6, "{}; {}".format(message, description))
+
+
+class SniDetector(TlsDetector):
+    """
+    <class maturity="stable">
+      <summary>
+        Class encapsulating a Detector that determines whether a client
+        targets a specific host in a SSL/TLS-encrypted connection.
+      </summary>
+      <description>
+        <para>
+          Class encapsulating a Detector that determines whether a client
+          targets a specific host in a SSL/TLS-encrypted connection and
+          rejects any other protocols and hostnames.
+        </para>
+        <example>
+          <title>SNIDetector example</title>
+          <para>The following example defines a DetectorPolicy that detects
+          if the traffic is SSL/TLS-encrypted, and uses targets the host
+          www.example.com.</para>
+          <synopsis>
+          DetectorPolicy(name="MySniDetector", detector=SniDetector(RegexpMatcher(match_list=("www.example.com",))))
+          </synopsis>
+        </example>
+      </description>
+      <metainfo>
+        <attributes>
+          <attribute maturity="stable">
+            <name>server_name_matcher</name>
+            <type>
+              <class filter="matcherpolicy" existing="yes"/>
+            </type>
+            <description>Matcher class (e.g.: RegexpMatcher) used to
+            check and filter hostnames in Server Name Indication TLS
+            extension, for example,
+            <parameter>DetectorPolicy(name="MySniDetector", detector=SniDetector(RegexpMatcher(match_list=("www.example.com",))))
+            </description>
+          </attribute>
+       </attributes>
+      </metainfo>
+    </class>
+    """
+
+    def __init__(self, server_name_matcher):
+        """
+        <method maturity="stable">
+          <summary>
+            Constructor to initialize a SNIDetector instance.
+          </summary>
+          <description>
+            <para>
+              This constructor initializes a SNIDetector instance
+            </para>
+          </description>
+          <metainfo>
+            <arguments>
+              <argument maturity="stable">
+                <name>server_name_matcher</name>
+                <type>
+                  <class filter="matcherpolicy" existing="yes"/>
+                </type>
+                <description>Matcher class (e.g.: RegexpMatcher) used to
+                check and filter hostnames in Server Name Indication TLS
+                extension.
+                </description>
+              </argument>
+            </arguments>
+          </metainfo>
+        </method>
+        """
+        super(SniDetector, self).__init__()
+
+        self.server_name_matcher = getMatcher(server_name_matcher)
+
+    def _parse_tls_handshake_extension_server_name(self, data):
+        offset = 0
+
+        server_name_list_length, offset = self._parse_numeric(
+            data, offset,
+            self._TLS_EXTENSION_SERVER_NAME_LIST_LENGTH_SIZE
+        )
+        self._raise_if_not_enough_data(data, offset, server_name_list_length)
+
+        while offset < len(data):
+            hostname_type, offset = self._parse_numeric(data, offset, self._TLS_EXTENSION_SERVER_NAME_TYPE_SIZE)
+            hostname_length, offset = self._parse_numeric(data, offset, self._TLS_EXTENSION_SERVER_NAME_LENGTH_SIZE)
+            hostname = data[offset:offset + hostname_length]
+            offset += hostname_length
+            if hostname_type == TlsExtensionServerNameType.SERVER_NAME:
+                return hostname.decode('idna')
+
+        raise NotImplementedError({'error': 'unknown server name type'})  # pragma: no cover
+
+    def detect(self, side, data):
+        """<method internal="yes"/>"""
+        if side != ZEndpoint.EP_CLIENT:
+            return DetectResult(DetectResultType.NOMATCH)
+        if not self.server_name_matcher:
+            return DetectResult(DetectResultType.NOMATCH)
+
+        try:
+            data = self._parse_tls_record(data)
+            offset = self._parse_tls_handshake_header(data, 0, TlsHandshakeType.CLIENT_HELLO)
+            offset = self._parse_tls_handshake_hello_header(data, offset)
+            offset = self._parse_tls_handshake_client_hello(data, offset)
+            extensions, offset = self._parse_tls_handshake_extensions(data, offset)
+        except IndexError as e:
+            self._log_exception("Not enough data for parsing TLS client hello message", e)
+            return DetectResult(DetectResultType.UNDECIDED)
+        except ValueError as e:
+            self._log_exception("TLS client hello message cannot be parsed", e)
+            return DetectResult(DetectResultType.NOMATCH)
+
+        if TlsExtensionType.SERVER_NAME not in extensions:
+            log(None, TLS_ACCOUNTING, 4, "Client initiated connection without Server Name Indication (SNI);")
+            return DetectResult(DetectResultType.NOMATCH)
+
+        try:
+            server_name = self._parse_tls_handshake_extension_server_name(extensions[TlsExtensionType.SERVER_NAME])
+            log(None, TLS_ACCOUNTING, 4, "Client initiated connection with Server Name Indication (SNI); value='{}'".format(server_name))
+        except NotImplementedError:  # pragma: no cover
+            self._log_exception("TLS client hello message cannot be parsed", e)
+            return DetectResult(DetectResultType.NOMATCH)
+
+        try:
+            if not self.server_name_matcher.checkMatch(server_name):
+                return DetectResult(DetectResultType.NOMATCH)
+        except MatcherException:
+            return DetectResult(DetectResultType.NOMATCH)
+
+        return DetectResult(DetectResultType.MATCH)
+
 
 class SshDetector(AbstractDetector):
     """
@@ -561,6 +880,9 @@ class SshDetector(AbstractDetector):
     </class>
     """
 
+    _SSH_VERSION_EXCHANGE_REGEX = re.compile(r"SSH-2.0-[\x21-\x2C\x2E-\x7E]+( [\x20-\x7E]*)?\r\n")
+    _SSH_VERSION_EXCHANGE_COMPATIBILITY_REGEX = re.compile(r"SSH-1.99-[\x21-\x2C\x2E-\x7E]+( [\x20-\x7E]*)?\r?\n")
+
     def __init__(self):
         """<method internal="yes"/>"""
         super(SshDetector, self).__init__()
@@ -568,9 +890,11 @@ class SshDetector(AbstractDetector):
 
     def detect(self, side, data):
         """<method internal="yes"/>"""
-        if side == 1 and "SSH-2.0" == data[:7]:
+
+        if (len(data) <= 255 and (self._SSH_VERSION_EXCHANGE_REGEX.match(data) or
+                self._SSH_VERSION_EXCHANGE_COMPATIBILITY_REGEX.match(data))):
+
             log(None, CORE_DEBUG, 6, "SSH protocol found;")
-            return DetectResult(DetectResult.MATCH)
+            return DetectResult(DetectResultType.MATCH)
 
-        return DetectResult(DetectResult.NOMATCH)
-
+        return DetectResult(DetectResultType.NOMATCH)

@@ -200,6 +200,7 @@ firewall_name = "zorp" # obsolete, not used anymore
 
 import traceback
 import sys
+import enum
 import errno
 import socket
 import Config
@@ -216,6 +217,13 @@ CORE_MESSAGE = Common.CORE_MESSAGE
 CORE_AUTH = Common.CORE_AUTH
 CORE_INFO = Common.CORE_INFO
 CORE_SUMMARY = Common.CORE_SUMMARY
+
+
+@enum.unique
+class ZEndpoint(enum.IntEnum):
+    EP_CLIENT = 0
+    EP_SERVER = 1
+
 
 # return values returned by event handlers
 ZV_UNSPEC         = 0

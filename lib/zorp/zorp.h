@@ -30,7 +30,10 @@
 #undef _POSIX_C_SOURCE
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wregister"
 #include <Python.h>
+#pragma GCC diagnostic pop
 #include <zorpll/zorplibconfig.h>
 #include <glib.h>
 #include <zorpll/misc.h>

@@ -125,6 +125,7 @@ tftp.error
 tftp.policy
 tftp.request
 tftp.violation
+tls.accounting
 vnc.debug
 vnc.error
 vnc.info

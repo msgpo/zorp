@@ -37,6 +37,9 @@ CORE_AUTH = "core.auth"
 CORE_INFO = "core.info"
 CORE_SUMMARY = "core.summary"
 
+TLS_ACCOUNTING = "tls.accounting"
+
+
 class Singleton(type):
     _instances = {}
     def __call__(cls, *args, **kwargs):

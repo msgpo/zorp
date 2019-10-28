@@ -191,7 +191,7 @@ class Zone(BaseZone):
 
         super(Zone, self).__init__(name, addrs, hostnames, admin_parent)
 
-        zone = reduce(lambda res, subnet: res or self.zone_subnet_tree.search_exact(packed=subnet.addr_packed()), self.subnets, None)
+        zone = reduce(lambda res, subnet: res or self.zone_subnet_tree.search_exact(packed=subnet.addr_packed(), masklen=subnet.netmask_bits()), self.subnets, None)
         if zone:
             raise ZoneException, "Zone with duplicate IP range; zone=%s" % zone.data["zone"]
         for subnet in self.subnets:

@@ -497,7 +497,8 @@ z_policy_dispatch_new_instance(PyObject * /* o */, PyObject *args)
 
   if (current_policy == NULL)
     {
-      PyErr_SetString(PyExc_RuntimeError, "Parsing phase has not completed yet, Listener & Receiver must be defined in the instance init() function.");
+      PyErr_SetString(PyExc_RuntimeError,
+                      "Parsing phase has not completed yet, Dispatcher must be defined in the instance init() function.");
       return NULL;
     }
 
@@ -565,7 +566,7 @@ z_policy_dispatch_new_instance(PyObject * /* o */, PyObject *args)
     goto error_exit;
 
   /*LOG
-    This message indicates that a Listener on the given local address is
+    This message indicates that a Dispatcher on the given local address is
     started.
    */
   z_log(session_id, CORE_DEBUG, 7, "Dispatcher on address; local='%s', prio='%d'",
